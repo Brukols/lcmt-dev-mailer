@@ -1,0 +1,7 @@
+# Dependencies, restored with `yarn install`.
+node_modules/
+
+# Build output stays tracked: WordPress installs the plugin by copying it,
+# there is no build step on the server.
+
+.DS_Store

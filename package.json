@@ -1,0 +1,16 @@
+{
+  "name": "lcmt-dev-mailer",
+  "version": "2.0.1",
+  "private": true,
+  "scripts": {
+    "build": "esbuild assets/src/*.js --bundle --minify --target=es2018 --outdir=assets/dist",
+    "watch": "esbuild assets/src/*.js --bundle --minify --target=es2018 --outdir=assets/dist --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  },
+  "dependencies": {
+    "altcha": "^2.3.0",
+    "node-snackbar": "^0.1.16"
+  }
+}

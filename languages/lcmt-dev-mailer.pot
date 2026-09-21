@@ -1,0 +1,362 @@
+# LCMT Dev Mailer - Translation Template
+# Copyright (C) 2026 Amaury Lecomte
+# This file is distributed under the same license as the LCMT Dev Mailer plugin.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: LCMT Dev Mailer 2.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-04-05 00:00+0000\n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: includes/post-type.php
+msgid "Mails"
+msgstr ""
+
+#: includes/post-type.php
+msgid "Mail"
+msgstr ""
+
+#: includes/post-type.php
+msgid "Add New"
+msgstr ""
+
+#: includes/post-type.php
+msgid "Add New Mail"
+msgstr ""
+
+#: includes/post-type.php
+msgid "Edit Mail"
+msgstr ""
+
+#: includes/post-type.php
+msgid "New Mail"
+msgstr ""
+
+#: includes/post-type.php
+msgid "View Mail"
+msgstr ""
+
+#: includes/post-type.php
+msgid "Search Mails"
+msgstr ""
+
+#: includes/post-type.php
+msgid "No mails found"
+msgstr ""
+
+#: includes/post-type.php
+msgid "No mails found in trash"
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "Mail Fields"
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "Key"
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "Unique identifier in kebab-case (e.g. contact, reset-password). Used for the shortcode, REST endpoint and form file."
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "To"
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "Reply-To"
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "Optional. Supports placeholders (e.g. [email* email] to reply to the form sender)."
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "Subject"
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "Content"
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "Placeholder syntax reference"
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "Syntax"
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "Result"
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "Optional field, type text"
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "Required field, type text"
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "Optional field with explicit type"
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "Required field with explicit type"
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "Available types:"
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "Type"
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "HTML output"
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "Example content:"
+msgstr ""
+
+#: includes/meta-fields.php
+msgid "Built-in placeholders (always available): [currentUserLink], [currentUserEmail]"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Actions & Usage"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Language:"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Shortcode:"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Form fields:"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "name=\"\""
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Use these as name=\"\" attributes on your form inputs."
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Form file:"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "missing"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Generate form template"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Save the post with a key to see usage info."
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Test email:"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Test values:"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Send Test Email"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Please enter a recipient email."
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Please enter a valid email."
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Sending..."
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Connection error"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Generating..."
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "This will create the form template file. Continue?"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Security check failed"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Insufficient permissions"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Email recipient is required"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Invalid JSON in placeholders"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Invalid mail post"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "No key found for this mail post"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Could not build email for key: "
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Email sent successfully to "
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Failed to send email"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Error: "
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "File already exists: forms/"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "No fields found in the mail content. Add placeholders like [firstname*] first."
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Could not write file. Check directory permissions."
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Template created: forms/"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Submit"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Form file"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Actions"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Manage"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "Tip:"
+msgstr ""
+
+#: includes/admin-mail-sender.php
+msgid "You can send test emails directly from the edit page using the \"Actions & Usage\" panel on the right."
+msgstr ""
+
+#: includes/form-endpoint.php
+msgid "Unknown form."
+msgstr ""
+
+#: includes/form-endpoint.php
+#, php-format
+msgid "The field \"%s\" is required."
+msgstr ""
+
+#: includes/form-endpoint.php
+msgid "Some fields are invalid or missing. Please check and try again."
+msgstr ""
+
+#: includes/form-endpoint.php
+msgid "Failed to send email."
+msgstr ""
+
+#: includes/form-endpoint.php
+msgid "Email sent successfully."
+msgstr ""
+
+#: includes/form-renderer.php
+msgid "Please fill in all required fields."
+msgstr ""
+
+#: includes/form-renderer.php
+msgid "An error occurred."
+msgstr ""
+
+#: includes/settings.php
+msgid "Mailer Settings"
+msgstr ""
+
+#: includes/settings.php
+msgid "Settings"
+msgstr ""
+
+#: includes/settings.php
+msgid "Email logo"
+msgstr ""
+
+#: includes/settings.php
+msgid "Select image"
+msgstr ""
+
+#: includes/settings.php
+msgid "Remove"
+msgstr ""
+
+#: includes/settings.php
+msgid "This logo appears at the top of all emails sent by the plugin."
+msgstr ""
+
+#: includes/settings.php
+msgid "Select email logo"
+msgstr ""
+
+#: includes/settings.php
+msgid "Use this image"
+msgstr ""
+
+#: includes/form-renderer.php
+msgid "Security verification in progress. Please try again."
+msgstr ""
+
+#: includes/form-endpoint.php
+msgid "Security verification failed. Please try again."
+msgstr ""

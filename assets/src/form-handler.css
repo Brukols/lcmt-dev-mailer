@@ -1,0 +1,58 @@
+/* ── Form wrapper (needs relative for loader positioning) ── */
+[data-lcmt-endpoint] {
+  position: relative;
+}
+
+/* ── LCMT Loader overlay ── */
+.lcmt-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.7);
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.lcmt-loader--active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.lcmt-loader__spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid #ddd;
+  border-top-color: #333;
+  border-radius: 50%;
+  animation: lcmt-spin 0.6s linear infinite;
+}
+
+@keyframes lcmt-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Error states (aria-invalid) ── */
+input[aria-invalid="true"],
+textarea[aria-invalid="true"],
+select[aria-invalid="true"] {
+  border-color: #e53e3e !important;
+  color: #e53e3e !important;
+}
+
+input[aria-invalid="true"]::placeholder,
+textarea[aria-invalid="true"]::placeholder {
+  color: #e53e3e !important;
+}
+
+label[aria-invalid="true"] {
+  color: #e53e3e !important;
+}
+
+/* ── Snackbar override ── */
+.lcmt-snackbar.snackbar-container p {
+  font-size: 16px !important;
+}
