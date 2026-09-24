@@ -349,6 +349,69 @@ msgid "Mailer Settings"
 msgstr "Paramètres du mailer"
 
 #: includes/settings.php
+msgid "Sender address"
+msgstr "Adresse d'expédition"
+
+#: includes/settings.php
+#. translators: %s: the default sender address, e.g. no-reply@example.com
+#, php-format
+msgid "The From address of every email the plugin sends. Leave empty to use %s, which follows the site host across environments."
+msgstr "L'adresse d'expédition (From) de tous les emails envoyés par le plugin. Laissez vide pour utiliser %s, qui suit le domaine du site selon l'environnement."
+
+#: includes/settings.php
+msgid "Use an address on a domain this site is allowed to send for. An address on a domain you do not control (a Gmail or Outlook mailbox, for instance) fails SPF and DKIM checks, and the messages are dropped as spoofing."
+msgstr "Utilisez une adresse sur un domaine depuis lequel ce site a le droit d'envoyer. Une adresse sur un domaine que vous ne contrôlez pas (une boîte Gmail ou Outlook, par exemple) échoue aux contrôles SPF et DKIM, et les messages sont rejetés comme usurpation."
+
+#: includes/settings.php
+msgid "Success message"
+msgstr "Message de confirmation"
+
+#: includes/settings.php
+msgid "Shown to the visitor after a successful submission. Leave empty to use the default."
+msgstr "Affiché au visiteur après un envoi réussi. Laissez vide pour utiliser le message par défaut."
+
+#: includes/settings.php
+msgid "Success color"
+msgstr "Couleur de confirmation"
+
+#: includes/settings.php
+msgid "Background of the confirmation alert."
+msgstr "Fond de l'alerte de confirmation."
+
+#: includes/settings.php
+msgid "Success text color"
+msgstr "Couleur du texte de confirmation"
+
+#: includes/settings.php
+msgid "Leave empty to pick automatically whichever of black or white reads best on the background."
+msgstr "Laissez vide pour choisir automatiquement le noir ou le blanc, selon ce qui se lit le mieux sur le fond."
+
+#: includes/settings.php
+msgid "Error color"
+msgstr "Couleur d'erreur"
+
+#: includes/settings.php
+msgid "Error text color"
+msgstr "Couleur du texte d'erreur"
+
+#: includes/settings.php
+msgid "Leave empty to pick automatically."
+msgstr "Laissez vide pour un choix automatique."
+
+#: includes/settings.php
+msgid "Preview"
+msgstr "Aperçu"
+
+#: includes/settings.php
+msgid "WCAG 1.4.3 asks for at least 4.5:1 between the text and its background."
+msgstr "Le critère WCAG 1.4.3 demande un contraste d'au moins 4,5:1 entre le texte et son fond."
+
+#: lcmt-dev-mailer.php
+#. Description of the plugin
+msgid "Developer-oriented mail engine. Create mail templates in WP admin, auto-generates REST endpoints, form rendering, validation and TypeScript types."
+msgstr "Moteur d'emails pour développeurs. Créez des modèles d'emails dans l'admin WordPress ; le plugin génère les endpoints REST, le rendu des formulaires, la validation et les types TypeScript."
+
+#: includes/settings.php
 msgid "Settings"
 msgstr "Paramètres"
 
