@@ -100,6 +100,7 @@ class Mailer
         $parsedFields = FieldParser::parse($to, $replyTo, $subject, $content);
 
         foreach ($placeholders as $k => $v) {
+            $v    = is_scalar($v) ? (string) $v : '';
             $bare = trim($k, '[]* ');
             $normalized['[' . $bare . ']']  = $v;
             $normalized['[' . $bare . '*]'] = $v;
@@ -112,11 +113,18 @@ class Mailer
             }
         }
 
-        // Replace placeholders in "to" and "reply-to" (may contain [email*] etc.)
-        foreach ($normalized as $k => $v) {
-            $to = str_replace($k, $v, $to);
-            $replyTo = str_replace($k, $v, $replyTo);
-        }
+        // Replace placeholders in "to" and "reply-to" (may contain [email*] etc.).
+        // Only a single valid address may land there: a value like
+        // "a@x.com, b@y.com" would otherwise add recipients of its own.
+        $addresses = array_map(
+            static fn(string $v) => is_email($v) ? $v : '',
+            $normalized
+        );
+
+        // strtr replaces in one pass, so a submitted value that contains
+        // another placeholder is never expanded in turn.
+        $to      = strtr($to, $addresses);
+        $replyTo = strtr($replyTo, $addresses);
 
         // Detect recipient language and load translation if available
         $translated = self::maybeTranslateForRecipient($to, $post->ID, $forcedLanguage, $subject, $content);
@@ -125,10 +133,8 @@ class Mailer
         $content = $translated['content'];
 
         // Replace placeholders in subject and content
-        foreach ($normalized as $k => $v) {
-            $subject = str_replace($k, $v, $subject);
-            $content = str_replace($k, $v, $content);
-        }
+        $subject = strtr($subject, $normalized);
+        $content = strtr($content, $normalized);
 
         // Convert newlines to HTML paragraphs for email rendering
         $content = wpautop($content);

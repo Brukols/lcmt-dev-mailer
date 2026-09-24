@@ -30,11 +30,16 @@ class FormEndpoint
         }
 
         $to      = MetaFields::get($post->ID, 'to');
+        $replyTo = MetaFields::get($post->ID, 'reply_to');
         $subject = MetaFields::get($post->ID, 'subject');
         $content = MetaFields::get($post->ID, 'content');
 
         // Parse fields schema from all mail fields
-        $fields = FieldParser::parse($to, $subject, $content);
+        $fields = FieldParser::parse($to, $replyTo, $subject, $content);
+
+        // A field that fills a recipient header must hold one valid address,
+        // whatever type its placeholder declares.
+        $addressFields = FieldParser::parse($to, $replyTo);
 
         // Validate ALTCHA if enabled
         $body = $request->get_json_params();
@@ -55,14 +60,23 @@ class FormEndpoint
         $placeholders = [];
 
         foreach ($fields as $field) {
-            $value = isset($body[$field['name']]) ? sanitize_text_field($body[$field['name']]) : '';
+            $value = self::sanitizeValue($body[$field['name']] ?? '', $field['type']);
 
-            if ($field['required'] && empty($value)) {
-                $errors[] = sprintf(
-                    __('The field "%s" is required.', 'lcmt-dev-mailer'),
-                    $field['name']
-                );
-                continue;
+            if ($value === '') {
+                if ($field['required']) {
+                    $errors[] = sprintf(
+                        __('The field "%s" is required.', 'lcmt-dev-mailer'),
+                        $field['name']
+                    );
+                }
+            } else {
+                $type  = isset($addressFields[$field['name']]) ? 'email' : $field['type'];
+                $error = self::validateValue($value, $type, $field['name']);
+
+                if ($error) {
+                    $errors[] = $error;
+                    continue;
+                }
             }
 
             $placeholders['[' . $field['name'] . ']']  = $value;
@@ -108,5 +122,55 @@ class FormEndpoint
             'success' => true,
             'message' => Settings::getSuccessMessage(),
         ], 200);
+    }
+
+    /**
+     * Turn a submitted value into plain text, keeping line breaks for textareas.
+     *
+     * @param mixed $raw
+     */
+    private static function sanitizeValue($raw, string $type): string
+    {
+        if (!is_scalar($raw)) {
+            return '';
+        }
+
+        $value = $type === 'textarea'
+            ? sanitize_textarea_field((string) $raw)
+            : sanitize_text_field((string) $raw);
+
+        return trim($value);
+    }
+
+    /**
+     * Check a non-empty value against its field type.
+     *
+     * @return string|null The error message, or null when the value is valid.
+     */
+    private static function validateValue(string $value, string $type, string $name): ?string
+    {
+        $valid = match ($type) {
+            'email'  => is_email($value) !== false,
+            'number' => is_numeric($value),
+            'url'    => filter_var($value, FILTER_VALIDATE_URL) !== false
+                && in_array(strtolower((string) parse_url($value, PHP_URL_SCHEME)), ['http', 'https'], true),
+            'tel'    => (bool) preg_match('/^\+?[0-9\s().-]{4,}$/', $value),
+            default  => true,
+        };
+
+        if ($valid) {
+            return null;
+        }
+
+        return match ($type) {
+            /* translators: %s: the field name */
+            'email'  => sprintf(__('The field "%s" must be a valid email address.', 'lcmt-dev-mailer'), $name),
+            /* translators: %s: the field name */
+            'number' => sprintf(__('The field "%s" must be a number.', 'lcmt-dev-mailer'), $name),
+            /* translators: %s: the field name */
+            'url'    => sprintf(__('The field "%s" must be a valid URL.', 'lcmt-dev-mailer'), $name),
+            /* translators: %s: the field name */
+            default  => sprintf(__('The field "%s" must be a valid phone number.', 'lcmt-dev-mailer'), $name),
+        };
     }
 }

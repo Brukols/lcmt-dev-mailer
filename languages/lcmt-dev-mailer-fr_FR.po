@@ -301,6 +301,30 @@ msgid "The field \"%s\" is required."
 msgstr "Le champ \"%s\" est obligatoire."
 
 #: includes/form-endpoint.php
+#. translators: %s: the field name
+#, php-format
+msgid "The field \"%s\" must be a valid email address."
+msgstr "Le champ \"%s\" doit contenir une adresse email valide."
+
+#: includes/form-endpoint.php
+#. translators: %s: the field name
+#, php-format
+msgid "The field \"%s\" must be a number."
+msgstr "Le champ \"%s\" doit contenir un nombre."
+
+#: includes/form-endpoint.php
+#. translators: %s: the field name
+#, php-format
+msgid "The field \"%s\" must be a valid URL."
+msgstr "Le champ \"%s\" doit contenir une URL valide."
+
+#: includes/form-endpoint.php
+#. translators: %s: the field name
+#, php-format
+msgid "The field \"%s\" must be a valid phone number."
+msgstr "Le champ \"%s\" doit contenir un numéro de téléphone valide."
+
+#: includes/form-endpoint.php
 msgid "Some fields are invalid or missing. Please check and try again."
 msgstr "Certains champs sont invalides ou manquants. Veuillez vérifier et réessayer."
 
