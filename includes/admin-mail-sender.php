@@ -184,7 +184,7 @@ class AdminMailSender
             wp_send_json_error(__('Security check failed', 'lcmt-dev-mailer'));
         }
 
-        if (!current_user_can('edit_posts')) {
+        if (!current_user_can('manage_options')) {
             wp_send_json_error(__('Insufficient permissions', 'lcmt-dev-mailer'));
         }
 
@@ -258,7 +258,7 @@ class AdminMailSender
             wp_send_json_error(__('Security check failed', 'lcmt-dev-mailer'));
         }
 
-        if (!current_user_can('edit_posts')) {
+        if (!current_user_can('manage_options')) {
             wp_send_json_error(__('Insufficient permissions', 'lcmt-dev-mailer'));
         }
 

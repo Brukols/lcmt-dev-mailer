@@ -41,6 +41,28 @@ class PostType
             'menu_icon'           => 'dashicons-email-alt2',
             'supports'            => ['title', 'page-attributes'],
             'rewrite'             => false,
+            'capabilities'        => self::adminOnlyCapabilities(),
+            'map_meta_cap'        => false,
         ]);
+    }
+
+    /**
+     * Map every post type capability to manage_options.
+     *
+     * A mail decides where form submissions go and sends from the site's
+     * domain, so only administrators may create, edit or delete one.
+     *
+     * @return array<string, string>
+     */
+    private static function adminOnlyCapabilities(): array
+    {
+        $capabilities = [
+            'edit_post', 'read_post', 'delete_post',
+            'edit_posts', 'edit_others_posts', 'edit_private_posts', 'edit_published_posts',
+            'publish_posts', 'read_private_posts', 'create_posts',
+            'delete_posts', 'delete_private_posts', 'delete_published_posts', 'delete_others_posts',
+        ];
+
+        return array_fill_keys($capabilities, 'manage_options');
     }
 }
