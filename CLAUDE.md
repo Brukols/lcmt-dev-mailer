@@ -11,6 +11,7 @@ Developer-oriented WordPress plugin for managing email templates with auto-gener
 - **JS source:** `assets/src/` — **JS dist:** `assets/dist/`
 - **Theme override dir:** `{theme}/lcmt-dev-mailer/`
 - **Theme form files:** `{theme}/forms/{key}.php`
+- **Release:** bump header + package.json version, tag `vX.Y.Z` and push — see [Build](.claude/build.md#releasing)
 
 ## Detailed instructions
 

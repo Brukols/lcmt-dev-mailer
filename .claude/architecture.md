@@ -18,7 +18,10 @@ lcmt-dev-mailer/
 │   ├── captcha-settings.php     # CaptchaSettings — Email templates → Spam protection page (provider select + provider rows)
 │   ├── captcha-provider.php     # CaptchaProvider — interface every spam protection implements
 │   ├── captcha.php              # Captcha — resolves the selected provider and routes verify/widget/routes to it
-│   └── altcha.php               # Altcha — ALTCHA provider (challenge route, one-time proofs, auto-generated key)
+│   ├── altcha.php               # Altcha — ALTCHA provider (challenge route, one-time proofs, auto-generated key)
+│   └── updater.php              # Updater — Plugin Update Checker wired to the GitHub releases
+├── lib/
+│   └── plugin-update-checker/   # Vendored YahnisElsts/plugin-update-checker v5.7 (do not edit)
 ├── templates/
 │   └── mail-base.php            # Default HTML email template (overridable in theme)
 ├── assets/

@@ -53,3 +53,14 @@ yarn install
        true
    );
    ```
+
+## Releasing
+
+Sites update the plugin from Dashboard → Updates: `includes/updater.php` (Plugin Update Checker, vendored in `lib/plugin-update-checker/`) reads the GitHub releases of `Brukols/lcmt-dev-mailer` and installs the `lcmt-dev-mailer.zip` attached to the latest one.
+
+1. Bump the version in the plugin header (`lcmt-dev-mailer.php`) **and** `package.json`.
+2. Run `yarn build` and commit `assets/dist/` if it changed.
+3. Tag and push: `git tag v2.1.0 && git push && git push --tags`.
+
+`.github/workflows/release.yml` then checks that the tag matches both versions and that `assets/dist/` is up to date, builds the zip with `git archive` (files marked `export-ignore` in `.gitattributes` are left out) and publishes the release. Sites see the update within 12 hours, or at once with "Check for updates" on the Plugins screen.
+

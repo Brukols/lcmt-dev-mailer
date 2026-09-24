@@ -279,6 +279,10 @@ The plugin also fires the `lcmt_mailer_before_content` action inside the default
 
 ---
 
+## Updates
+
+Sites pick up new versions from Dashboard → Updates, like any wordpress.org plugin: the plugin checks the GitHub releases of this repository. See [.claude/build.md](.claude/build.md#releasing) to publish one.
+
 ## Build
 
 The plugin uses esbuild to minify JS assets.
