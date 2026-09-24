@@ -1,10 +1,11 @@
-# LCMT Dev Mailer — Claude Instructions
+# LCMT Mailer — Claude Instructions
 
 Developer-oriented WordPress plugin for managing email templates with auto-generated forms, REST endpoints, validation, and TypeScript types.
 
 ## Quick reference
 
 - **Entry point:** `lcmt-dev-mailer.php`
+- **Slug stays `lcmt-dev-mailer`** although the display name is LCMT Mailer: folder, text domain, option/hook/REST prefixes and the update checker all rely on it. Never rename it.
 - **Namespace:** `LcmtDevMailer`
 - **Build:** `nvm use 20 && yarn build` (esbuild)
 - **JS source:** `assets/src/` — **JS dist:** `assets/dist/`

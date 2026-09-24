@@ -1,5 +1,5 @@
 /**
- * LCMT Dev Mailer — Admin test email sender.
+ * LCMT Mailer — Admin test email sender.
  *
  * Expects the PHP side to localize `lcmtMailerAdmin` with:
  *   - ajaxUrl, nonce, postId, lang

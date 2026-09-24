@@ -1,4 +1,4 @@
-# LCMT Dev Mailer
+# LCMT Mailer
 
 Developer-oriented WordPress mail engine. Create email templates in the admin, get auto-generated REST endpoints, form rendering, validation, and TypeScript types.
 
@@ -174,7 +174,7 @@ The plugin adds these classes to the `<form>` during submission:
 
 ## Spam protection
 
-Pick the protection in **Mails → Spam protection**. ALTCHA is selected by default and needs no setup: its HMAC key is generated on first use and stored in the `lcmt_mailer_altcha_key` option. A **Generate a new key** button replaces it if it may have leaked.
+Pick the protection in **Email templates → Spam protection**. ALTCHA is selected by default and needs no setup: its HMAC key is generated on first use and stored in the `lcmt_mailer_altcha_key` option. A **Generate a new key** button replaces it if it may have leaked.
 
 A key defined in `wp-config.php` takes precedence over the stored one:
 

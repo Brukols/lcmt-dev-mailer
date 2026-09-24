@@ -1,5 +1,5 @@
 /**
- * LCMT Dev Mailer — Frontend form handler.
+ * LCMT Mailer — Frontend form handler.
  *
  * Auto-discovers forms with [data-lcmt-endpoint] and handles:
  *   - Collecting input values by name attribute

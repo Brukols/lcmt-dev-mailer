@@ -14,8 +14,8 @@ lcmt-dev-mailer/
 │   ├── form-renderer.php        # FormRenderer — renders forms via shortcode or PHP, enqueues frontend JS
 │   ├── form-endpoint.php        # FormEndpoint — REST API endpoint with auto-validation and sending
 │   ├── admin-mail-sender.php    # AdminMailSender — admin sidebar (usage info, field table, test email, generate template)
-│   ├── settings.php             # Settings — Mails → Settings page (sender, logo, alert colors)
-│   ├── captcha-settings.php     # CaptchaSettings — Mails → Spam protection page (provider select + provider rows)
+│   ├── settings.php             # Settings — Email templates → Settings page (sender, logo, alert colors)
+│   ├── captcha-settings.php     # CaptchaSettings — Email templates → Spam protection page (provider select + provider rows)
 │   ├── captcha-provider.php     # CaptchaProvider — interface every spam protection implements
 │   ├── captcha.php              # Captcha — resolves the selected provider and routes verify/widget/routes to it
 │   └── altcha.php               # Altcha — ALTCHA provider (challenge route, one-time proofs, auto-generated key)

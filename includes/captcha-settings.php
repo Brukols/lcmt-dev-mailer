@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Mails → Spam protection: pick the protection and set up its provider.
+ * Email templates → Spam protection: pick the protection and set up its provider.
  */
 class CaptchaSettings
 {

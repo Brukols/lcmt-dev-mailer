@@ -1,22 +1,22 @@
 # Copyright (C) 2026 Amaury Lecomte
-# This file is distributed under the same license as the LCMT Dev Mailer plugin.
+# This file is distributed under the same license as the LCMT Mailer plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: LCMT Dev Mailer 2.0.0\n"
+"Project-Id-Version: LCMT Mailer 2.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/lcmt-dev-mailer\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-24T09:33:49+00:00\n"
+"POT-Creation-Date: 2026-09-24T09:39:10+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: lcmt-dev-mailer\n"
 
 #. Plugin Name of the plugin
 #: lcmt-dev-mailer.php
-msgid "LCMT Dev Mailer"
+msgid "LCMT Mailer"
 msgstr ""
 
 #. Description of the plugin
@@ -381,11 +381,11 @@ msgid "Built-in placeholders (always available): [currentUserLink], [currentUser
 msgstr ""
 
 #: includes/post-type.php:21
-msgid "Mails"
+msgid "Email templates"
 msgstr ""
 
 #: includes/post-type.php:22
-msgid "Mail"
+msgid "Email template"
 msgstr ""
 
 #: includes/post-type.php:23
@@ -393,31 +393,31 @@ msgid "Add New"
 msgstr ""
 
 #: includes/post-type.php:24
-msgid "Add New Mail"
+msgid "Add New Email Template"
 msgstr ""
 
 #: includes/post-type.php:25
-msgid "Edit Mail"
+msgid "Edit Email Template"
 msgstr ""
 
 #: includes/post-type.php:26
-msgid "New Mail"
+msgid "New Email Template"
 msgstr ""
 
 #: includes/post-type.php:27
-msgid "View Mail"
+msgid "View Email Template"
 msgstr ""
 
 #: includes/post-type.php:28
-msgid "Search Mails"
+msgid "Search Email Templates"
 msgstr ""
 
 #: includes/post-type.php:29
-msgid "No mails found"
+msgid "No email templates found"
 msgstr ""
 
 #: includes/post-type.php:30
-msgid "No mails found in trash"
+msgid "No email templates found in trash"
 msgstr ""
 
 #: includes/settings.php:38

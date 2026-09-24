@@ -1,9 +1,9 @@
-# LCMT Dev Mailer - French Translation
+# LCMT Mailer - French Translation
 # Copyright (C) 2026 Amaury Lecomte
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: LCMT Dev Mailer 2.0.0\n"
+"Project-Id-Version: LCMT Mailer 2.0.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-05 00:00+0000\n"
 "PO-Revision-Date: 2026-04-05 00:00+0000\n"
@@ -16,44 +16,44 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: includes/post-type.php
-msgid "Mails"
-msgstr "Mails"
+msgid "Email templates"
+msgstr "Modèles d'e-mails"
 
 #: includes/post-type.php
-msgid "Mail"
-msgstr "Mail"
+msgid "Email template"
+msgstr "Modèle d'e-mail"
 
 #: includes/post-type.php
 msgid "Add New"
 msgstr "Ajouter"
 
 #: includes/post-type.php
-msgid "Add New Mail"
-msgstr "Ajouter un mail"
+msgid "Add New Email Template"
+msgstr "Ajouter un modèle d'e-mail"
 
 #: includes/post-type.php
-msgid "Edit Mail"
-msgstr "Modifier le mail"
+msgid "Edit Email Template"
+msgstr "Modifier le modèle d'e-mail"
 
 #: includes/post-type.php
-msgid "New Mail"
-msgstr "Nouveau mail"
+msgid "New Email Template"
+msgstr "Nouveau modèle d'e-mail"
 
 #: includes/post-type.php
-msgid "View Mail"
-msgstr "Voir le mail"
+msgid "View Email Template"
+msgstr "Voir le modèle d'e-mail"
 
 #: includes/post-type.php
-msgid "Search Mails"
-msgstr "Rechercher des mails"
+msgid "Search Email Templates"
+msgstr "Rechercher des modèles d'e-mails"
 
 #: includes/post-type.php
-msgid "No mails found"
-msgstr "Aucun mail trouvé"
+msgid "No email templates found"
+msgstr "Aucun modèle d'e-mail trouvé"
 
 #: includes/post-type.php
-msgid "No mails found in trash"
-msgstr "Aucun mail dans la corbeille"
+msgid "No email templates found in trash"
+msgstr "Aucun modèle d'e-mail dans la corbeille"
 
 #: includes/meta-fields.php
 msgid "Mail Fields"

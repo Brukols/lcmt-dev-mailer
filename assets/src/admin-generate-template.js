@@ -1,5 +1,5 @@
 /**
- * LCMT Dev Mailer — Admin "Generate template" button handler.
+ * LCMT Mailer — Admin "Generate template" button handler.
  *
  * Expects `lcmtMailerAdmin` to be localized with:
  *   - ajaxUrl, nonce, postId
