@@ -32,6 +32,7 @@ function lcmt_mailer_asset_version(string $file): string
 require_once LCMT_MAILER_PATH . 'includes/post-type.php';
 require_once LCMT_MAILER_PATH . 'includes/meta-fields.php';
 require_once LCMT_MAILER_PATH . 'includes/field-parser.php';
+require_once LCMT_MAILER_PATH . 'includes/field-validator.php';
 require_once LCMT_MAILER_PATH . 'includes/template-loader.php';
 require_once LCMT_MAILER_PATH . 'includes/mailer.php';
 require_once LCMT_MAILER_PATH . 'includes/form-renderer.php';

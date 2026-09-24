@@ -9,6 +9,7 @@ lcmt-dev-mailer/
 │   ├── post-type.php            # PostType — registers the `mail` CPT
 │   ├── meta-fields.php          # MetaFields — native WP meta box (key, to, subject, content) + syntax reference panel
 │   ├── field-parser.php         # FieldParser — parses [field* type] placeholders from content
+│   ├── field-validator.php      # FieldValidator — sanitizes submitted values and checks them by type
 │   ├── template-loader.php      # TemplateLoader — loads mail-base.php with theme override support
 │   ├── mailer.php               # Mailer — core email engine (lookup by key, placeholder replacement, wp_mail)
 │   ├── form-renderer.php        # FormRenderer — renders forms via shortcode or PHP, enqueues frontend JS
@@ -20,6 +21,7 @@ lcmt-dev-mailer/
 │   ├── captcha.php              # Captcha — resolves the selected provider and routes verify/widget/routes to it
 │   ├── altcha.php               # Altcha — ALTCHA provider (challenge route, one-time proofs, auto-generated key)
 │   └── updater.php              # Updater — Plugin Update Checker wired to the GitHub releases
+├── tests/                       # PHPUnit tests, run without WordPress (see Build)
 ├── lib/
 │   └── plugin-update-checker/   # Vendored YahnisElsts/plugin-update-checker v5.7 (do not edit)
 ├── templates/
@@ -77,9 +79,17 @@ Core email sending engine.
 
 ### FormEndpoint
 - Registers `POST /wp-json/lcmt-mailer/v1/forms/{key}`
-- Auto-validates required fields from parsed content
+- Auto-validates required fields from parsed content, and values by type through `FieldValidator`
 - Sends email via `Mailer::sendByKey()`
 - Fires `lcmt_mailer_before_send` and `lcmt_mailer_after_send` actions
+
+### FieldValidator
+Sanitizes a submitted value (`sanitize_text_field`, or `sanitize_textarea_field` for textareas) and checks it by type:
+- `email` — `is_email()`
+- `number` — `is_numeric()`
+- `url` — valid URL with an `http` or `https` scheme
+- `tel` — digits, an optional leading `+`, and spaces (non-breaking included), dots, dashes, slashes or brackets; 6 to 20 digits
+- other types — not checked
 
 ### AdminMailSender
 Admin sidebar metabox with:

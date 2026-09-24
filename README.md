@@ -105,6 +105,8 @@ Content-Type: application/json
 - `200` — Email sent successfully
 - `403` — Spam protection check failed
 - `422` — Validation failed (missing required field, or a value that does not match its type)
+
+A `tel` value holds 6 to 20 digits, an optional leading `+`, and any spaces, dots, dashes, slashes or brackets: `+33 6 12 34 56 78`, `06.12.34.56.78` and `+33 (0)6 12 34 56 78` all pass.
 - `404` — Unknown form key
 - `500` — Email sending failed
 

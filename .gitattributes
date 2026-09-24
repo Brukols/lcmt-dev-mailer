@@ -7,4 +7,6 @@
 /CLAUDE.md        export-ignore
 /assets/src       export-ignore
 /package.json     export-ignore
+/phpunit.xml.dist export-ignore
+/tests            export-ignore
 /yarn.lock        export-ignore
