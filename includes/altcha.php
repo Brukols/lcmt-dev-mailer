@@ -50,7 +50,13 @@ class Altcha implements CaptchaProvider
     {
         $challengeUrl = home_url('/wp-json/lcmt-mailer/v1/altcha/challenge');
 
-        return '<altcha-widget challengeurl="' . esc_attr($challengeUrl) . '" auto="onfocus" hidefooter style="display:none;"></altcha-widget>';
+        // The widget stays hidden, so its only visible text is the browser
+        // alert it raises on a submit during verification, in English
+        // whatever the site language. An empty string turns it off: the form
+        // handler waits for the proof behind its loader instead.
+        $strings = wp_json_encode(['waitAlert' => '']);
+
+        return '<altcha-widget challengeurl="' . esc_attr($challengeUrl) . '" auto="onfocus" strings="' . esc_attr($strings) . '" hidefooter style="display:none;"></altcha-widget>';
     }
 
     public static function verify(array $body): bool

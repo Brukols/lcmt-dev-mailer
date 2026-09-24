@@ -184,7 +184,7 @@ A key defined in `wp-config.php` takes precedence over the stored one:
 define('ALTCHA_HMAC_KEY', 'a-long-random-string');
 ```
 
-Each solved challenge is accepted once, then refused until it expires (5 minutes).
+Each solved challenge is accepted once, then refused until it expires (5 minutes). The widget solves a new one when it expires, before sending when the visitor comes back from a sleeping computer, and after each answer from the server, so a visitor can take as long as they need and send the form again after fixing a field.
 
 To add another protection, implement `LcmtDevMailer\CaptchaProvider` and register it:
 

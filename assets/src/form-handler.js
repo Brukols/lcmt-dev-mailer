@@ -21,6 +21,11 @@ import 'altcha';
 
   var SUBMITTING_CLASS = 'lcmt-form--submitting';
 
+  // A proof this close to its expiry is solved again before sending, so it
+  // does not expire on its way to the server.
+  var CAPTCHA_EXPIRY_MARGIN_MS = 30000;
+  var CAPTCHA_TIMEOUT_MS = 30000;
+
   // ── Alert ──
 
   var DEFAULT_COLORS = {
@@ -119,6 +124,84 @@ import 'altcha';
     form.classList.remove(SUBMITTING_CLASS);
   }
 
+  // ── Spam protection (ALTCHA) ──
+
+  /**
+   * Whether an ALTCHA proof is expired or about to be.
+   *
+   * The widget solves a new challenge when the current one expires, but its
+   * timer stands still while the computer sleeps and slows down in a hidden
+   * tab, so a visitor coming back can hold a proof the server will refuse.
+   */
+  function captchaExpiresSoon(payload) {
+    try {
+      var salt = JSON.parse(atob(payload)).salt || '';
+      var match = /[?&]expires=(\d+)/.exec(salt);
+
+      return !match || Number(match[1]) * 1000 - Date.now() < CAPTCHA_EXPIRY_MARGIN_MS;
+    } catch (err) {
+      return true;
+    }
+  }
+
+  /**
+   * Start the widget over and resolve with the proof of a new challenge.
+   */
+  function solveCaptcha(widget) {
+    return new Promise(function (resolve, reject) {
+      var timer = setTimeout(function () { done(); reject(new Error('ALTCHA timed out')); }, CAPTCHA_TIMEOUT_MS);
+
+      function onVerified(e) {
+        done();
+        resolve(e.detail && e.detail.payload);
+      }
+
+      function onStateChange(e) {
+        if (e.detail && e.detail.state === 'error') {
+          done();
+          reject(new Error('ALTCHA failed'));
+        }
+      }
+
+      function done() {
+        clearTimeout(timer);
+        widget.removeEventListener('verified', onVerified);
+        widget.removeEventListener('statechange', onStateChange);
+      }
+
+      widget.addEventListener('verified', onVerified);
+      widget.addEventListener('statechange', onStateChange);
+      widget.reset();
+      widget.verify();
+    });
+  }
+
+  /**
+   * Resolve with a proof the server will accept, or null without a widget.
+   */
+  function captchaPayload(form) {
+    var widget = form.querySelector('altcha-widget');
+
+    if (!widget) return Promise.resolve(null);
+
+    var input = form.querySelector('input[name="altcha"]');
+    var payload = input ? input.value : '';
+
+    if (payload && !captchaExpiresSoon(payload)) return Promise.resolve(payload);
+
+    return solveCaptcha(widget);
+  }
+
+  /**
+   * The server spends a proof as soon as it reads it, even when it then
+   * refuses a field, so every answer needs a new one.
+   */
+  function resetCaptcha(form) {
+    var widget = form.querySelector('altcha-widget');
+
+    if (widget && typeof widget.reset === 'function') widget.reset();
+  }
+
   // ── Form binding ──
 
   function init() {
@@ -178,32 +261,34 @@ import 'altcha';
         return;
       }
 
-      // Check ALTCHA if widget is present
-      var altchaWidget = form.querySelector('altcha-widget');
-      if (altchaWidget) {
-        var altchaInput = form.querySelector('input[name="altcha"]');
-        if (!altchaInput || !altchaInput.value) {
-          showAlert(window.lcmtMailerFront && window.lcmtMailerFront.i18n.captchaFailed || 'Security verification in progress. Please try again.', 'error');
-          return;
-        }
-        data['altcha'] = altchaInput.value;
-      }
-
       // Submit
       form.classList.add(SUBMITTING_CLASS);
       showLoader(form);
 
-      fetch(endpoint, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-WP-Nonce': nonce,
-        },
-        body: JSON.stringify(data),
-      })
+      var captchaFailed = false;
+
+      captchaPayload(form)
+        .catch(function (err) {
+          captchaFailed = true;
+          throw err;
+        })
+        .then(function (payload) {
+          if (payload) data['altcha'] = payload;
+
+          return fetch(endpoint, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-WP-Nonce': nonce,
+            },
+            body: JSON.stringify(data),
+          });
+        })
         .then(function (res) { return res.json(); })
         .then(function (res) {
+          resetCaptcha(form);
+
           if (res.success) {
             showAlert(res.message, 'success');
             form.reset();
@@ -223,7 +308,12 @@ import 'altcha';
           }
         })
         .catch(function () {
-          showAlert(window.lcmtMailerFront && window.lcmtMailerFront.i18n.genericError || 'An error occurred.', 'error');
+          var i18n = (window.lcmtMailerFront && window.lcmtMailerFront.i18n) || {};
+
+          resetCaptcha(form);
+          showAlert(captchaFailed
+            ? i18n.captchaFailed || 'Security verification failed. Please try again.'
+            : i18n.genericError || 'An error occurred.', 'error');
         })
         .finally(function () {
           form.classList.remove(SUBMITTING_CLASS);

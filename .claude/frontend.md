@@ -47,8 +47,10 @@ Vanilla JS (no dependencies), auto-loaded when a form is rendered. Located at `a
 3. On submit:
    - Collects all `[name]` inputs
    - Validates `required` inputs and `type="email"` inputs client-side
+   - Makes sure the ALTCHA proof is still valid: when it is missing or expires within 30 s (the widget's own refresh timer stops while the computer sleeps), the widget solves a new challenge before sending
    - Sends `fetch POST` with JSON body to the endpoint
    - Handles success/error states
+   - Resets the ALTCHA widget after every answer: the server spends a proof as soon as it reads it, even when it then refuses a field, so a corrected form needs a new one
 
 ### CSS classes on `<form>`
 
@@ -129,7 +131,7 @@ Headers:
 
 **403 — Spam protection failed:** the selected captcha rejected the proof (missing, invalid, expired or already used).
 
-**422 — Validation error:** a required field is empty, or a value does not match its type (`email`, `number`, `url`, `tel`). A field used in To or Reply-To must hold a single valid email address, whatever its declared type.
+**422 — Validation error:** a required field is empty, or a value does not match its type (`email`, `number`, `url`, `tel`; see `FieldValidator`). A field used in To or Reply-To must hold a single valid email address, whatever its declared type.
 ```json
 {
   "success": false,

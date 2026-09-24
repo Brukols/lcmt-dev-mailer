@@ -110,7 +110,7 @@ class FormRenderer
             'i18n' => [
                 'requiredFields' => __('Please fill in all required fields.', 'lcmt-dev-mailer'),
                 'genericError'   => __('An error occurred.', 'lcmt-dev-mailer'),
-                'captchaFailed'  => __('Security verification in progress. Please try again.', 'lcmt-dev-mailer'),
+                'captchaFailed'  => __('Security verification failed. Please try again.', 'lcmt-dev-mailer'),
             ],
         ]);
     }
