@@ -446,3 +446,48 @@ msgstr "Vérification de sécurité en cours. Veuillez réessayer."
 #: includes/form-endpoint.php
 msgid "Security verification failed. Please try again."
 msgstr "La vérification de sécurité a échoué. Veuillez réessayer."
+
+#: includes/captcha-settings.php
+msgid "Spam protection"
+msgstr "Protection anti-spam"
+
+#: includes/captcha-settings.php
+msgid "None"
+msgstr "Aucune"
+
+#: includes/captcha-settings.php
+msgid "Forms accept any submission, including from bots."
+msgstr "Les formulaires acceptent tous les envois, y compris ceux des robots."
+
+#: includes/altcha.php
+msgid "ALTCHA key"
+msgstr "Clé ALTCHA"
+
+#: includes/altcha.php
+#, php-format
+msgid "Set by the %1$s constant in %2$s."
+msgstr "Définie par la constante %1$s dans %2$s."
+
+#: includes/altcha.php
+msgid "Generated automatically and stored in the database. Nothing to configure."
+msgstr "Générée automatiquement et enregistrée en base de données. Rien à configurer."
+
+#: includes/altcha.php
+msgid "Generate a new key? A visitor who opened a form in the last five minutes will have to submit it again."
+msgstr "Générer une nouvelle clé ? Un visiteur qui a ouvert un formulaire dans les cinq dernières minutes devra le renvoyer."
+
+#: includes/altcha.php
+msgid "Generate a new key"
+msgstr "Générer une nouvelle clé"
+
+#: includes/altcha.php
+msgid "New key generated."
+msgstr "Nouvelle clé générée."
+
+#: includes/altcha.php
+msgid "Only needed if the key may have leaked, from a copied database for instance."
+msgstr "Utile uniquement si la clé a pu fuiter, par exemple depuis une copie de la base de données."
+
+#: includes/captcha-settings.php
+msgid "Protection"
+msgstr "Protection"

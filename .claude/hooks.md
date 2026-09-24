@@ -48,6 +48,18 @@ add_filter('lcmt_mailer_user_language', function ($language, $email) {
 
 Used in: `Mailer::maybeTranslateForRecipient()` — if a translated mail post exists in Polylang, subject and content are swapped.
 
+### `lcmt_mailer_captcha_providers`
+Register a spam protection. Keys are provider ids, values are classes implementing `LcmtDevMailer\CaptchaProvider`.
+
+```php
+add_filter('lcmt_mailer_captcha_providers', function (array $providers) {
+    $providers['my-captcha'] = MyCaptcha::class;
+    return $providers;
+});
+```
+
+Used in: `Captcha::providers()`.
+
 ## Actions
 
 ### `lcmt_mailer_before_send`

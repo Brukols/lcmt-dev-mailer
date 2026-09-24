@@ -103,7 +103,8 @@ Content-Type: application/json
 **Responses:**
 
 - `200` — Email sent successfully
-- `422` — Validation failed (missing required fields)
+- `403` — Spam protection check failed
+- `422` — Validation failed (missing required field, or a value that does not match its type)
 - `404` — Unknown form key
 - `500` — Email sending failed
 
@@ -168,6 +169,29 @@ The plugin adds these classes to the `<form>` during submission:
 | `lcmt-form--success`     | Email sent successfully       |
 | `lcmt-form--error`       | Validation or sending failed  |
 | `lcmt-field--error`      | Added to invalid input fields |
+
+---
+
+## Spam protection
+
+Pick the protection in **Mails → Spam protection**. ALTCHA is selected by default and needs no setup: its HMAC key is generated on first use and stored in the `lcmt_mailer_altcha_key` option. A **Generate a new key** button replaces it if it may have leaked.
+
+A key defined in `wp-config.php` takes precedence over the stored one:
+
+```php
+define('ALTCHA_HMAC_KEY', 'a-long-random-string');
+```
+
+Each solved challenge is accepted once, then refused until it expires (5 minutes).
+
+To add another protection, implement `LcmtDevMailer\CaptchaProvider` and register it:
+
+```php
+add_filter('lcmt_mailer_captcha_providers', function (array $providers) {
+    $providers['my-captcha'] = MyCaptcha::class;
+    return $providers;
+});
+```
 
 ---
 

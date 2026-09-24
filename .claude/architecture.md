@@ -13,7 +13,12 @@ lcmt-dev-mailer/
 │   ├── mailer.php               # Mailer — core email engine (lookup by key, placeholder replacement, wp_mail)
 │   ├── form-renderer.php        # FormRenderer — renders forms via shortcode or PHP, enqueues frontend JS
 │   ├── form-endpoint.php        # FormEndpoint — REST API endpoint with auto-validation and sending
-│   └── admin-mail-sender.php    # AdminMailSender — admin sidebar (usage info, field table, test email, generate template)
+│   ├── admin-mail-sender.php    # AdminMailSender — admin sidebar (usage info, field table, test email, generate template)
+│   ├── settings.php             # Settings — Mails → Settings page (sender, logo, alert colors)
+│   ├── captcha-settings.php     # CaptchaSettings — Mails → Spam protection page (provider select + provider rows)
+│   ├── captcha-provider.php     # CaptchaProvider — interface every spam protection implements
+│   ├── captcha.php              # Captcha — resolves the selected provider and routes verify/widget/routes to it
+│   └── altcha.php               # Altcha — ALTCHA provider (challenge route, one-time proofs, auto-generated key)
 ├── templates/
 │   └── mail-base.php            # Default HTML email template (overridable in theme)
 ├── assets/
@@ -80,6 +85,20 @@ Admin sidebar metabox with:
 - Form file status with "Generate form template" button
 - TypeScript interface preview
 - Test email sender
+
+### Captcha / CaptchaProvider
+- The `lcmt_mailer_captcha` option holds the selected provider id, or `none`. Defaults to `altcha` until saved.
+- Providers come from the `lcmt_mailer_captcha_providers` filter (`id => class`), each implementing `CaptchaProvider`.
+- `Captcha::verify()` is called by FormEndpoint, `Captcha::widget()` by FormRenderer, `Captcha::registerRoutes()` on `rest_api_init`. A provider that is selected but not `isReady()` protects nothing.
+- Each provider prints its own settings rows, tagged `data-captcha-provider="{id}"` so the Spam protection page (`CaptchaSettings`) only shows the selected one.
+
+### Altcha
+- HMAC key: `ALTCHA_HMAC_KEY` constant if defined, otherwise the `lcmt_mailer_altcha_key` option, generated on first use (not autoloaded).
+- "Generate a new key" posts to `admin-post.php?action=lcmt_mailer_regenerate_altcha_key` (nonce + `manage_options`).
+- A valid proof is spent: its challenge is stored in a `lcmt_altcha_used_{challenge}` transient until it expires, so it cannot be replayed.
+
+### Permissions
+Every capability of the `mail` post type maps to `manage_options`, and the admin AJAX actions check it: only administrators can see, edit or test mails.
 
 ## Data flow
 

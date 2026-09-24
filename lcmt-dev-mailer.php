@@ -38,7 +38,10 @@ require_once LCMT_MAILER_PATH . 'includes/form-renderer.php';
 require_once LCMT_MAILER_PATH . 'includes/form-endpoint.php';
 require_once LCMT_MAILER_PATH . 'includes/admin-mail-sender.php';
 require_once LCMT_MAILER_PATH . 'includes/settings.php';
+require_once LCMT_MAILER_PATH . 'includes/captcha-provider.php';
+require_once LCMT_MAILER_PATH . 'includes/captcha.php';
 require_once LCMT_MAILER_PATH . 'includes/altcha.php';
+require_once LCMT_MAILER_PATH . 'includes/captcha-settings.php';
 
 // ── Translations ──
 add_action('init', function () {
@@ -53,6 +56,8 @@ add_action('save_post', ['LcmtDevMailer\\MetaFields', 'save']);
 // ── Admin UI ──
 add_action('admin_menu', ['LcmtDevMailer\\Settings', 'addSubmenu']);
 add_action('admin_init', ['LcmtDevMailer\\Settings', 'registerSettings']);
+add_action('admin_menu', ['LcmtDevMailer\\CaptchaSettings', 'addSubmenu']);
+add_action('admin_init', ['LcmtDevMailer\\CaptchaSettings', 'registerSettings']);
 add_action('admin_enqueue_scripts', ['LcmtDevMailer\\Settings', 'enqueueAdminAssets']);
 add_action('add_meta_boxes', ['LcmtDevMailer\\AdminMailSender', 'addMetaBox']);
 add_action('wp_ajax_lcmt_send_test_mail', ['LcmtDevMailer\\AdminMailSender', 'handleSendTestMail']);
@@ -60,9 +65,10 @@ add_action('wp_ajax_lcmt_generate_form_template', ['LcmtDevMailer\\AdminMailSend
 add_filter('manage_mail_posts_columns', ['LcmtDevMailer\\AdminMailSender', 'addColumns']);
 add_action('manage_mail_posts_custom_column', ['LcmtDevMailer\\AdminMailSender', 'populateColumns'], 10, 2);
 add_action('admin_notices', ['LcmtDevMailer\\AdminMailSender', 'adminNotice']);
+add_action('admin_post_' . LcmtDevMailer\Altcha::REGENERATE_ACTION, ['LcmtDevMailer\\Altcha', 'handleRegenerateKey']);
 
 // ── Frontend: register assets early, enqueue on shortcode render ──
 add_action('wp_enqueue_scripts', ['LcmtDevMailer\\FormRenderer', 'registerAssets']);
 add_shortcode('lcmt-form', ['LcmtDevMailer\\FormRenderer', 'shortcode']);
 add_action('rest_api_init', ['LcmtDevMailer\\FormEndpoint', 'register']);
-add_action('rest_api_init', ['LcmtDevMailer\\Altcha', 'registerEndpoint']);
+add_action('rest_api_init', ['LcmtDevMailer\\Captcha', 'registerRoutes']);

@@ -41,18 +41,14 @@ class FormEndpoint
         // whatever type its placeholder declares.
         $addressFields = FieldParser::parse($to, $replyTo);
 
-        // Validate ALTCHA if enabled
-        $body = $request->get_json_params();
+        $body = (array) $request->get_json_params();
 
-        if (Altcha::isEnabled()) {
-            $altchaPayload = $body['altcha'] ?? '';
-
-            if (empty($altchaPayload) || !Altcha::validatePayload($altchaPayload)) {
-                return new \WP_REST_Response([
-                    'success' => false,
-                    'message' => __('Security verification failed. Please try again.', 'lcmt-dev-mailer'),
-                ], 403);
-            }
+        // Check the spam protection selected in the settings, if any
+        if (!Captcha::verify($body)) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => __('Security verification failed. Please try again.', 'lcmt-dev-mailer'),
+            ], 403);
         }
 
         // Collect and validate submitted data

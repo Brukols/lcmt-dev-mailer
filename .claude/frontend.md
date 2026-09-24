@@ -127,7 +127,9 @@ Headers:
 { "success": true, "message": "Email sent successfully." }
 ```
 
-**422 — Validation error:**
+**403 — Spam protection failed:** the selected captcha rejected the proof (missing, invalid, expired or already used).
+
+**422 — Validation error:** a required field is empty, or a value does not match its type (`email`, `number`, `url`, `tel`). A field used in To or Reply-To must hold a single valid email address, whatever its declared type.
 ```json
 {
   "success": false,

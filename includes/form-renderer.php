@@ -47,11 +47,8 @@ class FormRenderer
         // Auto-include the plugin's loader overlay
         $innerHtml .= '<div class="lcmt-loader" aria-hidden="true"><div class="lcmt-loader__spinner"></div></div>';
 
-        // Auto-include ALTCHA widget if configured
-        if (Altcha::isEnabled()) {
-            $challengeUrl = home_url('/wp-json/lcmt-mailer/v1/altcha/challenge');
-            $innerHtml .= '<altcha-widget challengeurl="' . esc_attr($challengeUrl) . '" auto="onfocus" hidefooter style="display:none;"></altcha-widget>';
-        }
+        // Auto-include the widget of the selected spam protection
+        $innerHtml .= Captcha::widget();
 
         // Check if developer already included a <form> tag
         if (preg_match('/<form[\s>]/i', $innerHtml)) {
