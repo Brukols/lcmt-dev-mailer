@@ -55,6 +55,7 @@ require_once LCMT_MAILER_PATH . 'includes/submissions-page.php';
 require_once LCMT_MAILER_PATH . 'includes/submission-csv.php';
 require_once LCMT_MAILER_PATH . 'includes/retention.php';
 require_once LCMT_MAILER_PATH . 'includes/submission-settings.php';
+require_once LCMT_MAILER_PATH . 'includes/privacy.php';
 
 // ── Updates from the GitHub releases ──
 LcmtDevMailer\Updater::register(__FILE__);
@@ -71,6 +72,10 @@ add_action('wp_enqueue_scripts', ['LcmtDevMailer\\Attribution', 'enqueue']);
 add_action('init', ['LcmtDevMailer\\Retention', 'schedule']);
 add_action(LcmtDevMailer\Retention::CRON_HOOK, ['LcmtDevMailer\\Retention', 'run']);
 register_deactivation_hook(__FILE__, ['LcmtDevMailer\\Retention', 'unschedule']);
+add_filter('wp_privacy_personal_data_exporters', ['LcmtDevMailer\\Privacy', 'registerExporter']);
+add_filter('wp_privacy_personal_data_erasers', ['LcmtDevMailer\\Privacy', 'registerEraser']);
+add_action('admin_init', ['LcmtDevMailer\\Privacy', 'addPolicyContent']);
+add_shortcode('lcmt-retention-days', ['LcmtDevMailer\\Privacy', 'retentionShortcode']);
 
 // Tell WP Consent API this plugin follows its consent categories.
 add_filter('wp_consent_api_registered_' . plugin_basename(__FILE__), '__return_true');
