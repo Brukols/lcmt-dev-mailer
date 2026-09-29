@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-29T13:57:47+00:00\n"
+"POT-Creation-Date: 2026-09-29T14:04:08+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: lcmt-dev-mailer\n"
@@ -332,7 +332,7 @@ msgid "All failed emails"
 msgstr ""
 
 #: includes/failure-notice.php:87
-#: includes/submission-settings.php:79
+#: includes/submission-settings.php:85
 #: includes/submissions-page.php:152
 #: includes/submissions-page.php:173
 msgid "You are not allowed to do this."
@@ -750,82 +750,94 @@ msgstr ""
 
 #: includes/submission-settings.php:40
 #: includes/submission-settings.php:41
-#: includes/submission-settings.php:102
+#: includes/submission-settings.php:108
 msgid "Data retention"
 msgstr ""
 
 #. translators: 1: number of anonymized messages, 2: number of deleted messages
-#: includes/submission-settings.php:109
+#: includes/submission-settings.php:115
 #, php-format
 msgid "Purge done: %1$d messages anonymized, %2$d deleted."
 msgstr ""
 
-#: includes/submission-settings.php:122
+#: includes/submission-settings.php:128
 msgid "Keep personal data for"
 msgstr ""
 
-#: includes/submission-settings.php:126
+#: includes/submission-settings.php:132
 msgid "days after the message was sent"
 msgstr ""
 
-#: includes/submission-settings.php:128
+#: includes/submission-settings.php:134
 msgid "The GDPR sets no fixed period: data may be kept as long as its purpose needs it. For prospects, the CNIL accepts at most 3 years (1095 days) after the last contact. State this period in your privacy policy."
 msgstr ""
 
-#: includes/submission-settings.php:134
+#: includes/submission-settings.php:140
 msgid "When the period ends"
 msgstr ""
 
-#: includes/submission-settings.php:138
+#: includes/submission-settings.php:144
 msgid "Anonymize: erase what the visitor typed, keep the day, form, page and source for statistics"
 msgstr ""
 
-#: includes/submission-settings.php:140
+#: includes/submission-settings.php:146
 msgid "Delete the whole message"
 msgstr ""
 
-#: includes/submission-settings.php:142
+#: includes/submission-settings.php:148
 msgid "When deleting, anonymized statistics older than this period are deleted too, whatever the setting below."
 msgstr ""
 
-#: includes/submission-settings.php:147
+#: includes/submission-settings.php:153
+msgid "When the plugin is deleted"
+msgstr ""
+
+#: includes/submission-settings.php:157
+msgid "Delete received messages when the plugin is deleted"
+msgstr ""
+
+#: includes/submission-settings.php:159
+msgid "Unticked, deleting the plugin keeps the messages and their statistics in the database. The Delete link of the Plugins screen asks again and stores the answer here."
+msgstr ""
+
+#: includes/submission-settings.php:164
 msgid "Keep anonymized statistics for"
 msgstr ""
 
-#: includes/submission-settings.php:151
+#: includes/submission-settings.php:168
 msgid "days"
 msgstr ""
 
-#: includes/submission-settings.php:152
+#: includes/submission-settings.php:169
 msgid "0 keeps them forever: once anonymized, they are no longer personal data."
 msgstr ""
 
-#: includes/submission-settings.php:158
+#: includes/submission-settings.php:175
 msgid "Advanced settings"
 msgstr ""
 
-#: includes/submission-settings.php:162
+#: includes/submission-settings.php:179
 msgid "Visit origin without a consent tool"
 msgstr ""
 
-#: includes/submission-settings.php:166
+#: includes/submission-settings.php:183
 msgid "Remember the landing page and campaign in the visitor's browser when no consent tool is installed"
 msgstr ""
 
-#: includes/submission-settings.php:169
+#: includes/submission-settings.php:186
 msgid "With a consent tool compatible with WP Consent API, this is only done after the visitor accepts statistics, whatever this setting. Without one, storing it needs consent under the ePrivacy rules: untick this to only record the page the form was sent from."
 msgstr ""
 
-#: includes/submission-settings.php:181
-#: includes/submission-settings.php:187
+#: includes/submission-settings.php:198
+#: includes/submission-settings.php:204
 msgid "Purge now"
 msgstr ""
 
-#: includes/submission-settings.php:182
+#: includes/submission-settings.php:199
 msgid "The purge runs once a day, when the site gets visits. Run it now to apply new settings at once."
 msgstr ""
 
-#: includes/submission-settings.php:184
+#: includes/submission-settings.php:201
 msgid "Apply the retention settings now? This cannot be undone."
 msgstr ""
 
@@ -989,4 +1001,12 @@ msgstr ""
 
 #: includes/submissions-page.php:444
 msgid "Mark as unread"
+msgstr ""
+
+#: includes/uninstaller.php:124
+msgid ""
+"Also delete the received messages and their statistics?\n"
+"\n"
+"OK: delete them for good.\n"
+"Cancel: keep them in the database (they will no longer be anonymized automatically)."
 msgstr ""

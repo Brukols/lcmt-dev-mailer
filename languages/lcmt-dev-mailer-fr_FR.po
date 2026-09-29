@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: LCMT Mailer 2.2.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/lcmt-dev-mailer\n"
-"POT-Creation-Date: 2026-09-29T13:57:47+00:00\n"
+"POT-Creation-Date: 2026-09-29T14:04:08+00:00\n"
 "PO-Revision-Date: 2026-09-29 00:00+0000\n"
 "Last-Translator: Amaury Lecomte\n"
 "Language-Team: French\n"
@@ -345,7 +345,7 @@ msgstr "La requête s'est arrêtée avant l'envoi de l'e-mail."
 msgid "All failed emails"
 msgstr "Tous les e-mails en échec"
 
-#: includes/failure-notice.php:87 includes/submission-settings.php:79
+#: includes/failure-notice.php:87 includes/submission-settings.php:85
 #: includes/submissions-page.php:152 includes/submissions-page.php:173
 msgid "You are not allowed to do this."
 msgstr "Vous n'êtes pas autorisé à effectuer cette action."
@@ -568,7 +568,9 @@ msgstr "ils sont ensuite supprimés"
 msgid ""
 "they are then anonymized: only the day, the form, the page and the origin of "
 "the visit are kept, for statistics"
-msgstr "ils sont ensuite anonymisés : seuls le jour, le formulaire, la page et l'origine de la visite sont conservés, à des fins statistiques"
+msgstr ""
+"ils sont ensuite anonymisés : seuls le jour, le formulaire, la page et "
+"l'origine de la visite sont conservés, à des fins statistiques"
 
 #. translators: 1: number of days, 2: what happens after
 #: includes/privacy.php:105
@@ -589,21 +591,30 @@ msgstr ""
 msgid ""
 "With your message, we also record the type of device, the language of your "
 "browser and the time spent on the form."
-msgstr "Avec votre message, nous enregistrons aussi le type d'appareil, la langue de votre navigateur et le temps passé sur le formulaire."
+msgstr ""
+"Avec votre message, nous enregistrons aussi le type d'appareil, la langue de "
+"votre navigateur et le temps passé sur le formulaire."
 
 #: includes/privacy.php:113
 msgid ""
 "Once you accept statistics, the page you arrived on and the campaign that "
 "brought you are kept in your browser until you close the tab, so a form sent "
 "later in the visit knows where it started."
-msgstr "Une fois les statistiques acceptées, la page par laquelle vous êtes arrivé et la campagne qui vous a amené sont conservées dans votre navigateur jusqu'à la fermeture de l'onglet, pour qu'un formulaire envoyé plus tard dans la visite sache d'où elle est partie."
+msgstr ""
+"Une fois les statistiques acceptées, la page par laquelle vous êtes arrivé "
+"et la campagne qui vous a amené sont conservées dans votre navigateur "
+"jusqu'à la fermeture de l'onglet, pour qu'un formulaire envoyé plus tard "
+"dans la visite sache d'où elle est partie."
 
 #: includes/privacy.php:115
 msgid ""
 "The page you arrived on and the campaign that brought you are kept in your "
 "browser until you close the tab, so a form sent later in the visit knows "
 "where it started."
-msgstr "La page par laquelle vous êtes arrivé et la campagne qui vous a amené sont conservées dans votre navigateur jusqu'à la fermeture de l'onglet, pour qu'un formulaire envoyé plus tard dans la visite sache d'où elle est partie."
+msgstr ""
+"La page par laquelle vous êtes arrivé et la campagne qui vous a amené sont "
+"conservées dans votre navigateur jusqu'à la fermeture de l'onglet, pour "
+"qu'un formulaire envoyé plus tard dans la visite sache d'où elle est partie."
 
 #: includes/settings.php:38 includes/settings.php:201
 msgid "Mailer Settings"
@@ -798,32 +809,35 @@ msgstr "(non renseigné)"
 
 #: includes/submission-recorder.php:85
 msgid "The email could not be built: its template is missing or not published."
-msgstr "L'e-mail n'a pas pu être construit : son modèle est introuvable ou n'est pas publié."
+msgstr ""
+"L'e-mail n'a pas pu être construit : son modèle est introuvable ou n'est pas "
+"publié."
 
 #: includes/submission-recorder.php:88
 msgid "The email was not sent and the mail system gave no reason."
-msgstr "L'e-mail n'a pas été envoyé et le système d'envoi n'a donné aucune raison."
+msgstr ""
+"L'e-mail n'a pas été envoyé et le système d'envoi n'a donné aucune raison."
 
 #: includes/submission-settings.php:40 includes/submission-settings.php:41
-#: includes/submission-settings.php:102
+#: includes/submission-settings.php:108
 msgid "Data retention"
 msgstr "Conservation des données"
 
 #. translators: 1: number of anonymized messages, 2: number of deleted messages
-#: includes/submission-settings.php:109
+#: includes/submission-settings.php:115
 #, php-format
 msgid "Purge done: %1$d messages anonymized, %2$d deleted."
 msgstr "Purge effectuée : %1$d messages anonymisés, %2$d supprimés."
 
-#: includes/submission-settings.php:122
+#: includes/submission-settings.php:128
 msgid "Keep personal data for"
 msgstr "Conserver les données personnelles pendant"
 
-#: includes/submission-settings.php:126
+#: includes/submission-settings.php:132
 msgid "days after the message was sent"
 msgstr "jours après l'envoi du message"
 
-#: includes/submission-settings.php:128
+#: includes/submission-settings.php:134
 msgid ""
 "The GDPR sets no fixed period: data may be kept as long as its purpose needs "
 "it. For prospects, the CNIL accepts at most 3 years (1095 days) after the "
@@ -834,50 +848,69 @@ msgstr ""
 "au maximum 3 ans (1095 jours) après le dernier contact. Indiquez cette durée "
 "dans votre politique de confidentialité."
 
-#: includes/submission-settings.php:134
+#: includes/submission-settings.php:140
 msgid "When the period ends"
 msgstr "À la fin de cette durée"
 
-#: includes/submission-settings.php:138
+#: includes/submission-settings.php:144
 msgid ""
 "Anonymize: erase what the visitor typed, keep the day, form, page and source "
 "for statistics"
-msgstr "Anonymiser : effacer ce que le visiteur a saisi, conserver le jour, le formulaire, la page et la source pour les statistiques"
+msgstr ""
+"Anonymiser : effacer ce que le visiteur a saisi, conserver le jour, le "
+"formulaire, la page et la source pour les statistiques"
 
-#: includes/submission-settings.php:140
+#: includes/submission-settings.php:146
 msgid "Delete the whole message"
 msgstr "Supprimer le message entier"
 
-#: includes/submission-settings.php:142
+#: includes/submission-settings.php:148
 msgid ""
 "When deleting, anonymized statistics older than this period are deleted too, "
 "whatever the setting below."
-msgstr "En cas de suppression, les statistiques anonymisées plus anciennes que cette durée sont aussi supprimées, quel que soit le réglage ci-dessous."
+msgstr ""
+"En cas de suppression, les statistiques anonymisées plus anciennes que cette "
+"durée sont aussi supprimées, quel que soit le réglage ci-dessous."
 
-#: includes/submission-settings.php:147
+#: includes/submission-settings.php:153
+msgid "When the plugin is deleted"
+msgstr "À la suppression de l'extension"
+
+#: includes/submission-settings.php:157
+msgid "Delete received messages when the plugin is deleted"
+msgstr "Supprimer les messages reçus quand l'extension est supprimée"
+
+#: includes/submission-settings.php:159
+msgid ""
+"Unticked, deleting the plugin keeps the messages and their statistics in the "
+"database. The Delete link of the Plugins screen asks again and stores the "
+"answer here."
+msgstr "Décochée, la suppression de l'extension garde les messages et leurs statistiques dans la base de données. Le lien Supprimer de l'écran Extensions pose à nouveau la question et enregistre la réponse ici."
+
+#: includes/submission-settings.php:164
 msgid "Keep anonymized statistics for"
 msgstr "Conserver les statistiques anonymisées pendant"
 
-#: includes/submission-settings.php:151
+#: includes/submission-settings.php:168
 msgid "days"
 msgstr "jours"
 
-#: includes/submission-settings.php:152
+#: includes/submission-settings.php:169
 msgid ""
 "0 keeps them forever: once anonymized, they are no longer personal data."
 msgstr ""
 "0 les conserve indéfiniment : une fois anonymisées, elles ne sont plus des "
 "données personnelles."
 
-#: includes/submission-settings.php:158
+#: includes/submission-settings.php:175
 msgid "Advanced settings"
 msgstr "Réglages avancés"
 
-#: includes/submission-settings.php:162
+#: includes/submission-settings.php:179
 msgid "Visit origin without a consent tool"
 msgstr "Origine de la visite sans outil de consentement"
 
-#: includes/submission-settings.php:166
+#: includes/submission-settings.php:183
 msgid ""
 "Remember the landing page and campaign in the visitor's browser when no "
 "consent tool is installed"
@@ -885,7 +918,7 @@ msgstr ""
 "Mémoriser la page d'arrivée et la campagne dans le navigateur du visiteur "
 "lorsqu'aucun outil de consentement n'est installé"
 
-#: includes/submission-settings.php:169
+#: includes/submission-settings.php:186
 msgid ""
 "With a consent tool compatible with WP Consent API, this is only done after "
 "the visitor accepts statistics, whatever this setting. Without one, storing "
@@ -898,11 +931,11 @@ msgstr ""
 "titre des règles ePrivacy : décochez cette case pour enregistrer uniquement "
 "la page depuis laquelle le formulaire a été envoyé."
 
-#: includes/submission-settings.php:181 includes/submission-settings.php:187
+#: includes/submission-settings.php:198 includes/submission-settings.php:204
 msgid "Purge now"
 msgstr "Purger maintenant"
 
-#: includes/submission-settings.php:182
+#: includes/submission-settings.php:199
 msgid ""
 "The purge runs once a day, when the site gets visits. Run it now to apply "
 "new settings at once."
@@ -910,9 +943,11 @@ msgstr ""
 "La purge s'exécute une fois par jour, lorsque le site reçoit des visites. "
 "Lancez-la maintenant pour appliquer immédiatement les nouveaux réglages."
 
-#: includes/submission-settings.php:184
+#: includes/submission-settings.php:201
 msgid "Apply the retention settings now? This cannot be undone."
-msgstr "Appliquer les réglages de conservation maintenant ? Cette action est irréversible."
+msgstr ""
+"Appliquer les réglages de conservation maintenant ? Cette action est "
+"irréversible."
 
 #: includes/submissions-list-table.php:33
 msgid "Sender"
@@ -1068,6 +1103,15 @@ msgstr "Renvoyer l'e-mail"
 #: includes/submissions-page.php:444
 msgid "Mark as unread"
 msgstr "Marquer comme non lu"
+
+#: includes/uninstaller.php:124
+msgid ""
+"Also delete the received messages and their statistics?\n"
+"\n"
+"OK: delete them for good.\n"
+"Cancel: keep them in the database (they will no longer be anonymized "
+"automatically)."
+msgstr "Supprimer aussi les messages reçus et leurs statistiques ?\n\nOK : les supprimer définitivement.\nAnnuler : les garder dans la base de données (ils ne seront plus anonymisés automatiquement)."
 
 #~ msgid "Security verification in progress. Please try again."
 #~ msgstr "Vérification de sécurité en cours. Veuillez réessayer."
