@@ -3,7 +3,7 @@
  * form sent three pages later still knows the ad or search that brought
  * the visitor.
  *
- * Only paths, the referrer and campaign parameters are kept, in
+ * Only paths, the referrer's origin and campaign parameters are kept, in
  * sessionStorage (gone when the tab closes). Click ids are kept by name,
  * never their value.
  */
@@ -11,9 +11,22 @@ var STORAGE_KEY = 'lcmtMailerLanding';
 var UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign'];
 var CLICK_IDS = ['gclid', 'gbraid', 'wbraid', 'msclkid', 'fbclid', 'ttclid', 'li_fat_id'];
 
+/**
+ * Scheme and host of the referrer. Its path and query string can carry a
+ * click id or other personal data, and are never kept.
+ */
+function referrerOrigin(referrer) {
+  try {
+    var url = new URL(referrer);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.origin : '';
+  } catch (err) {
+    return '';
+  }
+}
+
 export function currentTouch() {
   var params = new URLSearchParams(window.location.search);
-  var touch = { path: window.location.pathname, referrer: document.referrer || '' };
+  var touch = { path: window.location.pathname, referrer: referrerOrigin(document.referrer || '') };
 
   UTM_KEYS.forEach(function (key) {
     var value = params.get(key);

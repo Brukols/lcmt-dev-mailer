@@ -17,7 +17,7 @@ test('currentTouch reads the path, referrer and UTM keys', function () {
   setEnv({ url: 'https://site.test/a/?utm_source=google&utm_medium=cpc&utm_campaign=spring', referrer: 'https://google.com/' });
   assert.deepEqual(currentTouch(), {
     path: '/a/',
-    referrer: 'https://google.com/',
+    referrer: 'https://google.com',
     utm_source: 'google',
     utm_medium: 'cpc',
     utm_campaign: 'spring',
@@ -136,4 +136,26 @@ test('formContext rounds seconds from startedAt, null without it', function () {
   assert.equal(formContext(Date.now() - 12600).seconds, 13);
   assert.equal(formContext(null).seconds, null);
   assert.equal(formContext(0).seconds, null);
+});
+
+test('currentTouch reduces the referrer to its origin', function () {
+  setEnv({ referrer: 'https://google.com/search/deep?q=x&gclid=SECRET#frag' });
+  assert.equal(currentTouch().referrer, 'https://google.com');
+});
+
+test('currentTouch gives an empty referrer when malformed, missing or not http', function () {
+  setEnv({ referrer: 'not a url' });
+  assert.equal(currentTouch().referrer, '');
+  setEnv({ referrer: '' });
+  assert.equal(currentTouch().referrer, '');
+  setEnv({ referrer: 'android-app://com.example/path?x=1' });
+  assert.equal(currentTouch().referrer, '');
+});
+
+test('an internal referrer with a click id never reaches the stored touch or the context', function () {
+  setEnv({ url: 'https://site.test/about/', referrer: 'https://site.test/?gclid=SECRET' });
+  assert.equal(startsVisit(currentTouch()), false);
+  storeTouch(currentTouch());
+  assert.ok(!window.sessionStorage.data.lcmtMailerLanding.includes('SECRET'));
+  assert.ok(!JSON.stringify(formContext(null)).includes('SECRET'));
 });
