@@ -125,6 +125,7 @@ The attribute value is set to `submitting`, `success`, or `error`. The text cont
 
 - **`admin-stats.js`** (Statistics page only): `lib/stats-view.js` restores each box's Chart | Table choice from `localStorage` (`lcmt-stats-view:<box id>`, wrapped in try/catch: without storage the toggle works and forgets), reveals the toggle buttons (`[data-lcmt-toggle]`, hidden by default) and switches the `[data-lcmt-view="chart|table"]` panels on a click on `[data-lcmt-set-view]`, keeping `aria-pressed` in step.
 - **`admin-uninstall.js`** (plugins.php): `lib/uninstall-prompt.js` runs the Deactivate flow, `lib/deactivate-dialog.js` drives the `<dialog>` printed by `Uninstaller::printDialog()` (`[data-lcmt-delete]`, `[data-lcmt-help]` with `data-help-on` / `data-help-off`, `[data-lcmt-cancel]`, `[data-lcmt-confirm]` with `data-busy-label`).
+- **`admin-privacy-docs.js`** (Data retention page only): `lib/copy-button.js` wires every `[data-lcmt-copy]` button. The text comes from the attribute, is copied with `navigator.clipboard.writeText()` and, when that is missing or rejects, with a hidden textarea and `execCommand('copy')`. On success the button shows its `data-copied` label for 1.5 s and the `[data-lcmt-copy-status]` polite live region announces it; a failed copy changes nothing.
 - **Chart colors:** one hue, WordPress admin blue `#2271b1` (over 3:1 on white) for marks; text stays in the normal ink colors; grid lines and axes are light gray (`#dcdcde`). No legend for a single series: the box title names it.
 
 ## REST API

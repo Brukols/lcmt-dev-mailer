@@ -30,6 +30,7 @@ yarn install
 | `src/admin-generate-template.js`| `dist/admin-generate-template.js`| Admin    | Generate form template button      |
 | `src/admin-uninstall.js`        | `dist/admin-uninstall.js`        | Admin    | Plugins screen: on deactivation, asks whether a later deletion deletes the messages |
 | `src/admin-stats.js`            | `dist/admin-stats.js`            | Admin    | Statistics page: Chart \| Table toggle of each box |
+| `src/admin-privacy-docs.js`     | `dist/admin-privacy-docs.js`     | Admin    | Data retention page: Copy buttons of the Privacy policy section |
 | `src/form-handler.js`           | `dist/form-handler.js`           | Frontend | Auto form submit, validation, fetch|
 | `src/attribution.js`            | `dist/attribution.js`            | Frontend | Remembers the landing page of the visit |
 
@@ -63,13 +64,13 @@ yarn install
 
 Three suites.
 
-**PHP unit tests** (`tests/*.php`) run without WordPress: `tests/bootstrap.php` stubs the few functions the tested classes call. They cover `FieldParser`, `FieldValidator`, `Altcha`, `SubmissionData`, `SubmissionContext`, `UserAgent` (real user agent strings and precedence cases), `ChannelClassifier`, `SubmissionCsv` and `Retention` (pure logic). Needs PHPUnit 11 (`brew install phpunit`).
+**PHP unit tests** (`tests/*.php`) run without WordPress: `tests/bootstrap.php` stubs the few functions the tested classes call. They cover `FieldParser`, `FieldValidator`, `Altcha`, `SubmissionData`, `SubmissionContext`, `UserAgent` (real user agent strings and precedence cases), `ChannelClassifier`, `SubmissionCsv` and `Retention` (pure logic, including `periodParts()`). Needs PHPUnit 11 (`brew install phpunit`).
 
 ```bash
 phpunit
 ```
 
-**JS tests** (`tests/js/`) use the Node test runner, bundled with esbuild (no extra dependency): `attribution.test.js` (the shared module), `attribution-entry.test.js` (the entry point, with a stubbed browser from `env.js`) `uninstall-prompt.test.js` (open dialog → request → link followed once flow of the Deactivate link: cancel, checkbox value sent, double submit, failed request, with fake links, prompt and `fetch`), `deactivate-dialog.test.js` (the `<dialog>`: pre-checked state, help line, Cancel, backdrop, Escape, busy state, with fake elements) and `stats-view.test.js` (Chart | Table state and `localStorage` persistence, storage that throws).
+**JS tests** (`tests/js/`) use the Node test runner, bundled with esbuild (no extra dependency): `attribution.test.js` (the shared module), `attribution-entry.test.js` (the entry point, with a stubbed browser from `env.js`) `uninstall-prompt.test.js` (open dialog → request → link followed once flow of the Deactivate link: cancel, checkbox value sent, double submit, failed request, with fake links, prompt and `fetch`), `deactivate-dialog.test.js` (the `<dialog>`: pre-checked state, help line, Cancel, backdrop, Escape, busy state, with fake elements) `copy-button.test.js` (Clipboard API, fallback, "Copied" label and its reset) and `stats-view.test.js` (Chart | Table state and `localStorage` persistence, storage that throws).
 
 ```bash
 yarn test:js

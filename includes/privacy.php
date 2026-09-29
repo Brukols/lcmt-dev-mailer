@@ -95,19 +95,31 @@ class Privacy
             return;
         }
 
-        $end = SubmissionSettings::retentionAction() === 'delete'
+        wp_add_privacy_policy_content('LCMT Mailer', self::policyText());
+    }
+
+    /**
+     * The plugin's privacy policy paragraphs, following the settings. One
+     * builder for the policy guide and [lcmt-privacy-policy], so both always
+     * say the same thing.
+     */
+    public static function policyText(): string
+    {
+        $delete = SubmissionSettings::retentionAction() === 'delete';
+
+        $end = $delete
             ? __('they are then deleted', 'lcmt-dev-mailer')
             : __('they are then anonymized: only the day, the form, the page, the origin of the visit, the type of device, the language of your browser and the browser and operating system families are kept, for statistics', 'lcmt-dev-mailer');
 
         $paragraphs = [
             sprintf(
-                /* translators: 1: number of days, 2: what happens after */
-                __('The messages you send through our forms are saved on this site for %1$d days so we can answer and follow up on your request; %2$s. We record the page you sent it from and how you reached the site (search engine, ad, other site, campaign), never your IP address.', 'lcmt-dev-mailer'),
-                SubmissionSettings::retentionDays(),
+                /* translators: 1: retention period in words (for example "3 years"), 2: what happens after */
+                __('The messages you send through our forms are saved on this site for %1$s so we can answer and follow up on your request; %2$s. We record the page you sent it from and how you reached the site (search engine, ad, other site, campaign), never your IP address.', 'lcmt-dev-mailer'),
+                self::periodText(),
                 $end
             ),
             __('With your message, we also record the type of device, the language of your browser and the time spent on the form.', 'lcmt-dev-mailer'),
-            SubmissionSettings::retentionAction() === 'delete'
+            $delete
                 ? __('We also record the user agent of your browser, a technical description of your browser and device. It is deleted with the message.', 'lcmt-dev-mailer')
                 : __('We also record the user agent of your browser, a technical description of your browser and device. It is erased when the message is anonymized.', 'lcmt-dev-mailer'),
         ];
@@ -118,9 +130,40 @@ class Privacy
             $paragraphs[] = __('The page you arrived on and the campaign that brought you are kept in your browser until you close the tab, so a form sent later in the visit knows where it started.', 'lcmt-dev-mailer');
         }
 
-        $text = implode("\n\n", $paragraphs);
+        return wp_kses_post(wpautop(implode("\n\n", $paragraphs)));
+    }
 
-        wp_add_privacy_policy_content('LCMT Mailer', wp_kses_post(wpautop($text)));
+    /**
+     * The retention period in words: "3 years", "6 months" or "45 days".
+     */
+    public static function periodText(): string
+    {
+        [$count, $unit] = Retention::periodParts(SubmissionSettings::retentionDays());
+        $number         = number_format_i18n($count);
+
+        switch ($unit) {
+            case 'year':
+                /* translators: %s: number of years */
+                return sprintf(_n('%s year', '%s years', $count, 'lcmt-dev-mailer'), $number);
+            case 'month':
+                /* translators: %s: number of months */
+                return sprintf(_n('%s month', '%s months', $count, 'lcmt-dev-mailer'), $number);
+            default:
+                /* translators: %s: number of days */
+                return sprintf(_n('%s day', '%s days', $count, 'lcmt-dev-mailer'), $number);
+        }
+    }
+
+    /**
+     * What happens once the period ends.
+     */
+    public static function actionText(): string
+    {
+        return SubmissionSettings::retentionAction() === 'delete'
+            /* translators: completes "…are then [action]": plural masculine in French, as it refers to "messages" or "data". */
+            ? __('deleted', 'lcmt-dev-mailer')
+            /* translators: completes "…are then [action]": plural masculine in French, as it refers to "messages" or "data". */
+            : __('anonymized', 'lcmt-dev-mailer');
     }
 
     /**
@@ -130,6 +173,30 @@ class Privacy
     public static function retentionShortcode(): string
     {
         return (string) SubmissionSettings::retentionDays();
+    }
+
+    /**
+     * [lcmt-retention-period]: the period in words.
+     */
+    public static function periodShortcode(): string
+    {
+        return esc_html(self::periodText());
+    }
+
+    /**
+     * [lcmt-retention-action]: "anonymized" or "deleted".
+     */
+    public static function actionShortcode(): string
+    {
+        return esc_html(self::actionText());
+    }
+
+    /**
+     * [lcmt-privacy-policy]: the same paragraphs as the policy guide.
+     */
+    public static function policyShortcode(): string
+    {
+        return self::policyText();
     }
 
     /**

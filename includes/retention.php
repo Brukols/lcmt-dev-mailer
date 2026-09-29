@@ -43,6 +43,26 @@ class Retention
     }
 
     /**
+     * A period as a count and its largest whole unit, for wording: years when
+     * the days make whole years, else months (30 days), else days. 90 days
+     * therefore reads "3 months".
+     *
+     * @return array{0: int, 1: string} Count, then year|month|day.
+     */
+    public static function periodParts(int $days): array
+    {
+        if ($days > 0 && $days % 365 === 0) {
+            return [intdiv($days, 365), 'year'];
+        }
+
+        if ($days > 0 && $days % 30 === 0) {
+            return [intdiv($days, 30), 'month'];
+        }
+
+        return [$days, 'day'];
+    }
+
+    /**
      * The UTC date before which rows are due, or null for "never".
      */
     public static function cutoff(int $days, int $now): ?string

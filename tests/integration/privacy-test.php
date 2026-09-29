@@ -39,6 +39,12 @@ function lcmt_pv_policy_text(): string
 {
     global $wp_current_filter;
 
+    // WordPress keeps every distinct text added during the request: start from an empty list so
+    // the entry found is the one added below, not an older one with the same wording.
+    $registry = new ReflectionProperty(WP_Privacy_Policy_Content::class, 'policy_content');
+    $registry->setAccessible(true);
+    $registry->setValue(null, []);
+
     set_current_screen('dashboard');
     $wp_current_filter[] = 'admin_init';
 
@@ -240,4 +246,156 @@ lcmt_it('privacy: [lcmt-retention-days] prints the retention period', function (
     } finally {
         $days === false ? delete_option(SubmissionSettings::OPTION_DAYS) : update_option(SubmissionSettings::OPTION_DAYS, $days);
     }
+});
+
+/**
+ * Run $test with the retention options set, then put them back.
+ */
+function lcmt_pv_with_retention($days, string $action, callable $test): void
+{
+    $oldDays   = get_option(SubmissionSettings::OPTION_DAYS, false);
+    $oldAction = get_option(SubmissionSettings::OPTION_ACTION, false);
+
+    try {
+        $days === null ? delete_option(SubmissionSettings::OPTION_DAYS) : update_option(SubmissionSettings::OPTION_DAYS, $days);
+        update_option(SubmissionSettings::OPTION_ACTION, $action);
+        $test();
+    } finally {
+        $oldDays === false ? delete_option(SubmissionSettings::OPTION_DAYS) : update_option(SubmissionSettings::OPTION_DAYS, $oldDays);
+        $oldAction === false ? delete_option(SubmissionSettings::OPTION_ACTION) : update_option(SubmissionSettings::OPTION_ACTION, $oldAction);
+    }
+}
+
+lcmt_it('privacy: [lcmt-retention-period] words the period', function () {
+    $cases = [
+        [null, '3 years'],
+        [365, '1 year'],
+        [730, '2 years'],
+        [180, '6 months'],
+        [30, '1 month'],
+        [45, '45 days'],
+        [1, '1 day'],
+        [1460, '4 years'],
+    ];
+
+    foreach ($cases as [$days, $expected]) {
+        lcmt_pv_with_retention($days, 'anonymize', function () use ($expected, $days) {
+            lcmt_assert_same($expected, do_shortcode('[lcmt-retention-period]'), 'days ' . var_export($days, true));
+        });
+    }
+});
+
+lcmt_it('privacy: [lcmt-retention-action] follows the setting', function () {
+    lcmt_pv_with_retention(null, 'anonymize', function () {
+        lcmt_assert_same('anonymized', do_shortcode('[lcmt-retention-action]'));
+    });
+    lcmt_pv_with_retention(null, 'delete', function () {
+        lcmt_assert_same('deleted', do_shortcode('[lcmt-retention-action]'));
+    });
+});
+
+lcmt_it('privacy: the policy sentence uses the period in words', function () {
+    lcmt_pv_with_retention(null, 'anonymize', function () {
+        $text = do_shortcode('[lcmt-privacy-policy]');
+        lcmt_assert_true(str_contains($text, 'saved on this site for 3 years so we can'), $text);
+        lcmt_assert_true(str_contains($text, 'they are then anonymized: only the day'), $text);
+        lcmt_assert_same(false, str_contains($text, '1095'), 'no days');
+    });
+
+    lcmt_pv_with_retention(180, 'delete', function () {
+        $text = do_shortcode('[lcmt-privacy-policy]');
+        lcmt_assert_true(str_contains($text, 'saved on this site for 6 months so we can'), $text);
+        lcmt_assert_true(str_contains($text, 'they are then deleted'), $text);
+        lcmt_assert_same(false, str_contains($text, 'anonymized'), 'no anonymize sentence');
+    });
+
+    lcmt_pv_with_retention(200, 'delete', function () {
+        lcmt_assert_true(str_contains(do_shortcode('[lcmt-privacy-policy]'), 'for 200 days so we'), 'days when not whole months');
+    });
+});
+
+lcmt_it('privacy: [lcmt-privacy-policy] and the policy guide print the same HTML', function () {
+    foreach ([['anonymize', null], ['delete', 180]] as [$action, $days]) {
+        lcmt_pv_with_retention($days, $action, function () {
+            $shortcode = do_shortcode('[lcmt-privacy-policy]');
+            lcmt_assert_same(Privacy::policyText(), $shortcode, 'shortcode is policyText()');
+            lcmt_assert_same($shortcode, lcmt_pv_policy_text(), 'guide');
+            lcmt_assert_true(str_starts_with($shortcode, '<p>'), 'paragraphs');
+        });
+    }
+});
+
+lcmt_it('privacy: the word shortcodes stay escaped', function () {
+    $inject = static fn() => '<script>alert(1)</script>%s';
+    add_filter('ngettext', $inject);
+    add_filter('gettext', static fn($text) => str_contains($text, 'anonymized') || $text === 'deleted' ? '<b>x</b>' : $text);
+
+    try {
+        lcmt_pv_with_retention(null, 'anonymize', function () {
+            $out = do_shortcode('[lcmt-retention-period]') . do_shortcode('[lcmt-retention-action]');
+            lcmt_assert_same(false, str_contains($out, '<script>'), $out);
+            lcmt_assert_same(false, str_contains($out, '<b>'), $out);
+            lcmt_assert_true(str_contains($out, '&lt;script&gt;'), $out);
+        });
+    } finally {
+        remove_all_filters('ngettext');
+        remove_all_filters('gettext');
+    }
+});
+
+function lcmt_pv_page(): string
+{
+    ob_start();
+    SubmissionSettings::render();
+
+    return (string) ob_get_clean();
+}
+
+lcmt_it('privacy: the Data retention page documents the shortcodes', function () {
+    lcmt_pv_with_retention(180, 'delete', function () {
+        $html = lcmt_pv_page();
+
+        lcmt_assert_true(str_contains($html, '<h2>Privacy policy</h2>'), 'heading');
+        lcmt_assert_true(str_contains($html, 'Recommended'), 'recommended');
+
+        foreach (['lcmt-privacy-policy', 'lcmt-retention-period', 'lcmt-retention-action', 'lcmt-retention-days'] as $code) {
+            lcmt_assert_true(str_contains($html, '<code>[' . $code . ']</code>'), $code . ' listed');
+            lcmt_assert_true(str_contains($html, 'data-lcmt-copy="[' . $code . ']"'), $code . ' copy button');
+        }
+
+        lcmt_assert_true(str_contains($html, '<td class="lcmt-privacy-docs__live"><code>6 months</code>'), 'live period');
+        lcmt_assert_true(str_contains($html, '<code>deleted</code>'), 'live action');
+        lcmt_assert_true(str_contains($html, '<code>180</code>'), 'live days');
+        lcmt_assert_true(str_contains($html, 'saved on this site for 6 months so we can'), 'live policy');
+        lcmt_assert_true(str_contains($html, 'options-privacy.php?tab=policyguide'), 'guide link');
+        lcmt_assert_true(str_contains($html, 'aria-live="polite"'), 'status region');
+        lcmt_assert_true(str_contains($html, 'The messages sent through our forms are kept for [lcmt-retention-period], then [lcmt-retention-action].'), 'sample');
+        lcmt_assert_true(str_contains($html, '<textarea readonly'), 'readonly sample');
+        lcmt_assert_true(str_contains($html, 'data-lcmt-copy="The messages sent through our forms'), 'sample copy');
+    });
+});
+
+lcmt_it('privacy: the page links the privacy policy page when one is set', function () {
+    $without = lcmt_pv_page();
+    lcmt_assert_true(str_contains($without, 'options-privacy.php"'), 'settings link without a page');
+
+    $id = wp_insert_post(['post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'IT policy']);
+    $old = get_option('wp_page_for_privacy_policy', false);
+    update_option('wp_page_for_privacy_policy', $id);
+
+    try {
+        lcmt_assert_true(str_contains(lcmt_pv_page(), esc_url((string) get_privacy_policy_url())), 'policy page link');
+    } finally {
+        $old === false ? delete_option('wp_page_for_privacy_policy') : update_option('wp_page_for_privacy_policy', $old);
+    }
+});
+
+lcmt_it('privacy: the page enqueues its copy script only on the Data retention screen', function () {
+    wp_dequeue_script('lcmt-admin-privacy-docs');
+    SubmissionSettings::enqueue('edit.php');
+    lcmt_assert_same(false, wp_script_is('lcmt-admin-privacy-docs', 'enqueued'));
+
+    SubmissionSettings::enqueue('mail_page_' . SubmissionSettings::PAGE_SLUG);
+    lcmt_assert_true(wp_script_is('lcmt-admin-privacy-docs', 'enqueued'));
+    wp_dequeue_script('lcmt-admin-privacy-docs');
 });

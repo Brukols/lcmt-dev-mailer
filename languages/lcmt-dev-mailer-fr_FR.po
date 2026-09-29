@@ -3,9 +3,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: LCMT Mailer 2.2.0\n"
+"Project-Id-Version: LCMT Mailer 2.3.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/lcmt-dev-mailer\n"
-"POT-Creation-Date: 2026-09-29T15:03:10+00:00\n"
+"POT-Creation-Date: 2026-09-29T15:54:06+00:00\n"
 "PO-Revision-Date: 2026-09-29 00:00+0000\n"
 "Last-Translator: Amaury Lecomte\n"
 "Language-Team: French\n"
@@ -272,44 +272,44 @@ msgstr "Aucune"
 msgid "Forms accept any submission, including from bots."
 msgstr "Les formulaires acceptent tous les envois, y compris ceux des robots."
 
-#: includes/channel-classifier.php:81
+#: includes/channel-classifier.php:104
 msgid "Google Ads"
 msgstr "Google Ads"
 
-#: includes/channel-classifier.php:82
+#: includes/channel-classifier.php:105
 msgid "Paid social"
 msgstr "Réseaux sociaux (payant)"
 
-#: includes/channel-classifier.php:83
+#: includes/channel-classifier.php:106
 msgid "Other ads"
 msgstr "Autres publicités"
 
-#: includes/channel-classifier.php:84 includes/privacy.php:52
-#: includes/submissions-list-table.php:38 includes/submissions-page.php:559
+#: includes/channel-classifier.php:107 includes/privacy.php:52
+#: includes/submissions-list-table.php:38 includes/submissions-page.php:514
 msgid "Email"
 msgstr "E-mail"
 
-#: includes/channel-classifier.php:85
+#: includes/channel-classifier.php:108
 msgid "AI assistants"
 msgstr "Assistants IA"
 
-#: includes/channel-classifier.php:85
+#: includes/channel-classifier.php:109
 msgid "Social networks"
 msgstr "Réseaux sociaux"
 
-#: includes/channel-classifier.php:86
+#: includes/channel-classifier.php:110
 msgid "Organic search"
 msgstr "Recherche naturelle"
 
-#: includes/channel-classifier.php:87
+#: includes/channel-classifier.php:111
 msgid "Other campaign"
 msgstr "Autre campagne"
 
-#: includes/channel-classifier.php:88
+#: includes/channel-classifier.php:112
 msgid "Other website"
 msgstr "Autre site web"
 
-#: includes/channel-classifier.php:89
+#: includes/channel-classifier.php:113
 msgid "Direct"
 msgstr "Accès direct"
 
@@ -341,7 +341,7 @@ msgstr "Ignorer"
 msgid "Form emails that failed"
 msgstr "E-mails de formulaire en échec"
 
-#: includes/failure-notice.php:73 includes/submissions-page.php:561
+#: includes/failure-notice.php:73 includes/submissions-page.php:516
 msgid "The request stopped before the email was sent."
 msgstr "La requête s'est arrêtée avant l'envoi de l'e-mail."
 
@@ -349,8 +349,8 @@ msgstr "La requête s'est arrêtée avant l'envoi de l'e-mail."
 msgid "All failed emails"
 msgstr "Tous les e-mails en échec"
 
-#: includes/failure-notice.php:87 includes/submission-settings.php:72
-#: includes/submissions-page.php:213 includes/submissions-page.php:234
+#: includes/failure-notice.php:87 includes/submission-settings.php:81
+#: includes/submissions-page.php:194 includes/submissions-page.php:215
 msgid "You are not allowed to do this."
 msgstr "Vous n'êtes pas autorisé à effectuer cette action."
 
@@ -445,8 +445,8 @@ msgid "Content"
 msgstr "Contenu"
 
 #: includes/meta-fields.php:81 includes/privacy.php:20 includes/privacy.php:30
-#: includes/privacy.php:66 includes/submissions-page.php:72
-#: includes/submissions-page.php:386
+#: includes/privacy.php:66 includes/submissions-page.php:39
+#: includes/submissions-page.php:366
 msgid "Received messages"
 msgstr "Messages reçus"
 
@@ -550,11 +550,11 @@ msgstr "Aucun modèle d'e-mail trouvé"
 msgid "No email templates found in trash"
 msgstr "Aucun modèle d'e-mail dans la corbeille"
 
-#: includes/privacy.php:53 includes/submissions-page.php:454
+#: includes/privacy.php:53 includes/submissions-page.php:409
 msgid "Sent"
 msgstr "Envoyé"
 
-#: includes/privacy.php:53 includes/submissions-page.php:455
+#: includes/privacy.php:53 includes/submissions-page.php:410
 msgid "Not sent"
 msgstr "Non envoyé"
 
@@ -562,11 +562,11 @@ msgstr "Non envoyé"
 msgid "Email error"
 msgstr "Erreur de l'e-mail"
 
-#: includes/privacy.php:99
+#: includes/privacy.php:111
 msgid "they are then deleted"
 msgstr "ils sont ensuite supprimés"
 
-#: includes/privacy.php:100
+#: includes/privacy.php:112
 msgid ""
 "they are then anonymized: only the day, the form, the page, the origin of "
 "the visit, the type of device, the language of your browser and the browser "
@@ -577,22 +577,21 @@ msgstr ""
 "familles de navigateur et de système d'exploitation sont conservés, pour les "
 "statistiques"
 
-#. translators: 1: number of days, 2: what happens after
-#: includes/privacy.php:105
+#. translators: 1: retention period in words (for example "3 years"), 2: what happens after
+#: includes/privacy.php:117
 #, php-format
 msgid ""
-"The messages you send through our forms are saved on this site for %1$d days "
-"so we can answer and follow up on your request; %2$s. We record the page you "
+"The messages you send through our forms are saved on this site for %1$s so "
+"we can answer and follow up on your request; %2$s. We record the page you "
 "sent it from and how you reached the site (search engine, ad, other site, "
 "campaign), never your IP address."
-msgstr ""
-"Les messages que vous envoyez via nos formulaires sont enregistrés sur ce "
-"site pendant %1$d jours afin que nous puissions répondre à votre demande et "
-"en assurer le suivi ; %2$s. Nous enregistrons la page depuis laquelle vous "
+msgstr "Les messages que vous envoyez via nos formulaires sont enregistrés sur ce "
+"site pendant %1$s afin que nous puissions répondre à votre demande et en "
+"assurer le suivi ; %2$s. Nous enregistrons la page depuis laquelle vous "
 "l'avez envoyé et la manière dont vous êtes arrivé sur le site (moteur de "
 "recherche, publicité, autre site, campagne), jamais votre adresse IP."
 
-#: includes/privacy.php:109
+#: includes/privacy.php:121
 msgid ""
 "With your message, we also record the type of device, the language of your "
 "browser and the time spent on the form."
@@ -600,7 +599,7 @@ msgstr ""
 "Avec votre message, nous enregistrons aussi le type d'appareil, la langue de "
 "votre navigateur et le temps passé sur le formulaire."
 
-#: includes/privacy.php:111
+#: includes/privacy.php:123
 msgid ""
 "We also record the user agent of your browser, a technical description of "
 "your browser and device. It is deleted with the message."
@@ -609,7 +608,7 @@ msgstr ""
 "navigateur, une description technique de votre navigateur et de votre "
 "appareil. Il est supprimé avec le message."
 
-#: includes/privacy.php:112
+#: includes/privacy.php:124
 msgid ""
 "We also record the user agent of your browser, a technical description of "
 "your browser and device. It is erased when the message is anonymized."
@@ -618,7 +617,7 @@ msgstr ""
 "navigateur, une description technique de votre navigateur et de votre "
 "appareil. Il est effacé lorsque le message est anonymisé."
 
-#: includes/privacy.php:116
+#: includes/privacy.php:128
 msgid ""
 "Once you accept statistics, the page you arrived on and the campaign that "
 "brought you are kept in your browser until you close the tab, so a form sent "
@@ -629,7 +628,7 @@ msgstr ""
 "jusqu'à la fermeture de l'onglet, pour qu'un formulaire envoyé plus tard "
 "dans la visite sache d'où elle est partie."
 
-#: includes/privacy.php:118
+#: includes/privacy.php:130
 msgid ""
 "The page you arrived on and the campaign that brought you are kept in your "
 "browser until you close the tab, so a form sent later in the visit knows "
@@ -638,6 +637,40 @@ msgstr ""
 "La page par laquelle vous êtes arrivé et la campagne qui vous a amené sont "
 "conservées dans votre navigateur jusqu'à la fermeture de l'onglet, pour "
 "qu'un formulaire envoyé plus tard dans la visite sache d'où elle est partie."
+
+#. translators: %s: number of years
+#: includes/privacy.php:147
+#, php-format
+msgid "%s year"
+msgid_plural "%s years"
+msgstr[0] "%s an"
+msgstr[1] "%s ans"
+
+#. translators: %s: number of months
+#: includes/privacy.php:150
+#, php-format
+msgid "%s month"
+msgid_plural "%s months"
+msgstr[0] "%s mois"
+msgstr[1] "%s mois"
+
+#. translators: %s: number of days
+#: includes/privacy.php:153
+#, php-format
+msgid "%s day"
+msgid_plural "%s days"
+msgstr[0] "%s jour"
+msgstr[1] "%s jours"
+
+#. translators: completes "…are then [action]": plural masculine in French, as it refers to "messages" or "data".
+#: includes/privacy.php:164
+msgid "deleted"
+msgstr "supprimés"
+
+#. translators: completes "…are then [action]": plural masculine in French, as it refers to "messages" or "data".
+#: includes/privacy.php:166
+msgid "anonymized"
+msgstr "anonymisés"
 
 #: includes/settings.php:38 includes/settings.php:201
 msgid "Mailer Settings"
@@ -756,100 +789,104 @@ msgstr "Sélectionner le logo de l'email"
 msgid "Use this image"
 msgstr "Utiliser cette image"
 
-#: includes/stats-page.php:36
+#: includes/stats-page.php:46
 msgid "Last 30 days"
 msgstr "30 derniers jours"
 
-#: includes/stats-page.php:37
+#: includes/stats-page.php:47
 msgid "Last 90 days"
 msgstr "90 derniers jours"
 
-#: includes/stats-page.php:38
+#: includes/stats-page.php:48
 msgid "Last 12 months"
 msgstr "12 derniers mois"
 
-#: includes/stats-page.php:39
+#: includes/stats-page.php:49
 msgid "Everything"
 msgstr "Tout"
 
-#: includes/stats-page.php:53 includes/stats-page.php:305
-#: includes/submissions-page.php:45
+#: includes/stats-page.php:53 includes/submissions-page.php:57
+#: includes/submissions-page.php:58
+msgid "Statistics"
+msgstr "Statistiques"
+
+#: includes/stats-page.php:67 includes/stats-page.php:317
 msgid "Messages"
 msgstr "Messages"
 
-#: includes/stats-page.php:54
+#: includes/stats-page.php:68
 msgid "Emails not sent"
 msgstr "E-mails non envoyés"
 
-#: includes/stats-page.php:56
+#: includes/stats-page.php:70
 msgid "Average time on the form"
 msgstr "Temps moyen sur le formulaire"
 
-#: includes/stats-page.php:63
+#: includes/stats-page.php:77
 msgid "By source"
 msgstr "Par source"
 
-#: includes/stats-page.php:64
+#: includes/stats-page.php:78
 msgid "By campaign"
 msgstr "Par campagne"
 
-#: includes/stats-page.php:65
+#: includes/stats-page.php:79
 msgid "By form"
 msgstr "Par formulaire"
 
-#: includes/stats-page.php:66 includes/submissions-list-table.php:36
-#: includes/submissions-page.php:335
+#: includes/stats-page.php:80 includes/submissions-list-table.php:36
+#: includes/submissions-page.php:316
 msgid "Sent from"
 msgstr "Envoyé depuis"
 
-#: includes/stats-page.php:67 includes/submissions-page.php:336
+#: includes/stats-page.php:81 includes/submissions-page.php:317
 msgid "Landing page"
 msgstr "Page d'arrivée"
 
-#: includes/stats-page.php:68 includes/submissions-page.php:338
+#: includes/stats-page.php:82 includes/submissions-page.php:319
 msgid "Referring site"
 msgstr "Site référent"
 
-#: includes/stats-page.php:69 includes/submissions-page.php:341
+#: includes/stats-page.php:83 includes/submissions-page.php:322
 msgid "Device"
 msgstr "Appareil"
 
-#: includes/stats-page.php:70 includes/submissions-page.php:342
+#: includes/stats-page.php:84 includes/submissions-page.php:323
 msgid "Browser"
 msgstr "Navigateur"
 
-#: includes/stats-page.php:71 includes/submissions-page.php:343
+#: includes/stats-page.php:85 includes/submissions-page.php:324
 msgid "Operating system"
 msgstr "Système d'exploitation"
 
-#: includes/stats-page.php:141
+#: includes/stats-page.php:153
 msgid "By month"
 msgstr "Par mois"
 
 #. translators: 1: chart title, 2: highest monthly count, 3: month of that count
-#: includes/stats-page.php:173
+#: includes/stats-page.php:185
 #, php-format
 msgid "%1$s: highest %2$d in %3$s"
 msgstr "%1$s : maximum de %2$d en %3$s"
 
-#: includes/stats-page.php:284
+#: includes/stats-page.php:296
 msgctxt "statistics display mode"
 msgid "View"
 msgstr "Affichage"
 
-#: includes/stats-page.php:285
+#: includes/stats-page.php:297
 msgid "Chart"
 msgstr "Graphique"
 
-#: includes/stats-page.php:286
+#: includes/stats-page.php:298
 msgid "Table"
 msgstr "Tableau"
 
-#: includes/stats-page.php:297
+#: includes/stats-page.php:309
 msgid "No data for this period."
 msgstr "Aucune donnée pour cette période."
 
-#: includes/stats-page.php:320
+#: includes/stats-page.php:332
 msgid "(not set)"
 msgstr "(non renseigné)"
 
@@ -864,21 +901,26 @@ msgid "The email was not sent and the mail system gave no reason."
 msgstr ""
 "L'e-mail n'a pas été envoyé et le système d'envoi n'a donné aucune raison."
 
+#: includes/submission-settings.php:123 includes/submissions-page.php:67
+#: includes/submissions-page.php:68
+msgid "Data retention"
+msgstr "Conservation des données"
+
 #. translators: 1: number of anonymized messages, 2: number of deleted messages
-#: includes/submission-settings.php:102
+#: includes/submission-settings.php:131
 #, php-format
 msgid "Purge done: %1$d messages anonymized, %2$d deleted."
 msgstr "Purge effectuée : %1$d messages anonymisés, %2$d supprimés."
 
-#: includes/submission-settings.php:122
+#: includes/submission-settings.php:151
 msgid "Keep personal data for"
 msgstr "Conserver les données personnelles pendant"
 
-#: includes/submission-settings.php:126
+#: includes/submission-settings.php:155
 msgid "days after the message was sent"
 msgstr "jours après l'envoi du message"
 
-#: includes/submission-settings.php:128
+#: includes/submission-settings.php:157
 msgid ""
 "The GDPR sets no fixed period: data may be kept as long as its purpose needs "
 "it. For prospects, the CNIL accepts at most 3 years (1095 days) after the "
@@ -889,11 +931,11 @@ msgstr ""
 "au maximum 3 ans (1095 jours) après le dernier contact. Indiquez cette durée "
 "dans votre politique de confidentialité."
 
-#: includes/submission-settings.php:134
+#: includes/submission-settings.php:163
 msgid "When the period ends"
 msgstr "À la fin de cette durée"
 
-#: includes/submission-settings.php:138
+#: includes/submission-settings.php:167
 msgid ""
 "Anonymize: erase what the visitor typed, keep the day, form, page and source "
 "for statistics"
@@ -901,11 +943,11 @@ msgstr ""
 "Anonymiser : effacer ce que le visiteur a saisi, conserver le jour, le "
 "formulaire, la page et la source pour les statistiques"
 
-#: includes/submission-settings.php:140
+#: includes/submission-settings.php:169
 msgid "Delete the whole message"
 msgstr "Supprimer le message entier"
 
-#: includes/submission-settings.php:142
+#: includes/submission-settings.php:171
 msgid ""
 "When deleting, anonymized statistics older than this period are deleted too, "
 "whatever the setting below."
@@ -913,15 +955,15 @@ msgstr ""
 "En cas de suppression, les statistiques anonymisées plus anciennes que cette "
 "durée sont aussi supprimées, quel que soit le réglage ci-dessous."
 
-#: includes/submission-settings.php:147
+#: includes/submission-settings.php:176
 msgid "When the plugin is deleted"
 msgstr "À la suppression de l'extension"
 
-#: includes/submission-settings.php:151
+#: includes/submission-settings.php:180
 msgid "Delete received messages when the plugin is deleted"
 msgstr "Supprimer les messages reçus quand l'extension est supprimée"
 
-#: includes/submission-settings.php:153
+#: includes/submission-settings.php:182
 msgid ""
 "Unticked, deleting the plugin keeps the messages and their statistics in the "
 "database. Deactivating the plugin from the Plugins screen asks the question "
@@ -933,30 +975,30 @@ msgstr ""
 "Extensions pose la question et enregistre la réponse ici ; une désactivation "
 "par WP-CLI ou par une action groupée ne la pose pas."
 
-#: includes/submission-settings.php:158
+#: includes/submission-settings.php:187
 msgid "Keep anonymized statistics for"
 msgstr "Conserver les statistiques anonymisées pendant"
 
-#: includes/submission-settings.php:162
+#: includes/submission-settings.php:191
 msgid "days"
 msgstr "jours"
 
-#: includes/submission-settings.php:163
+#: includes/submission-settings.php:192
 msgid ""
 "0 keeps them forever: once anonymized, they are no longer personal data."
 msgstr ""
 "0 les conserve indéfiniment : une fois anonymisées, elles ne sont plus des "
 "données personnelles."
 
-#: includes/submission-settings.php:169
+#: includes/submission-settings.php:198
 msgid "Advanced settings"
 msgstr "Réglages avancés"
 
-#: includes/submission-settings.php:173
+#: includes/submission-settings.php:202
 msgid "Visit origin without a consent tool"
 msgstr "Origine de la visite sans outil de consentement"
 
-#: includes/submission-settings.php:177
+#: includes/submission-settings.php:206
 msgid ""
 "Remember the landing page and campaign in the visitor's browser when no "
 "consent tool is installed"
@@ -964,7 +1006,7 @@ msgstr ""
 "Mémoriser la page d'arrivée et la campagne dans le navigateur du visiteur "
 "lorsqu'aucun outil de consentement n'est installé"
 
-#: includes/submission-settings.php:180
+#: includes/submission-settings.php:209
 msgid ""
 "With a consent tool compatible with WP Consent API, this is only done after "
 "the visitor accepts statistics, whatever this setting. Without one, storing "
@@ -977,11 +1019,11 @@ msgstr ""
 "titre des règles ePrivacy : décochez cette case pour enregistrer uniquement "
 "la page depuis laquelle le formulaire a été envoyé."
 
-#: includes/submission-settings.php:192 includes/submission-settings.php:198
+#: includes/submission-settings.php:221 includes/submission-settings.php:227
 msgid "Purge now"
 msgstr "Purger maintenant"
 
-#: includes/submission-settings.php:193
+#: includes/submission-settings.php:222
 msgid ""
 "The purge runs once a day, when the site gets visits. Run it now to apply "
 "new settings at once."
@@ -989,11 +1031,77 @@ msgstr ""
 "La purge s'exécute une fois par jour, lorsque le site reçoit des visites. "
 "Lancez-la maintenant pour appliquer immédiatement les nouveaux réglages."
 
-#: includes/submission-settings.php:195
+#: includes/submission-settings.php:224
 msgid "Apply the retention settings now? This cannot be undone."
 msgstr ""
 "Appliquer les réglages de conservation maintenant ? Cette action est "
 "irréversible."
+
+#: includes/submission-settings.php:247 includes/submission-settings.php:248
+msgid "privacy policy page"
+msgstr "page de politique de confidentialité"
+
+#: includes/submission-settings.php:249
+msgid "privacy policy guide"
+msgstr "guide de politique de confidentialité"
+
+#: includes/submission-settings.php:256
+msgid ""
+"The messages sent through our forms are kept for [lcmt-retention-period], "
+"then [lcmt-retention-action]."
+msgstr "Les messages envoyés via nos formulaires sont conservés pendant "
+"[lcmt-retention-period], puis [lcmt-retention-action]."
+
+#: includes/submission-settings.php:259
+msgid "Privacy policy"
+msgstr "Politique de confidentialité"
+
+#. translators: 1: link to the site's privacy policy page, 2: link to the WordPress privacy policy guide
+#: includes/submission-settings.php:264
+#, php-format
+msgid ""
+"These shortcodes follow the settings above. Paste them in your %1$s to state "
+"how this plugin handles personal data. The same text is in the WordPress "
+"%2$s."
+msgstr "Ces shortcodes suivent les réglages ci-dessus. Collez-les dans votre %1$s "
+"pour indiquer comment cette extension traite les données personnelles. Le "
+"même texte figure dans le %2$s de WordPress."
+
+#: includes/submission-settings.php:274
+msgid "Shortcode"
+msgstr "Shortcode"
+
+#: includes/submission-settings.php:275
+msgid "Displays"
+msgstr "Affichage"
+
+#: includes/submission-settings.php:276 includes/submission-settings.php:296
+#: includes/submission-settings.php:311
+msgid "Copy"
+msgstr "Copier"
+
+#: includes/submission-settings.php:286
+msgid "Recommended"
+msgstr "Recommandé"
+
+#: includes/submission-settings.php:296 includes/submission-settings.php:311
+msgid "Copied"
+msgstr "Copié"
+
+#: includes/submission-settings.php:303
+msgid "Write your own text"
+msgstr "Rédiger votre propre texte"
+
+#: includes/submission-settings.php:304
+msgid ""
+"To word it yourself, combine the shortcodes in your own sentences. For "
+"example:"
+msgstr "Pour le formuler vous-même, combinez les shortcodes dans vos propres "
+"phrases. Par exemple :"
+
+#: includes/submission-settings.php:306
+msgid "Sample paragraph"
+msgstr "Paragraphe d'exemple"
 
 #: includes/submissions-list-table.php:33
 msgid "Sender"
@@ -1003,15 +1111,15 @@ msgstr "Expéditeur"
 msgid "Status"
 msgstr "Statut"
 
-#: includes/submissions-list-table.php:35 includes/submissions-page.php:334
+#: includes/submissions-list-table.php:35 includes/submissions-page.php:315
 msgid "Form"
 msgstr "Formulaire"
 
-#: includes/submissions-list-table.php:37 includes/submissions-page.php:337
+#: includes/submissions-list-table.php:37 includes/submissions-page.php:318
 msgid "Source"
 msgstr "Source"
 
-#: includes/submissions-list-table.php:39 includes/submissions-page.php:333
+#: includes/submissions-list-table.php:39 includes/submissions-page.php:314
 msgid "Date"
 msgstr "Date"
 
@@ -1031,7 +1139,7 @@ msgstr "Non lus"
 msgid "Email failed"
 msgstr "E-mail en échec"
 
-#: includes/submissions-list-table.php:70 includes/submissions-page.php:445
+#: includes/submissions-list-table.php:70 includes/submissions-page.php:400
 msgid "Spam"
 msgstr "Spam"
 
@@ -1039,16 +1147,16 @@ msgstr "Spam"
 msgid "Mark as read"
 msgstr "Marquer comme lu"
 
-#: includes/submissions-list-table.php:92 includes/submissions-page.php:582
+#: includes/submissions-list-table.php:92 includes/submissions-page.php:537
 msgid "Mark as processed"
 msgstr "Marquer comme traité"
 
-#: includes/submissions-list-table.php:93 includes/submissions-page.php:584
+#: includes/submissions-list-table.php:93 includes/submissions-page.php:539
 msgid "Mark as spam"
 msgstr "Marquer comme spam"
 
 #: includes/submissions-list-table.php:94
-#: includes/submissions-list-table.php:144 includes/submissions-page.php:601
+#: includes/submissions-list-table.php:144 includes/submissions-page.php:556
 msgid "Delete"
 msgstr "Supprimer"
 
@@ -1076,105 +1184,97 @@ msgstr "(aucun texte)"
 msgid "View"
 msgstr "Voir"
 
-#: includes/submissions-list-table.php:144 includes/submissions-page.php:601
+#: includes/submissions-list-table.php:144 includes/submissions-page.php:556
 msgid "Delete this message for good?"
 msgstr "Supprimer définitivement ce message ?"
 
-#: includes/submissions-page.php:46
-msgid "Statistics"
-msgstr "Statistiques"
-
-#: includes/submissions-page.php:50
-msgid "Data retention"
-msgstr "Conservation des données"
-
-#: includes/submissions-page.php:339
+#: includes/submissions-page.php:320
 msgid "Campaign"
 msgstr "Campagne"
 
-#: includes/submissions-page.php:340
+#: includes/submissions-page.php:321
 msgid "Ad click"
 msgstr "Clic publicitaire"
 
-#: includes/submissions-page.php:344
+#: includes/submissions-page.php:325
 msgid "User agent"
 msgstr "User agent"
 
-#: includes/submissions-page.php:345
+#: includes/submissions-page.php:326
 msgid "Browser language"
 msgstr "Langue du navigateur"
 
-#: includes/submissions-page.php:346
+#: includes/submissions-page.php:327
 msgid "Time on the form"
 msgstr "Temps passé sur le formulaire"
 
-#: includes/submissions-page.php:386
+#: includes/submissions-page.php:366
 msgid "Received message"
 msgstr "Message reçu"
 
-#: includes/submissions-page.php:395
+#: includes/submissions-page.php:375
 msgid "Export CSV"
 msgstr "Exporter en CSV"
 
-#: includes/submissions-page.php:442
+#: includes/submissions-page.php:397
 msgid "New"
 msgstr "Nouveau"
 
-#: includes/submissions-page.php:443
+#: includes/submissions-page.php:398
 msgid "Read"
 msgstr "Lu"
 
-#: includes/submissions-page.php:444
+#: includes/submissions-page.php:399
 msgid "Processed"
 msgstr "Traité"
 
-#: includes/submissions-page.php:480
+#: includes/submissions-page.php:435
 msgid "Messages updated."
 msgstr "Messages mis à jour."
 
-#: includes/submissions-page.php:481
+#: includes/submissions-page.php:436
 msgid "Messages deleted."
 msgstr "Messages supprimés."
 
-#: includes/submissions-page.php:482
+#: includes/submissions-page.php:437
 msgid "Email sent."
 msgstr "E-mail envoyé."
 
-#: includes/submissions-page.php:483
+#: includes/submissions-page.php:438
 msgid "The email could not be sent again. The reason is shown below."
 msgstr "L'e-mail n'a pas pu être renvoyé. La raison est indiquée ci-dessous."
 
-#: includes/submissions-page.php:516
+#: includes/submissions-page.php:471
 msgid "Search messages"
 msgstr "Rechercher des messages"
 
-#: includes/submissions-page.php:523
+#: includes/submissions-page.php:478
 msgid "Back to the messages"
 msgstr "Retour aux messages"
 
-#: includes/submissions-page.php:526
+#: includes/submissions-page.php:481
 msgid "This message no longer exists."
 msgstr "Ce message n'existe plus."
 
-#: includes/submissions-page.php:533
+#: includes/submissions-page.php:488
 msgid "Message"
 msgstr "Message"
 
 #. translators: %s: date of the anonymization
-#: includes/submissions-page.php:540
+#: includes/submissions-page.php:495
 #, php-format
 msgid "Personal data anonymized on %s."
 msgstr "Données personnelles anonymisées le %s."
 
-#: includes/submissions-page.php:565
+#: includes/submissions-page.php:520
 msgid "Context"
 msgstr "Contexte"
 
-#: includes/submissions-page.php:578
+#: includes/submissions-page.php:533
 msgid "Send the email again"
 msgstr "Renvoyer l'e-mail"
 
-#: includes/submissions-page.php:583
+#: includes/submissions-page.php:538
 msgid "Mark as unread"
 msgstr "Marquer comme non lu"
 
@@ -1221,3 +1321,5 @@ msgstr "Désactivation…"
 #: includes/uninstaller.php:167
 msgid "Deactivate"
 msgstr "Désactiver"
+
+#, php-format

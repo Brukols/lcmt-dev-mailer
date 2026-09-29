@@ -93,6 +93,24 @@ class SubmissionSettings
     }
 
     /**
+     * The copy buttons of the Privacy policy section, on this screen only.
+     */
+    public static function enqueue(string $hook): void
+    {
+        if ($hook !== PostType::SLUG . '_page_' . self::PAGE_SLUG) {
+            return;
+        }
+
+        wp_enqueue_script(
+            'lcmt-admin-privacy-docs',
+            LCMT_MAILER_URL . 'assets/dist/admin-privacy-docs.js',
+            [],
+            lcmt_mailer_asset_version('assets/dist/admin-privacy-docs.js'),
+            true
+        );
+    }
+
+    /**
      * The Data retention screen: heading, settings form and "Purge now".
      */
     public static function render(): void
@@ -208,8 +226,98 @@ class SubmissionSettings
                 <?php wp_nonce_field(self::PURGE_ACTION); ?>
                 <?php submit_button(__('Purge now', 'lcmt-dev-mailer'), 'secondary', 'submit', false); ?>
             </form>
+
+            <hr>
+
+            <?php self::renderPrivacyDocs(); ?>
         </div>
         </div>
+        <?php
+    }
+
+    /**
+     * "Privacy policy": the shortcodes that print the plugin's part of the
+     * privacy policy, with what each prints now and a Copy button. Placed
+     * after "Purge now" since it is reference material, not a setting.
+     */
+    private static function renderPrivacyDocs(): void
+    {
+        $pageUrl  = get_privacy_policy_url();
+        $pageLink = $pageUrl !== ''
+            ? '<a href="' . esc_url($pageUrl) . '">' . esc_html__('privacy policy page', 'lcmt-dev-mailer') . '</a>'
+            : '<a href="' . esc_url(admin_url('options-privacy.php')) . '">' . esc_html__('privacy policy page', 'lcmt-dev-mailer') . '</a>';
+        $guide    = '<a href="' . esc_url(admin_url('options-privacy.php?tab=policyguide')) . '">' . esc_html__('privacy policy guide', 'lcmt-dev-mailer') . '</a>';
+        $rows     = [
+            'lcmt-privacy-policy'   => true,
+            'lcmt-retention-period' => false,
+            'lcmt-retention-action' => false,
+            'lcmt-retention-days'   => false,
+        ];
+        $sample   = __('The messages sent through our forms are kept for [lcmt-retention-period], then [lcmt-retention-action].', 'lcmt-dev-mailer');
+        ?>
+        <div class="lcmt-privacy-docs">
+            <h2><?php esc_html_e('Privacy policy', 'lcmt-dev-mailer'); ?></h2>
+            <p>
+                <?php
+                printf(
+                    /* translators: 1: link to the site's privacy policy page, 2: link to the WordPress privacy policy guide */
+                    wp_kses_post(__('These shortcodes follow the settings above. Paste them in your %1$s to state how this plugin handles personal data. The same text is in the WordPress %2$s.', 'lcmt-dev-mailer')),
+                    $pageLink, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built above from escaped parts.
+                    $guide // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built above from escaped parts.
+                );
+                ?>
+            </p>
+
+            <table class="widefat striped lcmt-privacy-docs__table">
+                <thead>
+                    <tr>
+                        <th scope="col"><?php esc_html_e('Shortcode', 'lcmt-dev-mailer'); ?></th>
+                        <th scope="col"><?php esc_html_e('Displays', 'lcmt-dev-mailer'); ?></th>
+                        <th scope="col"><?php esc_html_e('Copy', 'lcmt-dev-mailer'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($rows as $name => $recommended): ?>
+                        <?php $code = '[' . $name . ']'; ?>
+                        <tr>
+                            <td>
+                                <code><?= esc_html($code) ?></code>
+                                <?php if ($recommended): ?>
+                                    <br><strong><?php esc_html_e('Recommended', 'lcmt-dev-mailer'); ?></strong>
+                                <?php endif; ?>
+                            </td>
+                            <?php if ($recommended): ?>
+                                <td class="lcmt-privacy-docs__live"><div class="lcmt-privacy-docs__policy"><?= Privacy::policyText() // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- already run through wp_kses_post(). ?></div></td>
+                            <?php else: ?>
+                                <td class="lcmt-privacy-docs__live"><code><?= do_shortcode($code) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the shortcode escapes its output. ?></code></td>
+                            <?php endif; ?>
+                            <td>
+                                <button type="button" class="button" data-lcmt-copy="<?= esc_attr($code) ?>"
+                                        data-copied="<?= esc_attr__('Copied', 'lcmt-dev-mailer') ?>"><?php esc_html_e('Copy', 'lcmt-dev-mailer'); ?></button>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+
+            <h3><?php esc_html_e('Write your own text', 'lcmt-dev-mailer'); ?></h3>
+            <p><?php esc_html_e('To word it yourself, combine the shortcodes in your own sentences. For example:', 'lcmt-dev-mailer'); ?></p>
+            <p>
+                <label for="lcmt-privacy-sample" class="screen-reader-text"><?php esc_html_e('Sample paragraph', 'lcmt-dev-mailer'); ?></label>
+                <textarea readonly id="lcmt-privacy-sample" class="large-text" rows="2"><?= esc_textarea($sample) ?></textarea>
+            </p>
+            <p>
+                <button type="button" class="button" data-lcmt-copy="<?= esc_attr($sample) ?>"
+                        data-copied="<?= esc_attr__('Copied', 'lcmt-dev-mailer') ?>"><?php esc_html_e('Copy', 'lcmt-dev-mailer'); ?></button>
+            </p>
+
+            <p class="screen-reader-text" role="status" aria-live="polite" data-lcmt-copy-status></p>
+        </div>
+        <style>
+            .lcmt-privacy-docs__table { max-width: 900px; }
+            .lcmt-privacy-docs__table td { vertical-align: top; }
+            .lcmt-privacy-docs__policy { max-height: 16em; overflow: auto; padding: 0 12px; border: 1px solid #c3c4c7; background: #fff; }
+        </style>
         <?php
     }
 }

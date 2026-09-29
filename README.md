@@ -207,7 +207,7 @@ Every message sent through a form is saved on your site before the email goes ou
 - **Per form:** each mail template has a **Save the messages sent through this form** checkbox, on by default. Untick it for forms that must not be stored.
 - **Spam:** since every message is now stored, keep a spam protection enabled (ALTCHA, selected by default in **Spam protection**). Each stored value is cut to 10 000 characters so a bot cannot fill the database; the email still gets the whole value.
 - **Failed emails:** if an email cannot be sent, the message stays saved, an admin banner and a dashboard widget show the reason, and **Send the email again** resends it.
-- **Retention:** **Email templates → Data retention**. By default, personal data is kept 1095 days (3 years, the longest the CNIL accepts for prospects), then **anonymized**: what the visitor typed is erased, as are the time of day, the time spent on the form and the raw browser user agent, while the day, form, page, source and the browser and operating system families (for example Chrome, Windows) stay for statistics, kept forever unless you set a period. You can delete whole messages instead. A daily task applies it; **Purge now** runs it at once, after a confirmation. In delete mode, anonymized statistics older than the period are deleted too. State the period in your privacy policy: `[lcmt-retention-days]` prints it, and the plugin adds text to the WordPress privacy policy guide.
+- **Retention:** **Email templates → Data retention**. By default, personal data is kept 1095 days (3 years, the longest the CNIL accepts for prospects), then **anonymized**: what the visitor typed is erased, as are the time of day, the time spent on the form and the raw browser user agent, while the day, form, page, source and the browser and operating system families (for example Chrome, Windows) stay for statistics, kept forever unless you set a period. You can delete whole messages instead. A daily task applies it; **Purge now** runs it at once, after a confirmation. In delete mode, anonymized statistics older than the period are deleted too. State the period in your privacy policy: see [Privacy policy](#privacy-policy) below for the shortcodes that print it, and the text the plugin adds to the WordPress privacy policy guide.
 - **Origin of the visit:** the landing page, campaign parameters (UTM), the name of an ad click id (never its value) and the origin of the referring site (scheme and host, e.g. `https://www.google.com`, never its path or query string) are remembered in the visitor's browser for the visit only (sessionStorage); only the referrer's host is saved with the message. With a consent tool compatible with **WP Consent API**, this only happens once the visitor accepts the *statistics* category. Without one, it is done by default, which needs consent under the ePrivacy rules: untick the option in Data retention → Advanced settings to only record the page the form was sent from. IP addresses are never stored.
 - **CSV export:** a value starting with `=`, `+`, `-`, `@`, a tab or a carriage return gets a leading `'` so a spreadsheet never runs it as a formula (CSV injection). Known trade-off: phone numbers in international format show as `'+33…`.
 - **User agent:** the raw `User-Agent` header of the visitor's browser is saved with the message (500 characters at most) since it can single out a device: it is personal data, erased at anonymization, and included in the export and the CSV. Only the browser and operating system **families** (no version) are derived from it and kept for statistics. Mention it in your privacy policy: the plugin's privacy policy text does.
@@ -217,6 +217,23 @@ Every message sent through a form is saved on your site before the email goes ou
 For developers: hooks `lcmt_mailer_submission_channel`, `lcmt_mailer_submissions_capability` and `lcmt_mailer_submission_actions` are described in [.claude/hooks.md](.claude/hooks.md).
 
 ---
+
+### Privacy policy
+
+Your privacy policy has to state what the plugin does with the messages. Four shortcodes print it and follow the **Data retention** settings, in the language of the site. **Email templates → Data retention → Privacy policy** lists them with what each prints now and a **Copy** button.
+
+| Shortcode | Prints (example with the defaults) |
+|-----------|-------------------------------------|
+| `[lcmt-privacy-policy]` | The plugin's paragraphs: retention period and what happens after it, what is recorded with a message, the user agent, what anonymization keeps, and what is stored in the visitor's browser. **Recommended**: paste this one. It is the same text as in the WordPress privacy policy guide (**Settings → Privacy → Policy Guide**). |
+| `[lcmt-retention-period]` | The period in words: `3 years`. Whole years when the days make whole years (365, 730, 1095…), else whole months (30, 180…), else days: `1 year`, `6 months`, `45 days`. |
+| `[lcmt-retention-action]` | `anonymized` or `deleted`, following the setting. |
+| `[lcmt-retention-days]` | The number of days: `1095`. |
+
+To write your own wording, combine the small ones:
+
+```
+The messages sent through our forms are kept for [lcmt-retention-period], then [lcmt-retention-action].
+```
 
 ## Filters
 

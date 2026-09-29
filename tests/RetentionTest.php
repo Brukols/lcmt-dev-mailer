@@ -36,4 +36,27 @@ class RetentionTest extends TestCase
         $this->assertSame('2026-09-19 12:00:00', Retention::cutoff(10, $now));
         $this->assertNull(Retention::cutoff(0, $now));
     }
+
+    /**
+     * Years first, then months, then days: 90 days reads "3 months".
+     */
+    public function testExpressesAPeriodInTheLargestWholeUnit(): void
+    {
+        $cases = [
+            1095 => [3, 'year'],
+            730  => [2, 'year'],
+            365  => [1, 'year'],
+            3650 => [10, 'year'],
+            180  => [6, 'month'],
+            90   => [3, 'month'],
+            30   => [1, 'month'],
+            45   => [45, 'day'],
+            1    => [1, 'day'],
+            364  => [364, 'day'],
+        ];
+
+        foreach ($cases as $days => $expected) {
+            $this->assertSame($expected, Retention::periodParts($days), (string) $days);
+        }
+    }
 }

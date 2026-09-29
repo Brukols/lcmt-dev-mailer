@@ -4,7 +4,7 @@
  * Plugin Name: LCMT Mailer
  * Plugin URI: https://github.com/Brukols/lcmt-dev-mailer
  * Description: Developer-oriented mail engine. Create mail templates in WP admin, auto-generates REST endpoints, form rendering, validation and TypeScript types.
- * Version: 2.2.0
+ * Version: 2.3.0
  * Author: Amaury Lecomte
  * Author URI:
  * Text Domain: lcmt-dev-mailer
@@ -80,6 +80,9 @@ add_filter('wp_privacy_personal_data_exporters', ['LcmtDevMailer\\Privacy', 'reg
 add_filter('wp_privacy_personal_data_erasers', ['LcmtDevMailer\\Privacy', 'registerEraser']);
 add_action('admin_init', ['LcmtDevMailer\\Privacy', 'addPolicyContent']);
 add_shortcode('lcmt-retention-days', ['LcmtDevMailer\\Privacy', 'retentionShortcode']);
+add_shortcode('lcmt-retention-period', ['LcmtDevMailer\\Privacy', 'periodShortcode']);
+add_shortcode('lcmt-retention-action', ['LcmtDevMailer\\Privacy', 'actionShortcode']);
+add_shortcode('lcmt-privacy-policy', ['LcmtDevMailer\\Privacy', 'policyShortcode']);
 
 // Tell WP Consent API this plugin follows its consent categories.
 add_filter('wp_consent_api_registered_' . plugin_basename(__FILE__), '__return_true');
@@ -103,6 +106,7 @@ add_action('admin_init', ['LcmtDevMailer\\CaptchaSettings', 'registerSettings'])
 add_action('admin_init', ['LcmtDevMailer\\SubmissionSettings', 'registerSettings']);
 add_action('admin_post_' . LcmtDevMailer\SubmissionSettings::PURGE_ACTION, ['LcmtDevMailer\\SubmissionSettings', 'handlePurgeNow']);
 add_action('admin_enqueue_scripts', ['LcmtDevMailer\\StatsPage', 'enqueue']);
+add_action('admin_enqueue_scripts', ['LcmtDevMailer\\SubmissionSettings', 'enqueue']);
 add_action('admin_enqueue_scripts', ['LcmtDevMailer\\Uninstaller', 'enqueue']);
 add_action('admin_footer', ['LcmtDevMailer\\Uninstaller', 'printDialog']);
 add_action('wp_ajax_' . LcmtDevMailer\Uninstaller::AJAX_ACTION, ['LcmtDevMailer\\Uninstaller', 'handleAjax']);
