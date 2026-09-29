@@ -78,6 +78,10 @@ export function storeTouch(touch) {
 /**
  * Whether the landing may be written to the browser: the statistics consent
  * when WP Consent API is installed, the site setting otherwise.
+ *
+ * When the server says WP Consent API is active but its script has not run
+ * yet, the answer is "not yet": the site setting only applies to sites
+ * without a consent tool.
  */
 export function mayStore() {
   if (typeof window.wp_has_consent === 'function') {
@@ -85,6 +89,8 @@ export function mayStore() {
   }
 
   var config = window.lcmtMailerAttribution || {};
+  if (config.consentApi) return false;
+
   return !!config.storeWithoutConsent;
 }
 

@@ -107,7 +107,7 @@ The attribute value is set to `submitting`, `success`, or `error`. The text cont
 
 - **Stored in** `sessionStorage`, key `lcmtMailerLanding` (gone when the tab closes): landing path, referrer **origin** (scheme + host, never its path or query), `utm_source` / `utm_medium` / `utm_campaign`, and the click id **name** (`gclid`, `fbclid`…), never its value.
 - **A new visit** (campaign parameters, click id, or a link from another site) replaces the stored landing.
-- **Consent:** with WP Consent API installed (`wp_has_consent`), the landing is only stored once the `statistics` category is allowed, including when the visitor accepts later (`wp_listen_for_consent_change`; until then it is held in memory). Without it, the `lcmt_mailer_attribution_without_consent` option (Data retention → Advanced settings, default on) decides, exposed as `lcmtMailerAttribution.storeWithoutConsent`.
+- **Consent:** with WP Consent API installed (`wp_has_consent`), the landing is only stored once the `statistics` category is allowed, including when the visitor accepts later (`wp_listen_for_consent_change`; until then it is held in memory). When the server reports WP Consent API as active (`lcmtMailerAttribution.consentApi`) but `wp_has_consent` is not defined yet, the script treats it as "not yet consented" and never falls back to the site setting. Without WP Consent API, the `lcmt_mailer_attribution_without_consent` option (Data retention → Advanced settings, default on) decides, exposed as `lcmtMailerAttribution.storeWithoutConsent`.
 - **Without a stored landing** the current page stands in for it.
 
 ### `_context` object

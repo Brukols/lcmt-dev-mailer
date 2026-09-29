@@ -157,7 +157,7 @@ All SQL on the table: `insert`, `update`, `find`, `search`/`count` (filters: for
 - `captureMailError()` listens to `wp_mail_failed` to keep the reason of a failure.
 
 ### Attribution
-Enqueues `assets/dist/attribution.js` on public pages (after `wp-consent-api` when installed) and passes `lcmtMailerAttribution.storeWithoutConsent` from the `lcmt_mailer_attribution_without_consent` option (default on). See Frontend → Attribution.
+Enqueues `assets/dist/attribution.js` on public pages at `wp_enqueue_scripts` priority `Attribution::PRIORITY` (100, after the consent tools), with a `wp-consent-api` dependency whenever WP Consent API is active (`class_exists('WP_CONSENT_API')` or `function_exists('wp_has_consent')`, like WooCommerce) or its handle is registered. It passes `lcmtMailerAttribution.storeWithoutConsent` from the `lcmt_mailer_attribution_without_consent` option (default on) and `lcmtMailerAttribution.consentApi` (whether WP Consent API is active). See Frontend → Attribution.
 
 ### SubmissionsPage / SubmissionsListTable
 Email templates → Received messages, capability from `SubmissionsPage::capability()` (`manage_options`, filter `lcmt_mailer_submissions_capability`). List with filters, unread bubble in the menu, detail view (opening a message marks it read via `markOpenedAsRead()`), single and bulk actions (resend, processed, unread, spam, delete), CSV export (`handleExport()` streams through `writeCsv()`). `listQueryArgs()` keeps the current filters after an action.

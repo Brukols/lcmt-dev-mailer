@@ -99,6 +99,16 @@ test('mayStore falls back to the site setting without a consent API', function (
   assert.equal(mayStore(), false);
 });
 
+test('mayStore waits for the consent API when it is active but not loaded yet', function () {
+  setEnv();
+  window.lcmtMailerAttribution = { storeWithoutConsent: true, consentApi: true };
+  assert.equal(mayStore(), false);
+  window.wp_has_consent = function () {
+    return true;
+  };
+  assert.equal(mayStore(), true);
+});
+
 test('device thresholds', function () {
   setEnv({ width: 767 });
   assert.equal(device(), 'mobile');

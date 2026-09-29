@@ -70,7 +70,7 @@ add_action('init', function () {
 // ── Received messages ──
 add_action('plugins_loaded', ['LcmtDevMailer\\SubmissionSchema', 'maybeUpgrade']);
 add_action('wp_mail_failed', ['LcmtDevMailer\\SubmissionRecorder', 'captureMailError']);
-add_action('wp_enqueue_scripts', ['LcmtDevMailer\\Attribution', 'enqueue']);
+add_action('wp_enqueue_scripts', ['LcmtDevMailer\\Attribution', 'enqueue'], LcmtDevMailer\Attribution::PRIORITY);
 add_action('init', ['LcmtDevMailer\\Retention', 'schedule']);
 add_action(LcmtDevMailer\Retention::CRON_HOOK, ['LcmtDevMailer\\Retention', 'run']);
 register_deactivation_hook(__FILE__, ['LcmtDevMailer\\Retention', 'unschedule']);

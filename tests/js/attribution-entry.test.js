@@ -51,3 +51,16 @@ test('entry writes nothing without consent until statistics are allowed', functi
   env.document.dispatch('wp_listen_for_consent_change', { statistics: 'allow' });
   assert.equal(JSON.parse(env.storage.data[KEY]).utm_source, 'google');
 });
+
+test('entry ignores the site setting while an active consent API has not loaded', function () {
+  var env = run({ url: 'https://site.test/?utm_source=google' }, function () {
+    window.lcmtMailerAttribution = { storeWithoutConsent: true, consentApi: true };
+  });
+  assert.equal(env.storage.data[KEY], undefined);
+
+  env.document.dispatch('wp_listen_for_consent_change', { statistics: 'deny' });
+  assert.equal(env.storage.data[KEY], undefined);
+
+  env.document.dispatch('wp_listen_for_consent_change', { statistics: 'allow' });
+  assert.equal(JSON.parse(env.storage.data[KEY]).utm_source, 'google');
+});
