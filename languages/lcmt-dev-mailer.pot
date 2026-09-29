@@ -1010,3 +1010,23 @@ msgid ""
 "OK: delete them with the plugin.\n"
 "Cancel: keep them in the database (they will no longer be anonymized automatically)."
 msgstr ""
+
+#: includes/submissions-page.php
+msgid "New"
+msgstr ""
+
+#: includes/submissions-page.php
+msgid "Read"
+msgstr ""
+
+#: includes/submissions-page.php
+msgid "Processed"
+msgstr ""
+
+#: includes/submissions-list-table.php
+msgid "Status"
+msgstr ""
+
+#: includes/submissions-page.php
+msgid "Received messages sections"
+msgstr ""

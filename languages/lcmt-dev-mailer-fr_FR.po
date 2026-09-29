@@ -1115,5 +1115,25 @@ msgid ""
 "automatically)."
 msgstr "Si vous supprimez LCMT Mailer plus tard, faut-il aussi supprimer ses messages reçus et leurs statistiques ?\n\nOK : les supprimer avec l'extension.\nAnnuler : les garder dans la base de données (ils ne seront plus anonymisés automatiquement)."
 
+#: includes/submissions-page.php
+msgid "New"
+msgstr "Nouveau"
+
+#: includes/submissions-page.php
+msgid "Read"
+msgstr "Lu"
+
+#: includes/submissions-page.php
+msgid "Processed"
+msgstr "Traité"
+
+#: includes/submissions-list-table.php
+msgid "Status"
+msgstr "Statut"
+
+#: includes/submissions-page.php
+msgid "Received messages sections"
+msgstr "Sections des messages reçus"
+
 #~ msgid "Security verification in progress. Please try again."
 #~ msgstr "Vérification de sécurité en cours. Veuillez réessayer."
