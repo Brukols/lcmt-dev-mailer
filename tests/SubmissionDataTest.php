@@ -62,6 +62,17 @@ class SubmissionDataTest extends TestCase
         $this->assertSame('', SubmissionData::summary([]));
     }
 
+    public function testSnapshotCapsEachValueAtTenThousandCharacters(): void
+    {
+        $long     = str_repeat('é', SubmissionData::MAX_VALUE_LENGTH + 50);
+        $snapshot = SubmissionData::snapshot(self::FIELDS, ['message' => $long, 'firstname' => 'Jeanne']);
+
+        $this->assertSame(10000, SubmissionData::MAX_VALUE_LENGTH);
+        $this->assertSame(10000, mb_strlen($snapshot[2]['value'], 'UTF-8'));
+        $this->assertTrue(mb_check_encoding($snapshot[2]['value'], 'UTF-8'), 'no multibyte character cut in half');
+        $this->assertSame('Jeanne', $snapshot[0]['value']);
+    }
+
     public function testPersonalColumnsAreTheOnesAnonymizationClears(): void
     {
         $this->assertSame(['fields', 'mail_error'], SubmissionData::PERSONAL_COLUMNS);

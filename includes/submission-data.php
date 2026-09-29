@@ -19,13 +19,20 @@ class SubmissionData
     public const PERSONAL_COLUMNS = ['fields', 'mail_error'];
 
     /**
+     * Characters kept of each value, so a spam bot posting huge values cannot
+     * fill the database. The email itself still gets the whole value.
+     */
+    public const MAX_VALUE_LENGTH = 10000;
+
+    /**
      * Field types never written to the database.
      */
     private const SKIPPED_TYPES = ['password'];
 
     /**
      * Freeze the submitted values with the name and type of their field, so
-     * a submission still reads right after its template changed.
+     * a submission still reads right after its template changed. Each value
+     * is cut to MAX_VALUE_LENGTH characters.
      *
      * @param array<string, array{name: string, required: bool, type: string}> $fields FieldParser::parse() output.
      * @param array<string, string> $values Sanitized values by field name.
@@ -43,7 +50,7 @@ class SubmissionData
             $snapshot[] = [
                 'name'  => $field['name'],
                 'type'  => $field['type'],
-                'value' => (string) ($values[$field['name']] ?? ''),
+                'value' => mb_substr((string) ($values[$field['name']] ?? ''), 0, self::MAX_VALUE_LENGTH, 'UTF-8'),
             ];
         }
 

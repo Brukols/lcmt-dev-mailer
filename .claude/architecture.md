@@ -129,7 +129,7 @@ Admin sidebar metabox with:
 - A valid proof is spent: its challenge is stored in a `lcmt_altcha_used_{challenge}` transient until it expires, so it cannot be replayed.
 
 ### SubmissionData
-Pure helpers around the stored `fields` JSON: `snapshot()` freezes each submitted value with its field name and type (password fields are never stored), `toPlaceholders()` rebuilds the placeholders for a resend, `containsEmail()` matches an exact value, `summary()` builds the line shown in lists. `PERSONAL_COLUMNS` (`fields`, `mail_error`) lists what anonymization clears.
+Pure helpers around the stored `fields` JSON: `snapshot()` freezes each submitted value with its field name and type (password fields are never stored, each value is cut to `MAX_VALUE_LENGTH` = 10 000 characters, multibyte-safe), `toPlaceholders()` rebuilds the placeholders for a resend, `containsEmail()` matches an exact value, `summary()` builds the line shown in lists. `PERSONAL_COLUMNS` (`fields`, `mail_error`) lists what anonymization clears.
 
 ### SubmissionContext
 `fromRequest($raw, $siteHost)` turns the untrusted `_context` object into column values. Every value is checked against its expected shape and cut to its column size, anything else becomes empty. Only paths and hosts are kept, never query strings; the referrer is reduced to its host (without `www.`), and empty when it is the site itself. Click ids are kept by name (`gclid`, `fbclid`…), never their value.
