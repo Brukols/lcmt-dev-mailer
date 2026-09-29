@@ -47,4 +47,20 @@ class SubmissionCsvTest extends TestCase
 
         $this->assertSame("'=1+1", end($table[1]));
     }
+
+    public function testExportsTheBrowserSystemAndRawUserAgent(): void
+    {
+        $this->assertSame(['browser', 'os', 'user_agent'], array_slice(SubmissionCsv::COLUMNS, -3));
+
+        $table = SubmissionCsv::table([
+            self::row(['browser' => 'Chrome', 'os' => 'Windows', 'user_agent' => '=Mozilla/5.0']),
+            self::row(['fields' => null, 'user_agent' => null]),
+        ]);
+
+        $at = array_flip($table[0]);
+        $this->assertSame('Chrome', $table[1][$at['browser']]);
+        $this->assertSame('Windows', $table[1][$at['os']]);
+        $this->assertSame("'=Mozilla/5.0", $table[1][$at['user_agent']], 'through cell()');
+        $this->assertSame('', $table[2][$at['user_agent']], 'anonymized');
+    }
 }

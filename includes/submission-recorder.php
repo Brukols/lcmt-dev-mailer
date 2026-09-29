@@ -20,9 +20,10 @@ class SubmissionRecorder
      * @param array<string, array{name: string, required: bool, type: string}> $fields
      * @param array<string, string> $values
      * @param mixed $rawContext The `_context` value of the request body.
+     * @param string $userAgent The User-Agent header of the request.
      * @return int The submission id, or 0 when this form does not save messages.
      */
-    public static function record(\WP_Post $post, string $key, array $fields, array $values, $rawContext): int
+    public static function record(\WP_Post $post, string $key, array $fields, array $values, $rawContext, string $userAgent = ''): int
     {
         if (!MetaFields::storesSubmissions($post->ID)) {
             return 0;
@@ -39,6 +40,8 @@ class SubmissionRecorder
          */
         $channel = (string) apply_filters('lcmt_mailer_submission_channel', ChannelClassifier::classify($context), $context);
 
+        $userAgent = UserAgent::clean($userAgent);
+
         return SubmissionRepository::insert([
             'form_key'     => $key,
             'mail_post_id' => $post->ID,
@@ -48,7 +51,8 @@ class SubmissionRecorder
             'fields'       => wp_json_encode(SubmissionData::snapshot($fields, $values), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             'page_id'      => self::pageId($home, $context['page_path']),
             'channel'      => substr($channel, 0, 30),
-        ] + $context);
+            'user_agent'   => $userAgent === '' ? null : $userAgent,
+        ] + UserAgent::parse($userAgent) + $context);
     }
 
     /**

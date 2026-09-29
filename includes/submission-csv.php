@@ -14,7 +14,7 @@ class SubmissionCsv
     public const COLUMNS = [
         'created_at', 'form_key', 'status', 'mail_sent', 'page_path', 'landing_path',
         'channel', 'utm_source', 'utm_medium', 'utm_campaign', 'referrer_host',
-        'device', 'locale', 'form_seconds',
+        'device', 'locale', 'form_seconds', 'browser', 'os', 'user_agent',
     ];
 
     /**

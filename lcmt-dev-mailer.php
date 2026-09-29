@@ -47,6 +47,7 @@ require_once LCMT_MAILER_PATH . 'includes/updater.php';
 require_once LCMT_MAILER_PATH . 'includes/submission-data.php';
 require_once LCMT_MAILER_PATH . 'includes/submission-context.php';
 require_once LCMT_MAILER_PATH . 'includes/channel-classifier.php';
+require_once LCMT_MAILER_PATH . 'includes/user-agent.php';
 require_once LCMT_MAILER_PATH . 'includes/submission-schema.php';
 require_once LCMT_MAILER_PATH . 'includes/submission-repository.php';
 require_once LCMT_MAILER_PATH . 'includes/submission-recorder.php';

@@ -16,7 +16,7 @@ class SubmissionRepository
     /**
      * Columns the stats screen may group by.
      */
-    private const GROUPABLE = ['form_key', 'channel', 'utm_campaign', 'page_path', 'landing_path', 'referrer_host', 'device'];
+    private const GROUPABLE = ['form_key', 'channel', 'utm_campaign', 'page_path', 'landing_path', 'referrer_host', 'device', 'browser', 'os'];
 
     /**
      * Seconds a row with mail_sent = 0 is left alone by the failure queries:

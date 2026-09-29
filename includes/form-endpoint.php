@@ -89,7 +89,7 @@ class FormEndpoint
             ], 422);
         }
 
-        $submissionId = SubmissionRecorder::record($post, $key, $fields, $values, $body['_context'] ?? null);
+        $submissionId = SubmissionRecorder::record($post, $key, $fields, $values, $body['_context'] ?? null, (string) $request->get_header('user_agent'));
 
         /**
          * Action fired before sending the form email.

@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
  */
 class SubmissionSchema
 {
-    public const VERSION = '1';
+    public const VERSION = '2';
     public const OPTION_VERSION = 'lcmt_mailer_db_version';
 
     public static function maybeUpgrade(): void
@@ -57,6 +57,9 @@ class SubmissionSchema
             device varchar(10) NOT NULL DEFAULT '',
             locale varchar(10) NOT NULL DEFAULT '',
             form_seconds int(10) unsigned NULL,
+            user_agent varchar(500) NULL,
+            browser varchar(30) NOT NULL DEFAULT '',
+            os varchar(30) NOT NULL DEFAULT '',
             anonymized_at datetime NULL,
             PRIMARY KEY  (id),
             KEY created_at (created_at),

@@ -339,6 +339,9 @@ class SubmissionsPage
             __('Campaign', 'lcmt-dev-mailer')         => trim($row['utm_source'] . ' / ' . $row['utm_medium'] . ' / ' . $row['utm_campaign'], ' /'),
             __('Ad click', 'lcmt-dev-mailer')         => $row['click_id_type'],
             __('Device', 'lcmt-dev-mailer')           => $row['device'],
+            __('Browser', 'lcmt-dev-mailer')          => $row['browser'] ?? '',
+            __('Operating system', 'lcmt-dev-mailer') => $row['os'] ?? '',
+            __('User agent', 'lcmt-dev-mailer')       => $row['user_agent'] ?? '',
             __('Browser language', 'lcmt-dev-mailer') => $row['locale'],
             __('Time on the form', 'lcmt-dev-mailer') => $row['form_seconds'] === null ? '' : human_time_diff(0, (int) $row['form_seconds']),
         ];

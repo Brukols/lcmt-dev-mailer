@@ -75,6 +75,6 @@ class SubmissionDataTest extends TestCase
 
     public function testPersonalColumnsAreTheOnesAnonymizationClears(): void
     {
-        $this->assertSame(['fields', 'mail_error'], SubmissionData::PERSONAL_COLUMNS);
+        $this->assertSame(['fields', 'mail_error', 'user_agent'], SubmissionData::PERSONAL_COLUMNS);
     }
 }

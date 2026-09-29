@@ -13,10 +13,12 @@ class SubmissionData
 {
     /**
      * Columns that hold what the visitor typed, or text that can name them
-     * (a mail error quotes the address it failed on). Anonymization clears
-     * exactly these and keeps the context columns for statistics.
+     * (a mail error quotes the address it failed on), or the device they used
+     * (the raw user agent can single one out). Anonymization clears exactly
+     * these and keeps the context columns for statistics, browser and os
+     * (families only) included.
      */
-    public const PERSONAL_COLUMNS = ['fields', 'mail_error'];
+    public const PERSONAL_COLUMNS = ['fields', 'mail_error', 'user_agent'];
 
     /**
      * Characters kept of each value, so a spam bot posting huge values cannot
