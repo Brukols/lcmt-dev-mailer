@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { deleteLinkSelector, createDeleteHandler } from '../../assets/src/lib/uninstall-prompt.js';
+import { deactivateLinkSelector, createDeactivateHandler } from '../../assets/src/lib/uninstall-prompt.js';
 
 var CFG = {
   ajaxUrl: 'https://site.test/wp-admin/admin-ajax.php',
@@ -8,14 +8,15 @@ var CFG = {
   nonce: 'n0nce',
   plugin: 'lcmt-dev-mailer/lcmt-dev-mailer.php',
   network: '',
-  confirm: 'Also delete?',
+  confirm: 'If you later delete it?',
 };
 
 /**
- * A link that answers matches() for one selector and re-dispatches its
- * click to the handler, like a real click would reach the capture listener.
+ * A link that answers matches() for one selector. click() goes through the
+ * handler like a real click reaching the capture listener, and counts a
+ * navigation when nothing held it back.
  */
-function fakeLink(selector, handler) {
+function fakeLink(selector, getHandler) {
   var link = {
     followed: 0,
     matches: function (sel) {
@@ -26,8 +27,9 @@ function fakeLink(selector, handler) {
     },
     click: function () {
       var event = fakeEvent(link);
-      handler(event);
+      getHandler()(event);
       if (!event.defaultPrevented) link.followed++;
+      return event;
     },
   };
   return link;
@@ -49,7 +51,7 @@ function fakeEvent(target) {
 
 function setup(answer, fetchResult) {
   var calls = [];
-  var env = {
+  var handler = createDeactivateHandler(CFG, {
     confirm: function (text) {
       calls.push(['confirm', text]);
       return answer;
@@ -58,28 +60,34 @@ function setup(answer, fetchResult) {
       calls.push(['fetch', url, init.method, String(init.body)]);
       return fetchResult;
     },
-  };
-  var handler = createDeleteHandler(CFG, env);
-  return { calls: calls, handler: handler };
+  });
+  var link = fakeLink(deactivateLinkSelector(CFG.plugin), function () {
+    return handler;
+  });
+  return { calls: calls, handler: handler, link: link };
 }
 
-test('the selector targets the Delete link of this plugin row', function () {
-  assert.equal(deleteLinkSelector('a/b.php'), 'tr[data-plugin="a/b.php"] .delete a');
+function settle() {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, 0);
+  });
+}
+
+test('the selector targets the Deactivate link of this plugin row', function () {
+  assert.equal(deactivateLinkSelector('a/b.php'), 'tr[data-plugin="a/b.php"] .deactivate a');
 });
 
-test('OK stores 1, then lets the delete go on without asking again', async function () {
+test('OK stores 1, then follows the deactivate link once', async function () {
   var s = setup(true, Promise.resolve({ ok: true }));
-  var link = fakeLink(deleteLinkSelector(CFG.plugin), s.handler);
-  var event = fakeEvent(link);
 
-  var done = s.handler(event);
-  assert.equal(event.defaultPrevented, true, 'first click held back');
-  assert.equal(event.stopped, true, 'WordPress handlers wait');
-  assert.equal(link.followed, 0);
+  var first = s.link.click();
+  assert.equal(first.defaultPrevented, true, 'first click held back');
+  assert.equal(first.stopped, true);
+  assert.equal(s.link.followed, 0);
 
-  await done;
+  await settle();
 
-  assert.deepEqual(s.calls[0], ['confirm', 'Also delete?']);
+  assert.deepEqual(s.calls[0], ['confirm', 'If you later delete it?']);
   assert.equal(s.calls[1][1], CFG.ajaxUrl);
   assert.equal(s.calls[1][2], 'POST');
   var body = new URLSearchParams(s.calls[1][3]);
@@ -87,35 +95,54 @@ test('OK stores 1, then lets the delete go on without asking again', async funct
   assert.equal(body.get('nonce'), 'n0nce');
   assert.equal(body.get('delete'), '1');
   assert.equal(body.get('network'), '0');
-  assert.equal(link.followed, 1, 'delete flow continues');
+  assert.equal(s.link.followed, 1, 'deactivation goes on');
   assert.equal(s.calls.length, 2, 'asked once');
 });
 
-test('Cancel stores 0 and still continues', async function () {
+test('Cancel stores 0 and still deactivates', async function () {
   var s = setup(false, Promise.resolve({ ok: true }));
-  var link = fakeLink(deleteLinkSelector(CFG.plugin), s.handler);
 
-  await s.handler(fakeEvent(link));
+  s.link.click();
+  await settle();
 
   assert.equal(new URLSearchParams(s.calls[1][3]).get('delete'), '0');
-  assert.equal(link.followed, 1);
+  assert.equal(s.link.followed, 1);
 });
 
-test('a failed request still continues the delete (the data is kept)', async function () {
+test('a double click prompts once and follows the link once', async function () {
+  var s = setup(true, Promise.resolve({ ok: true }));
+
+  s.link.click();
+  var second = s.link.click();
+  assert.equal(second.defaultPrevented, true, 'second click ignored while the request runs');
+
+  await settle();
+  var late = s.link.click();
+
+  assert.equal(late.defaultPrevented, true, 'a click after leaving is ignored too');
+  assert.equal(s.calls.filter(function (c) { return c[0] === 'confirm'; }).length, 1, 'one prompt');
+  assert.equal(s.calls.filter(function (c) { return c[0] === 'fetch'; }).length, 1, 'one request');
+  assert.equal(s.link.followed, 1, 'one navigation');
+});
+
+test('a failed request still deactivates (the data is kept)', async function () {
   var s = setup(true, Promise.reject(new Error('offline')));
-  var link = fakeLink(deleteLinkSelector(CFG.plugin), s.handler);
 
-  await s.handler(fakeEvent(link));
+  s.link.click();
+  await settle();
 
-  assert.equal(link.followed, 1);
+  assert.equal(s.link.followed, 1);
 });
 
 test('clicks on other links are left alone', function () {
   var s = setup(true, Promise.resolve({ ok: true }));
-  var other = fakeLink('tr[data-plugin="other/other.php"] .delete a', s.handler);
-  var event = fakeEvent(other);
+  var other = fakeLink('tr[data-plugin="other/other.php"] .deactivate a', function () {
+    return s.handler;
+  });
 
-  assert.equal(s.handler(event), undefined);
+  var event = other.click();
+
   assert.equal(event.defaultPrevented, false);
+  assert.equal(other.followed, 1);
   assert.equal(s.calls.length, 0);
 });

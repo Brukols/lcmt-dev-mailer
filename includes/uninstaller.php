@@ -7,10 +7,11 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Decides what deleting the plugin removes. uninstall.php cannot ask, so the
- * answer is stored beforehand: by a prompt on the Delete link of the plugins
- * screen, or by a checkbox on the Data retention page. Without an answer, the
- * received messages are kept.
+ * Decides what deleting the plugin removes. uninstall.php cannot ask, and
+ * WordPress only shows the Delete link once the plugin is inactive, when none
+ * of its code runs. So the answer is stored beforehand: by a prompt on the
+ * Deactivate link of the Plugins screen, or by a checkbox on the Data
+ * retention page. Without an answer, the received messages are kept.
  */
 class Uninstaller
 {
@@ -99,7 +100,8 @@ class Uninstaller
     }
 
     /**
-     * The prompt on the Delete link of the plugins screen.
+     * The prompt on the Deactivate link of the Plugins screen (single site
+     * and network admin), while the plugin is still loaded.
      */
     public static function enqueue(string $hook): void
     {
@@ -121,7 +123,7 @@ class Uninstaller
             'nonce'   => wp_create_nonce(self::AJAX_ACTION),
             'plugin'  => plugin_basename(LCMT_MAILER_PATH . 'lcmt-dev-mailer.php'),
             'network' => is_network_admin(),
-            'confirm' => __("Also delete the received messages and their statistics?\n\nOK: delete them for good.\nCancel: keep them in the database (they will no longer be anonymized automatically).", 'lcmt-dev-mailer'),
+            'confirm' => __("If you later delete LCMT Mailer, should its received messages and statistics be deleted too?\n\nOK: delete them with the plugin.\nCancel: keep them in the database (they will no longer be anonymized automatically).", 'lcmt-dev-mailer'),
         ]);
     }
 

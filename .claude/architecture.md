@@ -47,11 +47,11 @@ lcmt-dev-mailer/
 │   ├── src/                     # JS source files (vanilla, no jQuery)
 │   │   ├── admin-test-mail.js
 │   │   ├── admin-generate-template.js
-│   │   ├── admin-uninstall.js   # Plugins screen: asks whether deleting the plugin deletes the messages
+│   │   ├── admin-uninstall.js   # Plugins screen: on deactivation, asks whether a later deletion deletes the messages
 │   │   ├── attribution.js       # Remembers the landing page of the visit
 │   │   ├── form-handler.js
 │   │   ├── lib/attribution.js   # Shared module (not built on its own)
-│   │   └── lib/uninstall-prompt.js # Delete-link prompt logic, tested under node
+│   │   └── lib/uninstall-prompt.js # Deactivate-link prompt logic, tested under node
 │   └── dist/                    # Minified output (esbuild)
 └── package.json                 # Build config (esbuild)
 ```
@@ -180,13 +180,14 @@ Registers an exporter and an eraser in Tools → Export/Erase Personal Data, add
 Admin banner and dashboard widget listing unsent emails (`mail_sent = 0`, not anonymized, not processed/spam, older than `SubmissionRepository::FAILURE_GRACE` = 120 s, since rows are saved before their email goes out and a younger one is most likely still being sent) with the last error. `dismiss()` stores the current time in `lcmt_mailer_failures_dismissed_at`; only newer failures bring the banner back.
 
 ### StatsPage
-Email templates → Statistics: totals, failures, average time on the form, and counts by month, channel, campaign, form, page, landing page, referrer and device for 30 days, 90 days, 12 months or everything. Anonymized messages count, spam does not.
+Email templates → Statistics: totals, failures, average time on the form, and counts by month, channel, campaign, form, page, landing page, referrer and device for 30 days, 90 days, 12 months or everything. Anonymized messages count, spam does not. The average time on the form only covers messages that are not anonymized yet: anonymization clears `form_seconds`.
 
 ### Uninstall
 `uninstall.php` (run only by "Delete") loads `includes/uninstaller.php` and runs `Uninstaller::uninstallSite()`, for every site of a network on multisite (`get_sites()` + `switch_to_blog()`), since each site has its own table, options and cron. The purge cron is always cleared; the table and `Uninstaller::DATA_OPTIONS` (including the answer itself) are only removed when `Uninstaller::shouldDeleteData()`: the site's `lcmt_mailer_delete_data_on_uninstall` option is `'1'`, or on multisite the network (site) option of the same name, which uninstall deletes afterwards. Default `'0'`: the data stays. Deactivating or updating always keeps the data.
 
 The option is set two ways:
-- **Prompt:** on `plugins.php`, for users with `delete_plugins`, `Uninstaller::enqueue()` loads `assets/dist/admin-uninstall.js` with `lcmtMailerUninstall` (ajaxUrl, action, nonce, plugin basename, network, confirm text). A capture-phase click listener holds back the click on `tr[data-plugin="<basename>"] .delete a`, asks with `confirm()`, POSTs `lcmt_mailer_set_uninstall_data` (`Uninstaller::handleAjax()`: nonce + `delete_plugins`, plus `manage_network_plugins` for a network answer; stored by `Uninstaller::store()`), then clicks the link again and lets WordPress' own delete flow run, including its own confirmation. A failed request stores nothing and still continues.
+- **Prompt at deactivation:** WordPress only shows the Delete link of an inactive plugin, whose PHP is not loaded, so the question is asked when the plugin is **deactivated**. On `plugins.php` (single site and network admin), for users with `delete_plugins`, `Uninstaller::enqueue()` loads `assets/dist/admin-uninstall.js` with `lcmtMailerUninstall` (ajaxUrl, action, nonce, plugin basename, network, confirm text). A capture-phase click listener holds back the click on `tr[data-plugin="<basename>"] .deactivate a`, asks with `confirm()`, POSTs `lcmt_mailer_set_uninstall_data` (`Uninstaller::handleAjax()`: nonce + `delete_plugins`, plus `manage_network_plugins` for a network answer; stored by `Uninstaller::store()`), then clicks the link again and lets exactly that click through. Clicks during the request or after it are ignored (no second prompt, no second navigation). A failed request stores nothing and still deactivates.
+- **No prompt** for a plugin deactivated before 2.2.0, with WP-CLI or by a bulk action: the data is kept unless the setting below is ticked (or `wp option update lcmt_mailer_delete_data_on_uninstall 1`) before deleting.
 - **Setting:** "Delete received messages when the plugin is deleted" on Data retention (for bulk delete or WP-CLI), sanitized to `'1'`/`'0'` by `Uninstaller::sanitize()`.
 
 ### Permissions

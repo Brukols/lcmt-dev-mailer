@@ -156,7 +156,7 @@ class SubmissionSettings
                                 <input type="checkbox" name="<?= esc_attr(Uninstaller::OPTION_DELETE_DATA) ?>" value="1" <?php checked(get_option(Uninstaller::OPTION_DELETE_DATA, '0'), '1'); ?> />
                                 <?php esc_html_e('Delete received messages when the plugin is deleted', 'lcmt-dev-mailer'); ?>
                             </label>
-                            <p class="description"><?php esc_html_e('Unticked, deleting the plugin keeps the messages and their statistics in the database. The Delete link of the Plugins screen asks again and stores the answer here.', 'lcmt-dev-mailer'); ?></p>
+                            <p class="description"><?php esc_html_e('Unticked, deleting the plugin keeps the messages and their statistics in the database. Deactivating the plugin from the Plugins screen asks the question and stores the answer here; deactivating it with WP-CLI or a bulk action does not.', 'lcmt-dev-mailer'); ?></p>
                         </td>
                     </tr>
 

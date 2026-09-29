@@ -56,7 +56,7 @@ lcmt_it('Uninstaller AJAX handler is registered for logged-in users only', funct
     lcmt_assert_same(false, has_action('wp_ajax_nopriv_' . Uninstaller::AJAX_ACTION));
 });
 
-lcmt_it('Uninstaller enqueues the prompt on plugins.php only, with the plugin basename', function () {
+lcmt_it('Uninstaller enqueues the deactivation prompt on plugins.php only, with the plugin basename', function () {
     lcmt_sp_admin();
     wp_dequeue_script('lcmt-admin-uninstall');
     wp_deregister_script('lcmt-admin-uninstall');
@@ -70,6 +70,7 @@ lcmt_it('Uninstaller enqueues the prompt on plugins.php only, with the plugin ba
     $data = (string) wp_scripts()->get_data('lcmt-admin-uninstall', 'data');
     lcmt_assert_true(str_contains($data, '"plugin":"lcmt-dev-mailer/lcmt-dev-mailer.php"'), 'basename: ' . $data);
     lcmt_assert_true(str_contains($data, '"action":"' . Uninstaller::AJAX_ACTION . '"'), 'action');
+    lcmt_assert_true(str_contains($data, 'If you later delete LCMT Mailer'), 'asked at deactivation');
 
     wp_dequeue_script('lcmt-admin-uninstall');
     wp_deregister_script('lcmt-admin-uninstall');

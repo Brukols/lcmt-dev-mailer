@@ -1,39 +1,46 @@
 /**
- * Asks, when this plugin is deleted from the Plugins screen, whether its
- * received messages go too. uninstall.php cannot ask, so the answer is
- * stored first, then WordPress' own delete flow carries on.
+ * Asks, when this plugin is deactivated from the Plugins screen, whether a
+ * later deletion should also delete its received messages. WordPress only
+ * shows the Delete link once the plugin is inactive, when none of its code
+ * runs, so the question is asked here and the answer stored for
+ * uninstall.php. Then the deactivation carries on.
  */
 
-export function deleteLinkSelector(plugin) {
-  return 'tr[data-plugin="' + plugin + '"] .delete a';
+export function deactivateLinkSelector(plugin) {
+  return 'tr[data-plugin="' + plugin + '"] .deactivate a';
 }
 
 /**
- * A capture-phase click listener. It holds the click on this plugin's
- * Delete link back, asks, stores the answer, then clicks the link again and
- * lets that second click through to WordPress. A failed request stores
- * nothing: the data is kept, and the delete still goes on.
+ * A capture-phase click listener. The first click on this plugin's
+ * Deactivate link is held back: it asks, stores the answer, then clicks the
+ * link again and lets exactly that click through. Any other click on the
+ * link, while the request runs or once the page is leaving, is ignored. A
+ * failed request stores nothing (the data is kept) and still deactivates.
  *
  * @param {object} cfg The localized lcmtMailerUninstall object.
  * @param {{confirm: function(string): boolean, fetch: function}} env
  */
-export function createDeleteHandler(cfg, env) {
-  var selector = deleteLinkSelector(cfg.plugin);
-  var letThrough = false;
+export function createDeactivateHandler(cfg, env) {
+  var selector = deactivateLinkSelector(cfg.plugin);
+  var state = 'idle'; // idle → asking → releasing → left
 
   return function (event) {
     var target = event.target;
     var link = target && target.closest ? target.closest('a') : null;
 
-    if (!link || !link.matches(selector)) return undefined;
+    if (!link || !link.matches(selector)) return;
 
-    if (letThrough) {
-      letThrough = false;
-      return undefined;
+    if (state === 'releasing') {
+      state = 'left';
+      return;
     }
 
     event.preventDefault();
     event.stopImmediatePropagation();
+
+    if (state !== 'idle') return;
+
+    state = 'asking';
 
     var body = new URLSearchParams({
       action: cfg.action,
@@ -42,7 +49,7 @@ export function createDeleteHandler(cfg, env) {
       network: cfg.network ? '1' : '0',
     });
 
-    return Promise.resolve()
+    Promise.resolve()
       .then(function () {
         return env.fetch(cfg.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body });
       })
@@ -50,7 +57,7 @@ export function createDeleteHandler(cfg, env) {
         // Nothing stored: uninstall keeps the data.
       })
       .then(function () {
-        letThrough = true;
+        state = 'releasing';
         link.click();
       });
   };
