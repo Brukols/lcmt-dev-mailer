@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: LCMT Mailer 2.2.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/lcmt-dev-mailer\n"
-"POT-Creation-Date: 2026-09-29T14:55:46+00:00\n"
+"POT-Creation-Date: 2026-09-29T15:03:10+00:00\n"
 "PO-Revision-Date: 2026-09-29 00:00+0000\n"
 "Last-Translator: Amaury Lecomte\n"
 "Language-Team: French\n"
@@ -564,11 +564,14 @@ msgstr "ils sont ensuite supprimés"
 
 #: includes/privacy.php:100
 msgid ""
-"they are then anonymized: only the day, the form, the page and the origin of "
-"the visit are kept, for statistics"
+"they are then anonymized: only the day, the form, the page, the origin of "
+"the visit, the type of device, the language of your browser and the browser "
+"and operating system families are kept, for statistics"
 msgstr ""
-"ils sont ensuite anonymisés : seuls le jour, le formulaire, la page et "
-"l'origine de la visite sont conservés, à des fins statistiques"
+"ils sont alors anonymisés : seuls le jour, le formulaire, la page, l'origine "
+"de la visite, le type d'appareil, la langue de votre navigateur et les "
+"familles de navigateur et de système d'exploitation sont conservés, pour les "
+"statistiques"
 
 #. translators: 1: number of days, 2: what happens after
 #: includes/privacy.php:105
@@ -598,22 +601,18 @@ msgid ""
 "We also record the user agent of your browser, a technical description of "
 "your browser and device. It is deleted with the message."
 msgstr ""
-"Nous enregistrons aussi l'user agent de votre navigateur, une description "
-"technique de votre navigateur et de votre appareil. Il est supprimé avec le "
-"message."
+"Nous enregistrons aussi l'agent utilisateur (user agent) de votre "
+"navigateur, une description technique de votre navigateur et de votre "
+"appareil. Il est supprimé avec le message."
 
 #: includes/privacy.php:112
 msgid ""
 "We also record the user agent of your browser, a technical description of "
-"your browser and device. It is erased when the message is anonymized; only "
-"the browser and operating system families (for example Chrome on Windows) "
-"are kept, for statistics."
+"your browser and device. It is erased when the message is anonymized."
 msgstr ""
-"Nous enregistrons aussi l'user agent de votre navigateur, une description "
-"technique de votre navigateur et de votre appareil. Il est effacé lorsque le "
-"message est anonymisé ; seules les familles de navigateur et de système "
-"d'exploitation (par exemple Chrome sous Windows) sont conservées, pour les "
-"statistiques."
+"Nous enregistrons aussi l'agent utilisateur (user agent) de votre "
+"navigateur, une description technique de votre navigateur et de votre "
+"appareil. Il est effacé lorsque le message est anonymisé."
 
 #: includes/privacy.php:116
 msgid ""
@@ -769,7 +768,8 @@ msgstr "12 derniers mois"
 msgid "Everything"
 msgstr "Tout"
 
-#: includes/stats-page.php:53 includes/submissions-page.php:45
+#: includes/stats-page.php:53 includes/stats-page.php:305
+#: includes/submissions-page.php:45
 msgid "Messages"
 msgstr "Messages"
 
@@ -818,27 +818,34 @@ msgstr "Navigateur"
 msgid "Operating system"
 msgstr "Système d'exploitation"
 
-#: includes/stats-page.php:143
+#: includes/stats-page.php:141
 msgid "By month"
 msgstr "Par mois"
 
-#: includes/stats-page.php:275 includes/submissions-list-table.php:143
-msgid "View"
-msgstr "Voir"
+#. translators: 1: chart title, 2: highest monthly count, 3: month of that count
+#: includes/stats-page.php:173
+#, php-format
+msgid "%1$s: highest %2$d in %3$s"
+msgstr "%1$s : maximum de %2$d en %3$s"
 
-#: includes/stats-page.php:276
+#: includes/stats-page.php:284
+msgctxt "statistics display mode"
+msgid "View"
+msgstr "Affichage"
+
+#: includes/stats-page.php:285
 msgid "Chart"
 msgstr "Graphique"
 
-#: includes/stats-page.php:277
+#: includes/stats-page.php:286
 msgid "Table"
 msgstr "Tableau"
 
-#: includes/stats-page.php:288
+#: includes/stats-page.php:297
 msgid "No data for this period."
 msgstr "Aucune donnée pour cette période."
 
-#: includes/stats-page.php:313
+#: includes/stats-page.php:320
 msgid "(not set)"
 msgstr "(non renseigné)"
 
@@ -1060,6 +1067,10 @@ msgstr "Anonymisé"
 #: includes/submissions-list-table.php:134
 msgid "(no text)"
 msgstr "(aucun texte)"
+
+#: includes/submissions-list-table.php:143
+msgid "View"
+msgstr "Voir"
 
 #: includes/submissions-list-table.php:144 includes/submissions-page.php:601
 msgid "Delete this message for good?"

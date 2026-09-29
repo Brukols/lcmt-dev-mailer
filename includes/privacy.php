@@ -97,7 +97,7 @@ class Privacy
 
         $end = SubmissionSettings::retentionAction() === 'delete'
             ? __('they are then deleted', 'lcmt-dev-mailer')
-            : __('they are then anonymized: only the day, the form, the page and the origin of the visit are kept, for statistics', 'lcmt-dev-mailer');
+            : __('they are then anonymized: only the day, the form, the page, the origin of the visit, the type of device, the language of your browser and the browser and operating system families are kept, for statistics', 'lcmt-dev-mailer');
 
         $paragraphs = [
             sprintf(
@@ -109,7 +109,7 @@ class Privacy
             __('With your message, we also record the type of device, the language of your browser and the time spent on the form.', 'lcmt-dev-mailer'),
             SubmissionSettings::retentionAction() === 'delete'
                 ? __('We also record the user agent of your browser, a technical description of your browser and device. It is deleted with the message.', 'lcmt-dev-mailer')
-                : __('We also record the user agent of your browser, a technical description of your browser and device. It is erased when the message is anonymized; only the browser and operating system families (for example Chrome on Windows) are kept, for statistics.', 'lcmt-dev-mailer'),
+                : __('We also record the user agent of your browser, a technical description of your browser and device. It is erased when the message is anonymized.', 'lcmt-dev-mailer'),
         ];
 
         if (Attribution::consentApiActive()) {

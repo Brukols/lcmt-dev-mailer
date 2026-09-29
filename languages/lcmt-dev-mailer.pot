@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-29T14:55:46+00:00\n"
+"POT-Creation-Date: 2026-09-29T15:03:10+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: lcmt-dev-mailer\n"
@@ -541,7 +541,7 @@ msgid "they are then deleted"
 msgstr ""
 
 #: includes/privacy.php:100
-msgid "they are then anonymized: only the day, the form, the page and the origin of the visit are kept, for statistics"
+msgid "they are then anonymized: only the day, the form, the page, the origin of the visit, the type of device, the language of your browser and the browser and operating system families are kept, for statistics"
 msgstr ""
 
 #. translators: 1: number of days, 2: what happens after
@@ -559,7 +559,7 @@ msgid "We also record the user agent of your browser, a technical description of
 msgstr ""
 
 #: includes/privacy.php:112
-msgid "We also record the user agent of your browser, a technical description of your browser and device. It is erased when the message is anonymized; only the browser and operating system families (for example Chrome on Windows) are kept, for statistics."
+msgid "We also record the user agent of your browser, a technical description of your browser and device. It is erased when the message is anonymized."
 msgstr ""
 
 #: includes/privacy.php:116
@@ -684,6 +684,7 @@ msgid "Everything"
 msgstr ""
 
 #: includes/stats-page.php:53
+#: includes/stats-page.php:305
 #: includes/submissions-page.php:45
 msgid "Messages"
 msgstr ""
@@ -739,28 +740,34 @@ msgstr ""
 msgid "Operating system"
 msgstr ""
 
-#: includes/stats-page.php:143
+#: includes/stats-page.php:141
 msgid "By month"
 msgstr ""
 
-#: includes/stats-page.php:275
-#: includes/submissions-list-table.php:143
+#. translators: 1: chart title, 2: highest monthly count, 3: month of that count
+#: includes/stats-page.php:173
+#, php-format
+msgid "%1$s: highest %2$d in %3$s"
+msgstr ""
+
+#: includes/stats-page.php:284
+msgctxt "statistics display mode"
 msgid "View"
 msgstr ""
 
-#: includes/stats-page.php:276
+#: includes/stats-page.php:285
 msgid "Chart"
 msgstr ""
 
-#: includes/stats-page.php:277
+#: includes/stats-page.php:286
 msgid "Table"
 msgstr ""
 
-#: includes/stats-page.php:288
+#: includes/stats-page.php:297
 msgid "No data for this period."
 msgstr ""
 
-#: includes/stats-page.php:313
+#: includes/stats-page.php:320
 msgid "(not set)"
 msgstr ""
 
@@ -941,6 +948,10 @@ msgstr ""
 
 #: includes/submissions-list-table.php:134
 msgid "(no text)"
+msgstr ""
+
+#: includes/submissions-list-table.php:143
+msgid "View"
 msgstr ""
 
 #: includes/submissions-list-table.php:144
