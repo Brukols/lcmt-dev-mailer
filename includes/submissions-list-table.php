@@ -140,7 +140,7 @@ class SubmissionsListTable extends \WP_List_Table
 
         $actions = [
             'view'   => '<a href="' . esc_url(SubmissionsPage::url(['submission' => $item['id']])) . '">' . esc_html__('View', 'lcmt-dev-mailer') . '</a>',
-            'delete' => '<a class="submitdelete" href="' . esc_url(SubmissionsPage::singleActionUrl((int) $item['id'], 'delete')) . '">' . esc_html__('Delete', 'lcmt-dev-mailer') . '</a>',
+            'delete' => '<a class="submitdelete" href="' . esc_url(SubmissionsPage::singleActionUrl((int) $item['id'], 'delete')) . '" onclick="return confirm(' . esc_attr(wp_json_encode(__('Delete this message for good?', 'lcmt-dev-mailer'))) . ');">' . esc_html__('Delete', 'lcmt-dev-mailer') . '</a>',
         ];
 
         return '<a href="' . esc_url(SubmissionsPage::url(['submission' => $item['id']])) . '">' . $text . '</a>' . $this->row_actions($actions);

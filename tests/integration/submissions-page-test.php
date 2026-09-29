@@ -201,15 +201,85 @@ lcmt_it('SubmissionsPage renders a missing message', function () {
     lcmt_assert_true(strpos($html, 'This message no longer exists.') !== false);
 });
 
-lcmt_it('SubmissionsPage handleLoad marks a new message read and leaves processed alone', function () {
+lcmt_it('SubmissionsPage listQueryArgs maps search to s, drops empty values and keeps paged', function () {
+    $args = lcmt_sp_with_get([
+        'form_key' => 'my-form',
+        'status'   => 'spam',
+        'channel'  => 'direct',
+        'failed'   => '1',
+        's'        => 'caf\\\'e',
+        'paged'    => '3',
+    ], fn() => SubmissionsPage::listQueryArgs());
+
+    lcmt_assert_same(
+        ['form_key' => 'my-form', 'status' => 'spam', 'channel' => 'direct', 'failed' => 1, 's' => "caf'e", 'paged' => 3],
+        $args
+    );
+
+    lcmt_assert_same([], lcmt_sp_with_get(['status' => 'bogus', 'paged' => '0'], fn() => SubmissionsPage::listQueryArgs()));
+});
+
+lcmt_it('SubmissionsPage markOpenedAsRead marks a new message read before the menu is built', function () {
     lcmt_sp_admin();
 
-    $new       = lcmt_it_insert(['status' => 'new']);
-    $processed = lcmt_it_insert(['status' => 'processed']);
+    $id     = lcmt_it_insert(['status' => 'new']);
+    $before = SubmissionRepository::countUnread();
+    $get    = ['page' => SubmissionsPage::PAGE_SLUG, 'submission' => (string) $id];
 
-    lcmt_sp_with_get(['submission' => (string) $new], fn() => SubmissionsPage::handleLoad());
-    lcmt_sp_with_get(['submission' => (string) $processed], fn() => SubmissionsPage::handleLoad());
+    lcmt_sp_with_get($get, fn() => SubmissionsPage::addSubmenu());
 
-    lcmt_assert_same('read', SubmissionRepository::find($new)['status']);
-    lcmt_assert_same('processed', SubmissionRepository::find($processed)['status']);
+    lcmt_assert_same('read', SubmissionRepository::find($id)['status']);
+    lcmt_assert_same($before - 1, SubmissionRepository::countUnread());
+});
+
+lcmt_it('SubmissionsPage markOpenedAsRead leaves processed alone', function () {
+    lcmt_sp_admin();
+
+    $id = lcmt_it_insert(['status' => 'processed']);
+
+    lcmt_sp_with_get(['page' => SubmissionsPage::PAGE_SLUG, 'submission' => (string) $id], fn() => SubmissionsPage::markOpenedAsRead());
+
+    lcmt_assert_same('processed', SubmissionRepository::find($id)['status']);
+});
+
+lcmt_it('SubmissionsPage markOpenedAsRead does nothing without the capability', function () {
+    wp_set_current_user(0);
+
+    $id = lcmt_it_insert(['status' => 'new']);
+
+    lcmt_sp_with_get(['page' => SubmissionsPage::PAGE_SLUG, 'submission' => (string) $id], fn() => SubmissionsPage::markOpenedAsRead());
+
+    lcmt_assert_same('new', SubmissionRepository::find($id)['status']);
+});
+
+lcmt_it('SubmissionsPage markOpenedAsRead does nothing on another page', function () {
+    lcmt_sp_admin();
+
+    $id = lcmt_it_insert(['status' => 'new']);
+
+    lcmt_sp_with_get(['page' => 'something-else', 'submission' => (string) $id], fn() => SubmissionsPage::markOpenedAsRead());
+    lcmt_sp_with_get(['submission' => (string) $id], fn() => SubmissionsPage::markOpenedAsRead());
+
+    lcmt_assert_same('new', SubmissionRepository::find($id)['status']);
+});
+
+lcmt_it('SubmissionsPage handleLoad still marks an opened message read', function () {
+    lcmt_sp_admin();
+
+    $id = lcmt_it_insert(['status' => 'new']);
+
+    lcmt_sp_with_get(['page' => SubmissionsPage::PAGE_SLUG, 'submission' => (string) $id], fn() => SubmissionsPage::handleLoad());
+
+    lcmt_assert_same('read', SubmissionRepository::find($id)['status']);
+});
+
+lcmt_it('SubmissionsPage row action Delete asks for confirmation', function () {
+    lcmt_sp_admin();
+
+    lcmt_it_insert(['form_key' => 'confirm-form', 'fields' => lcmt_sp_fields(['name' => ['text', 'Ann']])]);
+
+    $html = lcmt_sp_render(['form_key' => 'confirm-form']);
+
+    lcmt_assert_true(strpos($html, 'submitdelete') !== false, 'delete link');
+    lcmt_assert_true(strpos($html, 'onclick="return confirm(') !== false, 'confirm');
 });

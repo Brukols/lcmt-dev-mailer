@@ -29,6 +29,9 @@ class SubmissionsPage
 
     public static function addSubmenu(): void
     {
+        // Before the count below, so the page that opens a message already shows the new total.
+        self::markOpenedAsRead();
+
         $unread = SubmissionRepository::countUnread();
         $title  = __('Received messages', 'lcmt-dev-mailer');
         $menu   = $unread
@@ -67,18 +70,51 @@ class SubmissionsPage
     }
 
     /**
+     * The query args of the list view being shown, to come back to it after an action.
+     *
+     * @return array<string, string|int>
+     */
+    public static function listQueryArgs(): array
+    {
+        $filters = self::filtersFromRequest();
+
+        $args = array_filter([
+            'form_key' => $filters['form_key'],
+            'status'   => $filters['status'],
+            'channel'  => $filters['channel'],
+            'failed'   => $filters['failed'] ? 1 : 0,
+            's'        => $filters['search'],
+            'paged'    => absint($_GET['paged'] ?? 0),
+        ]);
+
+        return $args;
+    }
+
+    /**
+     * Opening a message reads it. Runs from admin_menu, ahead of the unread bubble.
+     */
+    public static function markOpenedAsRead(): void
+    {
+        $id = absint($_GET['submission'] ?? 0);
+
+        if (!$id || sanitize_key($_GET['page'] ?? '') !== self::PAGE_SLUG || !current_user_can(self::capability())) {
+            return;
+        }
+
+        $row = SubmissionRepository::find($id);
+
+        if ($row && $row['status'] === 'new') {
+            SubmissionRepository::setStatus([$id], 'read');
+        }
+    }
+
+    /**
      * Before any output: mark an opened message as read, run bulk actions.
      */
     public static function handleLoad(): void
     {
-        $id = absint($_GET['submission'] ?? 0);
-
-        if ($id) {
-            $row = SubmissionRepository::find($id);
-
-            if ($row && $row['status'] === 'new') {
-                SubmissionRepository::setStatus([$id], 'read');
-            }
+        if (absint($_GET['submission'] ?? 0)) {
+            self::markOpenedAsRead();
 
             return;
         }
@@ -99,7 +135,7 @@ class SubmissionsPage
 
         $notice = self::apply($action, $ids);
 
-        wp_safe_redirect(self::url(array_filter(self::filtersFromRequest()) + ['notice' => $notice]));
+        wp_safe_redirect(self::url(self::listQueryArgs() + ['notice' => $notice]));
         exit;
     }
 
