@@ -64,6 +64,9 @@ function setup(fetchResult) {
     setBusy: function (busy) {
       calls.push(['busy', busy]);
     },
+    close: function () {
+      calls.push(['close']);
+    },
   };
   var handler = createDeactivateHandler(CFG, {
     prompt: prompt,
@@ -141,6 +144,25 @@ test('Deactivate with the box ticked stores 1, then follows the link once', asyn
   assert.equal(s.link.followed, 1, 'deactivation goes on');
 });
 
+test('the dialog closes right before the link is followed', async function () {
+  var s = setup(Promise.resolve({ ok: true }));
+  var order = [];
+  var link = s.link;
+  var click = link.click;
+  link.click = function () {
+    order.push(s.calls.filter(function (c) { return c[0] === 'close'; }).length ? 'closed' : 'open');
+    return click.call(link);
+  };
+
+  s.link.click();
+  s.prompt.handlers.onConfirm(true);
+  await settle();
+
+  assert.deepEqual(s.calls.filter(function (c) { return c[0] === 'close'; }), [['close']], 'closed once');
+  assert.deepEqual(order, ['open', 'closed'], 'closed before the second click');
+  assert.equal(s.link.followed, 1);
+});
+
 test('Deactivate with the box unticked stores 0', async function () {
   var s = setup(Promise.resolve({ ok: true }));
 
@@ -159,6 +181,7 @@ test('the network admin sends network=1', async function () {
       this.handlers = handlers;
     },
     setBusy: function () {},
+    close: function () {},
   };
   var handler = createDeactivateHandler(Object.assign({}, CFG, { network: true }), {
     prompt: prompt,

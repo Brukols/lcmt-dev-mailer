@@ -19,7 +19,7 @@ export function deactivateLinkSelector(plugin) {
  * nothing (the data is kept) and still deactivates.
  *
  * @param {object} cfg The localized lcmtMailerUninstall object.
- * @param {{prompt: {open: function, setBusy: function}, fetch: function}} env
+ * @param {{prompt: {open: function, setBusy: function, close: function}, fetch: function}} env
  *   prompt.open({onCancel, onConfirm(checked)}) shows the dialog.
  */
 export function createDeactivateHandler(cfg, env) {
@@ -69,6 +69,7 @@ export function createDeactivateHandler(cfg, env) {
             // Nothing stored: uninstall keeps the data.
           })
           .then(function () {
+            env.prompt.close();
             state = 'releasing';
             link.click();
           });

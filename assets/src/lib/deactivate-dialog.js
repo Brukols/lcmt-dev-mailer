@@ -8,7 +8,7 @@
 
 /**
  * @param {HTMLDialogElement} dialog
- * @returns {{open: function({onCancel: function, onConfirm: function(boolean)}), setBusy: function(boolean)}}
+ * @returns {{open: function({onCancel: function, onConfirm: function(boolean)}), setBusy: function(boolean), close: function()}}
  */
 export function createDeactivatePrompt(dialog) {
   var checkbox = dialog.querySelector('[data-lcmt-delete]');
@@ -58,6 +58,13 @@ export function createDeactivatePrompt(dialog) {
       checkbox.checked = checkbox.defaultChecked;
       showHelp();
       dialog.showModal();
+    },
+    /**
+     * Close for good (the deactivation goes on): never reported as a cancel.
+     */
+    close: function () {
+      handlers = null;
+      dialog.close();
     },
     setBusy: function (value) {
       busy = value;

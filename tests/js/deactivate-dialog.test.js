@@ -195,6 +195,26 @@ test('the busy state disables both buttons, says so, and ignores Escape and the 
   assert.equal(h.cancelled, 0);
 });
 
+test('close() closes the dialog without reporting a cancel, busy or not', function () {
+  var d = fakeDialog();
+  var h = handlers();
+  var prompt = createDeactivatePrompt(d.dialog);
+  prompt.open(h);
+  prompt.setBusy(true);
+
+  prompt.close();
+
+  assert.equal(d.dialog.closed, 1);
+  assert.equal(h.cancelled, 0);
+
+  var second = handlers();
+  var d2 = fakeDialog();
+  var p2 = createDeactivatePrompt(d2.dialog);
+  p2.open(second);
+  p2.close();
+  assert.equal(second.cancelled, 0, 'not busy either');
+});
+
 test('Escape is left alone when not busy', function () {
   var d = fakeDialog();
   createDeactivatePrompt(d.dialog).open(handlers());
