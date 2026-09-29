@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "esbuild assets/src/*.js --bundle --minify --target=es2018 --outdir=assets/dist",
+    "test:js": "esbuild tests/js/*.test.js --bundle --platform=node --format=cjs --external:esbuild --outdir=node_modules/.cache/lcmt-js-tests && node --test node_modules/.cache/lcmt-js-tests/",
     "watch": "esbuild assets/src/*.js --bundle --minify --target=es2018 --outdir=assets/dist --watch"
   },
   "devDependencies": {
