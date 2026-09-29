@@ -4,7 +4,7 @@
  * Plugin Name: LCMT Mailer
  * Plugin URI: https://github.com/Brukols/lcmt-dev-mailer
  * Description: Developer-oriented mail engine. Create mail templates in WP admin, auto-generates REST endpoints, form rendering, validation and TypeScript types.
- * Version: 2.1.1
+ * Version: 2.2.0
  * Author: Amaury Lecomte
  * Author URI:
  * Text Domain: lcmt-dev-mailer
@@ -44,6 +44,22 @@ require_once LCMT_MAILER_PATH . 'includes/captcha.php';
 require_once LCMT_MAILER_PATH . 'includes/altcha.php';
 require_once LCMT_MAILER_PATH . 'includes/captcha-settings.php';
 require_once LCMT_MAILER_PATH . 'includes/updater.php';
+require_once LCMT_MAILER_PATH . 'includes/submission-data.php';
+require_once LCMT_MAILER_PATH . 'includes/submission-context.php';
+require_once LCMT_MAILER_PATH . 'includes/channel-classifier.php';
+require_once LCMT_MAILER_PATH . 'includes/user-agent.php';
+require_once LCMT_MAILER_PATH . 'includes/submission-schema.php';
+require_once LCMT_MAILER_PATH . 'includes/submission-repository.php';
+require_once LCMT_MAILER_PATH . 'includes/submission-recorder.php';
+require_once LCMT_MAILER_PATH . 'includes/attribution.php';
+require_once LCMT_MAILER_PATH . 'includes/submissions-page.php';
+require_once LCMT_MAILER_PATH . 'includes/submission-csv.php';
+require_once LCMT_MAILER_PATH . 'includes/retention.php';
+require_once LCMT_MAILER_PATH . 'includes/submission-settings.php';
+require_once LCMT_MAILER_PATH . 'includes/privacy.php';
+require_once LCMT_MAILER_PATH . 'includes/failure-notice.php';
+require_once LCMT_MAILER_PATH . 'includes/stats-page.php';
+require_once LCMT_MAILER_PATH . 'includes/uninstaller.php';
 
 // ── Updates from the GitHub releases ──
 LcmtDevMailer\Updater::register(__FILE__);
@@ -53,16 +69,43 @@ add_action('init', function () {
     load_plugin_textdomain('lcmt-dev-mailer', false, basename(LCMT_MAILER_PATH) . '/languages');
 });
 
+// ── Received messages ──
+add_action('plugins_loaded', ['LcmtDevMailer\\SubmissionSchema', 'maybeUpgrade']);
+add_action('wp_mail_failed', ['LcmtDevMailer\\SubmissionRecorder', 'captureMailError']);
+add_action('wp_enqueue_scripts', ['LcmtDevMailer\\Attribution', 'enqueue'], LcmtDevMailer\Attribution::PRIORITY);
+add_action('init', ['LcmtDevMailer\\Retention', 'schedule']);
+add_action(LcmtDevMailer\Retention::CRON_HOOK, ['LcmtDevMailer\\Retention', 'run']);
+register_deactivation_hook(__FILE__, ['LcmtDevMailer\\Retention', 'unschedule']);
+add_filter('wp_privacy_personal_data_exporters', ['LcmtDevMailer\\Privacy', 'registerExporter']);
+add_filter('wp_privacy_personal_data_erasers', ['LcmtDevMailer\\Privacy', 'registerEraser']);
+add_action('admin_init', ['LcmtDevMailer\\Privacy', 'addPolicyContent']);
+add_shortcode('lcmt-retention-days', ['LcmtDevMailer\\Privacy', 'retentionShortcode']);
+
+// Tell WP Consent API this plugin follows its consent categories.
+add_filter('wp_consent_api_registered_' . plugin_basename(__FILE__), '__return_true');
+
 // ── Post type & fields ──
 add_action('init', ['LcmtDevMailer\\PostType', 'register']);
 add_action('add_meta_boxes', ['LcmtDevMailer\\MetaFields', 'addMetaBox']);
 add_action('save_post', ['LcmtDevMailer\\MetaFields', 'save']);
 
 // ── Admin UI ──
+add_action('admin_menu', ['LcmtDevMailer\\SubmissionsPage', 'addSubmenu']);
+add_action('admin_post_' . LcmtDevMailer\SubmissionsPage::ACTION, ['LcmtDevMailer\\SubmissionsPage', 'handleSingle']);
+add_action('admin_post_' . LcmtDevMailer\SubmissionsPage::EXPORT_ACTION, ['LcmtDevMailer\\SubmissionsPage', 'handleExport']);
+add_action('admin_notices', ['LcmtDevMailer\\FailureNotice', 'banner']);
+add_action('wp_dashboard_setup', ['LcmtDevMailer\\FailureNotice', 'addDashboardWidget']);
+add_action('admin_post_' . LcmtDevMailer\FailureNotice::DISMISS_ACTION, ['LcmtDevMailer\\FailureNotice', 'handleDismiss']);
 add_action('admin_menu', ['LcmtDevMailer\\Settings', 'addSubmenu']);
 add_action('admin_init', ['LcmtDevMailer\\Settings', 'registerSettings']);
 add_action('admin_menu', ['LcmtDevMailer\\CaptchaSettings', 'addSubmenu']);
 add_action('admin_init', ['LcmtDevMailer\\CaptchaSettings', 'registerSettings']);
+add_action('admin_init', ['LcmtDevMailer\\SubmissionSettings', 'registerSettings']);
+add_action('admin_post_' . LcmtDevMailer\SubmissionSettings::PURGE_ACTION, ['LcmtDevMailer\\SubmissionSettings', 'handlePurgeNow']);
+add_action('admin_enqueue_scripts', ['LcmtDevMailer\\StatsPage', 'enqueue']);
+add_action('admin_enqueue_scripts', ['LcmtDevMailer\\Uninstaller', 'enqueue']);
+add_action('admin_footer', ['LcmtDevMailer\\Uninstaller', 'printDialog']);
+add_action('wp_ajax_' . LcmtDevMailer\Uninstaller::AJAX_ACTION, ['LcmtDevMailer\\Uninstaller', 'handleAjax']);
 add_action('admin_enqueue_scripts', ['LcmtDevMailer\\Settings', 'enqueueAdminAssets']);
 add_action('add_meta_boxes', ['LcmtDevMailer\\AdminMailSender', 'addMetaBox']);
 add_action('wp_ajax_lcmt_send_test_mail', ['LcmtDevMailer\\AdminMailSender', 'handleSendTestMail']);

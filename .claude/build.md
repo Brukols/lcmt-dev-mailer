@@ -28,7 +28,12 @@ yarn install
 |---------------------------------|----------------------------------|----------|------------------------------------|
 | `src/admin-test-mail.js`        | `dist/admin-test-mail.js`        | Admin    | Test email sender in metabox       |
 | `src/admin-generate-template.js`| `dist/admin-generate-template.js`| Admin    | Generate form template button      |
+| `src/admin-uninstall.js`        | `dist/admin-uninstall.js`        | Admin    | Plugins screen: on deactivation, asks whether a later deletion deletes the messages |
+| `src/admin-stats.js`            | `dist/admin-stats.js`            | Admin    | Statistics page: Chart \| Table toggle of each box |
 | `src/form-handler.js`           | `dist/form-handler.js`           | Frontend | Auto form submit, validation, fetch|
+| `src/attribution.js`            | `dist/attribution.js`            | Frontend | Remembers the landing page of the visit |
+
+`src/lib/` holds shared modules (`lib/attribution.js`, `lib/uninstall-prompt.js`, `lib/deactivate-dialog.js`, `lib/stats-view.js`): imported by entry points, not emitted on their own since the build only globs `src/*.js`.
 
 ## Rules
 
@@ -56,13 +61,29 @@ yarn install
 
 ## Tests
 
-PHPUnit tests live in `tests/` and run without WordPress: `tests/bootstrap.php` stubs the few functions the tested classes call (`__`, options, transients). They cover `FieldParser`, `FieldValidator` and `Altcha` challenges.
+Three suites.
+
+**PHP unit tests** (`tests/*.php`) run without WordPress: `tests/bootstrap.php` stubs the few functions the tested classes call. They cover `FieldParser`, `FieldValidator`, `Altcha`, `SubmissionData`, `SubmissionContext`, `UserAgent` (real user agent strings and precedence cases), `ChannelClassifier`, `SubmissionCsv` and `Retention` (pure logic). Needs PHPUnit 11 (`brew install phpunit`).
 
 ```bash
 phpunit
 ```
 
-Needs PHPUnit 11 on the machine (`brew install phpunit`). Code that relies on WordPress itself (`is_email`, sanitizing, REST routes, `wp_mail`) and `form-handler.js` are tested by hand on a site.
+**JS tests** (`tests/js/`) use the Node test runner, bundled with esbuild (no extra dependency): `attribution.test.js` (the shared module), `attribution-entry.test.js` (the entry point, with a stubbed browser from `env.js`) `uninstall-prompt.test.js` (open dialog → request → link followed once flow of the Deactivate link: cancel, checkbox value sent, double submit, failed request, with fake links, prompt and `fetch`), `deactivate-dialog.test.js` (the `<dialog>`: pre-checked state, help line, Cancel, backdrop, Escape, busy state, with fake elements) and `stats-view.test.js` (Chart | Table state and `localStorage` persistence, storage that throws).
+
+```bash
+yarn test:js
+```
+
+**Integration tests** (`tests/integration/`) run inside WordPress with wp-cli, against a local site with the plugin active. Sync the plugin into the site's `wp-content/plugins/lcmt-dev-mailer/` (rsync, excluding `.git`, `node_modules`, `docs`, `tests`), then from the site directory:
+
+```bash
+wp eval-file /path/to/lcmt-dev-mailer/tests/integration/run.php
+```
+
+`run.php` loads every `*-test.php` file: repository, recorder, attribution, submissions page, resend and CSV export, retention, privacy tools, failure notice, stats page (charts and toggle markup), user agent and the deactivation dialog. Each test runs in a transaction that is rolled back, so nothing is left in the database (never run DDL in a test: it commits implicitly). Shared helpers live in `tests/integration/helpers.php` (they also keep any email from leaving the site: `pre_wp_mail` is filtered). Use a local or staging site, never production.
+
+Layout of the admin screens and real browser behavior are still checked by hand.
 
 ## Releasing
 

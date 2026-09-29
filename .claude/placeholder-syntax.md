@@ -48,6 +48,8 @@ These are always injected by the Mailer and don't need to appear in the content:
 | `[currentUserLink]`  | Admin URL to edit the current user       |
 | `[currentUserEmail]` | Email of the current logged-in user      |
 
+`buildForm()` only fills them when the caller did not pass the same name (bare or bracketed, with or without `*`). The resend of a received message passes both as `''`, so they never name the admin who resends it.
+
 ## Regex
 
 The parser uses this pattern:

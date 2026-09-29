@@ -8,7 +8,7 @@ Developer-oriented WordPress plugin for managing email templates with auto-gener
 - **Slug stays `lcmt-dev-mailer`** although the display name is LCMT Mailer: folder, text domain, option/hook/REST prefixes and the update checker all rely on it. Never rename it.
 - **Namespace:** `LcmtDevMailer`
 - **Build:** `nvm use 20 && yarn build` (esbuild)
-- **Tests:** `phpunit` (no WordPress needed) — see [Build](.claude/build.md#tests)
+- **Tests:** `phpunit` (no WordPress needed), `yarn test:js`, and integration tests with wp-cli — see [Build](.claude/build.md#tests)
 - **JS source:** `assets/src/` — **JS dist:** `assets/dist/`
 - **Theme override dir:** `{theme}/lcmt-dev-mailer/`
 - **Theme form files:** `{theme}/forms/{key}.php`
@@ -23,6 +23,7 @@ See the `.claude/` folder for topic-specific docs:
 - [Filters & actions](.claude/hooks.md) — All available WordPress hooks
 - [Frontend](.claude/frontend.md) — Form handler JS, CSS classes, and rendering
 - [Build](.claude/build.md) — JS build pipeline and asset management
+- Received messages: storage, retention and stats — see [Architecture](.claude/architecture.md)
 
 ## Key rules
 

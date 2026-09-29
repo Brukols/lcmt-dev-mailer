@@ -15,6 +15,7 @@ import Snackbar from 'node-snackbar';
 import 'node-snackbar/dist/snackbar.min.css';
 import './form-handler.css';
 import 'altcha';
+import { formContext } from './lib/attribution';
 
 (function () {
   'use strict';
@@ -221,6 +222,19 @@ import 'altcha';
       }
     }
 
+    // The hidden ALTCHA widget keeps a required checkbox that its reset
+    // unchecks after each answer: left to the browser, that invisible field
+    // blocks every later submit before this handler runs. Required fields
+    // are checked here and every value again on the server.
+    form.noValidate = true;
+
+    // Time spent filling the form, from the first field the visitor enters.
+    var startedAt = null;
+
+    form.addEventListener('focusin', function () {
+      if (!startedAt) startedAt = Date.now();
+    });
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
 
@@ -274,6 +288,7 @@ import 'altcha';
         })
         .then(function (payload) {
           if (payload) data['altcha'] = payload;
+          data['_context'] = formContext(startedAt);
 
           return fetch(endpoint, {
             method: 'POST',
@@ -292,6 +307,7 @@ import 'altcha';
           if (res.success) {
             showAlert(res.message, 'success');
             form.reset();
+            startedAt = null;
           } else {
             showAlert(res.message || 'An error occurred.', 'error');
 

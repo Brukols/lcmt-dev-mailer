@@ -101,6 +101,32 @@ The attribute value is set to `submitting`, `success`, or `error`. The text cont
 }
 ```
 
+## Attribution
+
+`assets/src/attribution.js` is enqueued on every public page (`Attribution::enqueue()`) and remembers where the visit started, so a form sent several pages later still knows the ad or search that brought the visitor. The logic lives in `assets/src/lib/attribution.js` (shared with `form-handler.js`, unit-tested).
+
+- **Stored in** `sessionStorage`, key `lcmtMailerLanding` (gone when the tab closes): landing path, referrer **origin** (scheme + host, never its path or query), `utm_source` / `utm_medium` / `utm_campaign`, and the click id **name** (`gclid`, `fbclid`…), never its value.
+- **A new visit** (campaign parameters, click id, or a link from another site) replaces the stored landing.
+- **Consent:** with WP Consent API installed (`wp_has_consent`), the landing is only stored once the `statistics` category is allowed, including when the visitor accepts later (`wp_listen_for_consent_change`; until then it is held in memory). When the server reports WP Consent API as active (`lcmtMailerAttribution.consentApi`) but `wp_has_consent` is not defined yet, the script treats it as "not yet consented" and never falls back to the site setting. Without WP Consent API, the `lcmt_mailer_attribution_without_consent` option (Data retention → Advanced settings, default on) decides, exposed as `lcmtMailerAttribution.storeWithoutConsent`.
+- **Without a stored landing** the current page stands in for it.
+
+### `_context` object
+
+`form-handler.js` adds a reserved `_context` key to the JSON body (do not name a form field `_context`):
+
+```json
+{ "page": "/contact", "landing": { "path": "/", "referrer": "https://www.google.com", "utm_source": "…", "click_id": "gclid" },
+  "device": "desktop", "locale": "fr-FR", "seconds": 42 }
+```
+
+`seconds` is the time between the first interaction with the form and the send. The server trusts none of it: `SubmissionContext::fromRequest()` validates and truncates each value.
+
+## Admin scripts
+
+- **`admin-stats.js`** (Statistics page only): `lib/stats-view.js` restores each box's Chart | Table choice from `localStorage` (`lcmt-stats-view:<box id>`, wrapped in try/catch: without storage the toggle works and forgets), reveals the toggle buttons (`[data-lcmt-toggle]`, hidden by default) and switches the `[data-lcmt-view="chart|table"]` panels on a click on `[data-lcmt-set-view]`, keeping `aria-pressed` in step.
+- **`admin-uninstall.js`** (plugins.php): `lib/uninstall-prompt.js` runs the Deactivate flow, `lib/deactivate-dialog.js` drives the `<dialog>` printed by `Uninstaller::printDialog()` (`[data-lcmt-delete]`, `[data-lcmt-help]` with `data-help-on` / `data-help-off`, `[data-lcmt-cancel]`, `[data-lcmt-confirm]` with `data-busy-label`).
+- **Chart colors:** one hue, WordPress admin blue `#2271b1` (over 3:1 on white) for marks; text stays in the normal ink colors; grid lines and axes are light gray (`#dcdcde`). No legend for a single series: the box title names it.
+
 ## REST API
 
 ### Endpoint
@@ -145,7 +171,9 @@ Headers:
 { "success": false, "message": "Unknown form." }
 ```
 
-**500 — Send failure:**
+**200 after a failed send:** when the message was saved in Received messages, a failed email still answers `200` with the normal success message, so the visitor does not send it twice; the admin sees it in the failure banner.
+
+**500 — Send failure (message not saved):**
 ```json
 { "success": false, "message": "Failed to send email." }
 ```
