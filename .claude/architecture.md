@@ -156,7 +156,7 @@ All SQL on the table: `insert`, `update`, `find`, `search`/`count` (filters: for
 ### SubmissionRecorder
 - `record()` saves a submission when the mail template stores submissions (`MetaFields::storesSubmissions()`, on by default) and returns its id, or 0.
 - `send($id, $key, $placeholders)` calls `Mailer::sendByKey()` and stores `mail_sent` / `mail_error`.
-- `captureMailError()` listens to `wp_mail_failed` to keep the reason of a failure.
+- `captureMailError()` listens to `wp_mail_failed` to keep the reason of a failure. Without one, the stored error says the email could not be built when the template cannot be found (`Mailer::getPostByKey()`), otherwise that the mail system gave no reason (wp_mail, or a plugin short-circuiting it, returned false silently).
 
 ### Attribution
 Enqueues `assets/dist/attribution.js` on public pages at `wp_enqueue_scripts` priority `Attribution::PRIORITY` (100, after the consent tools), with a `wp-consent-api` dependency whenever WP Consent API is active (`class_exists('WP_CONSENT_API')` or `function_exists('wp_has_consent')`, like WooCommerce) or its handle is registered. It passes `lcmtMailerAttribution.storeWithoutConsent` from the `lcmt_mailer_attribution_without_consent` option (default on) and `lcmtMailerAttribution.consentApi` (whether WP Consent API is active). See Frontend → Attribution.

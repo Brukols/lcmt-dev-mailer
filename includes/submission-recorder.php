@@ -65,13 +65,27 @@ class SubmissionRecorder
         if ($id) {
             SubmissionRepository::update($id, [
                 'mail_sent'  => $sent ? 1 : 0,
-                'mail_error' => $sent ? null : (self::$mailError ?? __('The email could not be built: check that its template is published and has a recipient.', 'lcmt-dev-mailer')),
+                'mail_error' => $sent ? null : (self::$mailError ?? self::silentFailureReason($key)),
             ]);
         }
 
         self::$mailError = null;
 
         return $sent;
+    }
+
+    /**
+     * Why a send failed when wp_mail_failed gave no message: sendByKey() only
+     * stops before wp_mail when the template cannot be found, otherwise
+     * wp_mail (or a plugin short-circuiting it) returned false on its own.
+     */
+    private static function silentFailureReason(string $key): string
+    {
+        if (!Mailer::getPostByKey($key)) {
+            return __('The email could not be built: its template is missing or not published.', 'lcmt-dev-mailer');
+        }
+
+        return __('The email was not sent and the mail system gave no reason.', 'lcmt-dev-mailer');
     }
 
     public static function captureMailError(\WP_Error $error): void

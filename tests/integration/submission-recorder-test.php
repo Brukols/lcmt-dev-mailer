@@ -204,3 +204,28 @@ lcmt_it('a failing send of a message that is not saved answers 500', function ()
     lcmt_assert_count(0, lcmt_it_rows($key));
     remove_all_filters('pre_wp_mail');
 });
+
+lcmt_it('send records that the email could not be built when its template is gone', function () {
+    lcmt_it_mail_ok();
+    $id = lcmt_it_insert(['mail_sent' => 0]);
+
+    lcmt_assert_same(false, SubmissionRecorder::send($id, 'it-no-such-template-' . uniqid(), ['[firstname*]' => 'Élodie']));
+
+    lcmt_assert_same(
+        'The email could not be built: its template is missing or not published.',
+        SubmissionRepository::find($id)['mail_error']
+    );
+    remove_all_filters('pre_wp_mail');
+});
+
+lcmt_it('send records a neutral reason when wp_mail fails without saying why', function () {
+    remove_all_filters('pre_wp_mail');
+    add_filter('pre_wp_mail', '__return_false');
+    [$post, $key] = lcmt_it_template();
+    $id = SubmissionRecorder::record($post, $key, lcmt_it_fields($post), lcmt_it_values(), []);
+
+    lcmt_assert_same(false, SubmissionRecorder::send($id, $key, ['[firstname*]' => 'Élodie']));
+
+    lcmt_assert_same('The email was not sent and the mail system gave no reason.', SubmissionRepository::find($id)['mail_error']);
+    remove_all_filters('pre_wp_mail');
+});
