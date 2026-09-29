@@ -104,6 +104,7 @@ add_action('admin_init', ['LcmtDevMailer\\SubmissionSettings', 'registerSettings
 add_action('admin_post_' . LcmtDevMailer\SubmissionSettings::PURGE_ACTION, ['LcmtDevMailer\\SubmissionSettings', 'handlePurgeNow']);
 add_action('admin_enqueue_scripts', ['LcmtDevMailer\\StatsPage', 'enqueue']);
 add_action('admin_enqueue_scripts', ['LcmtDevMailer\\Uninstaller', 'enqueue']);
+add_action('admin_footer', ['LcmtDevMailer\\Uninstaller', 'printDialog']);
 add_action('wp_ajax_' . LcmtDevMailer\Uninstaller::AJAX_ACTION, ['LcmtDevMailer\\Uninstaller', 'handleAjax']);
 add_action('admin_enqueue_scripts', ['LcmtDevMailer\\Settings', 'enqueueAdminAssets']);
 add_action('add_meta_boxes', ['LcmtDevMailer\\AdminMailSender', 'addMetaBox']);

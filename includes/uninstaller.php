@@ -100,7 +100,7 @@ class Uninstaller
     }
 
     /**
-     * The prompt on the Deactivate link of the Plugins screen (single site
+     * The dialog on the Deactivate link of the Plugins screen (single site
      * and network admin), while the plugin is still loaded.
      */
     public static function enqueue(string $hook): void
@@ -123,8 +123,52 @@ class Uninstaller
             'nonce'   => wp_create_nonce(self::AJAX_ACTION),
             'plugin'  => plugin_basename(LCMT_MAILER_PATH . 'lcmt-dev-mailer.php'),
             'network' => is_network_admin(),
-            'confirm' => __("If you later delete LCMT Mailer, should its received messages and statistics be deleted too?\n\nOK: delete them with the plugin.\nCancel: keep them in the database (they will no longer be anonymized automatically).", 'lcmt-dev-mailer'),
         ]);
+    }
+
+    /**
+     * The dialog the deactivation opens instead of the browser's confirm().
+     * Printed in the footer of the Plugins screen, and only where the script
+     * that opens it was enqueued.
+     */
+    public static function printDialog(): void
+    {
+        if (!wp_script_is('lcmt-admin-uninstall', 'enqueued')) {
+            return;
+        }
+
+        $stored  = is_network_admin() ? get_site_option(self::OPTION_DELETE_DATA, '0') : get_option(self::OPTION_DELETE_DATA, '0');
+        $checked = $stored === '1';
+        $helpOff = __('They stay in the database, but are no longer anonymized automatically once the plugin is inactive.', 'lcmt-dev-mailer');
+        $helpOn  = __('They will be erased for good when you delete the plugin.', 'lcmt-dev-mailer');
+        ?>
+        <style>
+            #lcmt-deactivate-dialog { box-sizing: border-box; width: calc(100% - 32px); max-width: 480px; padding: 0; border: 0; border-radius: 4px; color: #1d2327; box-shadow: 0 3px 30px rgba(0, 0, 0, .3); }
+            #lcmt-deactivate-dialog::backdrop { background: rgba(0, 0, 0, .7); }
+            #lcmt-deactivate-dialog .lcmt-deactivate__body { padding: 20px 24px; }
+            #lcmt-deactivate-dialog h2 { margin: 0 0 12px; padding: 0; font-size: 1.3em; line-height: 1.4; }
+            #lcmt-deactivate-dialog p { margin: 0 0 12px; }
+            #lcmt-deactivate-dialog label { display: flex; gap: 8px; align-items: flex-start; font-weight: 600; }
+            #lcmt-deactivate-dialog label input { margin-top: 2px; }
+            #lcmt-deactivate-dialog .lcmt-deactivate__help { margin: 4px 0 0 26px; color: #50575e; }
+            #lcmt-deactivate-dialog .lcmt-deactivate__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+        </style>
+        <dialog id="lcmt-deactivate-dialog" aria-labelledby="lcmt-deactivate-title">
+            <div class="lcmt-deactivate__body">
+                <h2 id="lcmt-deactivate-title"><?php esc_html_e('Deactivate LCMT Mailer', 'lcmt-dev-mailer'); ?></h2>
+                <p><?php esc_html_e('Deactivating keeps everything: your settings, your templates and the received messages.', 'lcmt-dev-mailer'); ?></p>
+                <label>
+                    <input type="checkbox" data-lcmt-delete <?php checked($checked); ?> />
+                    <span><?php esc_html_e('Also delete the received messages and statistics when the plugin is deleted', 'lcmt-dev-mailer'); ?></span>
+                </label>
+                <p class="lcmt-deactivate__help" data-help-off="<?= esc_attr($helpOff) ?>" data-help-on="<?= esc_attr($helpOn) ?>" data-lcmt-help aria-live="polite"><?= esc_html($checked ? $helpOn : $helpOff) ?></p>
+                <div class="lcmt-deactivate__actions">
+                    <button type="button" class="button" data-lcmt-cancel><?php esc_html_e('Cancel', 'lcmt-dev-mailer'); ?></button>
+                    <button type="button" class="button button-primary" data-lcmt-confirm data-busy-label="<?= esc_attr__('Deactivating…', 'lcmt-dev-mailer') ?>"><?php esc_html_e('Deactivate', 'lcmt-dev-mailer'); ?></button>
+                </div>
+            </div>
+        </dialog>
+        <?php
     }
 
     /**

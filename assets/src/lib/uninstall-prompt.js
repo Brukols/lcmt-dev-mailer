@@ -12,17 +12,19 @@ export function deactivateLinkSelector(plugin) {
 
 /**
  * A capture-phase click listener. The first click on this plugin's
- * Deactivate link is held back: it asks, stores the answer, then clicks the
- * link again and lets exactly that click through. Any other click on the
- * link, while the request runs or once the page is leaving, is ignored. A
- * failed request stores nothing (the data is kept) and still deactivates.
+ * Deactivate link is held back and opens the dialog. Cancel puts everything
+ * back. Deactivate stores the answer, then clicks the link again and lets
+ * exactly that click through. Any other click on the link, while the request
+ * runs or once the page is leaving, is ignored. A failed request stores
+ * nothing (the data is kept) and still deactivates.
  *
  * @param {object} cfg The localized lcmtMailerUninstall object.
- * @param {{confirm: function(string): boolean, fetch: function}} env
+ * @param {{prompt: {open: function, setBusy: function}, fetch: function}} env
+ *   prompt.open({onCancel, onConfirm(checked)}) shows the dialog.
  */
 export function createDeactivateHandler(cfg, env) {
   var selector = deactivateLinkSelector(cfg.plugin);
-  var state = 'idle'; // idle → asking → releasing → left
+  var state = 'idle'; // idle → asking → submitting → releasing → left
 
   return function (event) {
     var target = event.target;
@@ -42,23 +44,35 @@ export function createDeactivateHandler(cfg, env) {
 
     state = 'asking';
 
-    var body = new URLSearchParams({
-      action: cfg.action,
-      nonce: cfg.nonce,
-      delete: env.confirm(cfg.confirm) ? '1' : '0',
-      network: cfg.network ? '1' : '0',
-    });
+    env.prompt.open({
+      onCancel: function () {
+        if (state === 'asking') state = 'idle';
+      },
+      onConfirm: function (checked) {
+        if (state !== 'asking') return;
 
-    Promise.resolve()
-      .then(function () {
-        return env.fetch(cfg.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body });
-      })
-      .catch(function () {
-        // Nothing stored: uninstall keeps the data.
-      })
-      .then(function () {
-        state = 'releasing';
-        link.click();
-      });
+        state = 'submitting';
+        env.prompt.setBusy(true);
+
+        var body = new URLSearchParams({
+          action: cfg.action,
+          nonce: cfg.nonce,
+          delete: checked ? '1' : '0',
+          network: cfg.network ? '1' : '0',
+        });
+
+        Promise.resolve()
+          .then(function () {
+            return env.fetch(cfg.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body });
+          })
+          .catch(function () {
+            // Nothing stored: uninstall keeps the data.
+          })
+          .then(function () {
+            state = 'releasing';
+            link.click();
+          });
+      },
+    });
   };
 }
