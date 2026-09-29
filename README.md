@@ -197,6 +197,22 @@ add_filter('lcmt_mailer_captcha_providers', function (array $providers) {
 
 ---
 
+## Received messages
+
+Every message sent through a form is saved on your site before the email goes out, so nothing is lost when an email fails.
+
+- **Where:** **Email templates → Received messages** (unread count in the menu). Read a message, mark it processed, unread or spam, delete it, filter by form, status, source or failed email, and export the list as CSV. **Statistics** shows where messages come from (month, source, campaign, form, page, device).
+- **Per form:** each mail template has a **Save the messages sent through this form** checkbox, on by default. Untick it for forms that must not be stored.
+- **Failed emails:** if an email cannot be sent, the message stays saved, an admin banner and a dashboard widget show the reason, and **Send the email again** resends it.
+- **Retention:** **Email templates → Data retention**. By default, personal data is kept 1095 days (3 years, the longest the CNIL accepts for prospects), then **anonymized**: what the visitor typed is erased, while the date, form, page and source stay for statistics, kept forever unless you set a period. You can delete whole messages instead. A daily task applies it; **Purge now** runs it at once. State the period in your privacy policy: `[lcmt-retention-days]` prints it, and the plugin adds text to the WordPress privacy policy guide.
+- **Origin of the visit:** the landing page, campaign parameters (UTM), the name of an ad click id (never its value) and the host of the referring site are remembered in the visitor's browser for the visit only (sessionStorage). With a consent tool compatible with **WP Consent API**, this only happens once the visitor accepts the *statistics* category. Without one, it is done by default, which needs consent under the ePrivacy rules: untick the option in Data retention → Advanced settings to only record the page the form was sent from. IP addresses are never stored.
+- **Privacy tools:** messages are included in Tools → Export Personal Data and Erase Personal Data (erasing anonymizes). They are found by an **exact** email value in a form field: an address that only appears inside a free-text message is not matched, so search for it in Received messages if you need to handle such a request.
+- **Uninstalling:** deactivating or updating the plugin keeps the messages. **Deleting the plugin deletes the messages** and its settings.
+
+For developers: hooks `lcmt_mailer_submission_channel`, `lcmt_mailer_submissions_capability` and `lcmt_mailer_submission_actions` are described in [.claude/hooks.md](.claude/hooks.md).
+
+---
+
 ## Filters
 
 ### `lcmt_mailer_default_language`

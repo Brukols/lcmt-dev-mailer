@@ -101,6 +101,26 @@ The attribute value is set to `submitting`, `success`, or `error`. The text cont
 }
 ```
 
+## Attribution
+
+`assets/src/attribution.js` is enqueued on every public page (`Attribution::enqueue()`) and remembers where the visit started, so a form sent several pages later still knows the ad or search that brought the visitor. The logic lives in `assets/src/lib/attribution.js` (shared with `form-handler.js`, unit-tested).
+
+- **Stored in** `sessionStorage`, key `lcmtMailerLanding` (gone when the tab closes): landing path, referrer **origin** (scheme + host, never its path or query), `utm_source` / `utm_medium` / `utm_campaign`, and the click id **name** (`gclid`, `fbclid`…), never its value.
+- **A new visit** (campaign parameters, click id, or a link from another site) replaces the stored landing.
+- **Consent:** with WP Consent API installed (`wp_has_consent`), the landing is only stored once the `statistics` category is allowed, including when the visitor accepts later (`wp_listen_for_consent_change`; until then it is held in memory). Without it, the `lcmt_mailer_attribution_without_consent` option (Data retention → Advanced settings, default on) decides, exposed as `lcmtMailerAttribution.storeWithoutConsent`.
+- **Without a stored landing** the current page stands in for it.
+
+### `_context` object
+
+`form-handler.js` adds a reserved `_context` key to the JSON body (do not name a form field `_context`):
+
+```json
+{ "page": "/contact", "landing": { "path": "/", "referrer": "https://www.google.com", "utm_source": "…", "click_id": "gclid" },
+  "device": "desktop", "locale": "fr-FR", "seconds": 42 }
+```
+
+`seconds` is the time between the first interaction with the form and the send. The server trusts none of it: `SubmissionContext::fromRequest()` validates and truncates each value.
+
 ## REST API
 
 ### Endpoint

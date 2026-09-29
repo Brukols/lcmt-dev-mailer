@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the LCMT Mailer plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: LCMT Mailer 2.0.0\n"
+"Project-Id-Version: LCMT Mailer 2.1.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/lcmt-dev-mailer\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-24T09:39:10+00:00\n"
+"POT-Creation-Date: 2026-09-29T13:33:36+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: lcmt-dev-mailer\n"
@@ -17,6 +17,11 @@ msgstr ""
 #. Plugin Name of the plugin
 #: lcmt-dev-mailer.php
 msgid "LCMT Mailer"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: lcmt-dev-mailer.php
+msgid "https://github.com/Brukols/lcmt-dev-mailer"
 msgstr ""
 
 #. Description of the plugin
@@ -50,7 +55,7 @@ msgid "name=\"\""
 msgstr ""
 
 #: includes/admin-mail-sender.php:68
-#: includes/meta-fields.php:156
+#: includes/meta-fields.php:176
 msgid "Type"
 msgstr ""
 
@@ -119,7 +124,7 @@ msgstr ""
 
 #: includes/admin-mail-sender.php:188
 #: includes/admin-mail-sender.php:262
-#: includes/altcha.php:193
+#: includes/altcha.php:199
 msgid "Insufficient permissions"
 msgstr ""
 
@@ -178,7 +183,7 @@ msgid "Submit"
 msgstr ""
 
 #: includes/admin-mail-sender.php:369
-#: includes/meta-fields.php:42
+#: includes/meta-fields.php:43
 msgid "Key"
 msgstr ""
 
@@ -202,33 +207,33 @@ msgstr ""
 msgid "You can send test emails directly from the edit page using the \"Actions & Usage\" panel on the right."
 msgstr ""
 
-#: includes/altcha.php:153
+#: includes/altcha.php:159
 msgid "ALTCHA key"
 msgstr ""
 
 #. translators: %1$s: constant name, %2$s: file name
-#: includes/altcha.php:160
+#: includes/altcha.php:166
 #, php-format
 msgid "Set by the %1$s constant in %2$s."
 msgstr ""
 
-#: includes/altcha.php:167
+#: includes/altcha.php:173
 msgid "Generated automatically and stored in the database. Nothing to configure."
 msgstr ""
 
-#: includes/altcha.php:171
+#: includes/altcha.php:177
 msgid "Generate a new key? A visitor who opened a form in the last five minutes will have to submit it again."
 msgstr ""
 
-#: includes/altcha.php:172
+#: includes/altcha.php:178
 msgid "Generate a new key"
 msgstr ""
 
-#: includes/altcha.php:175
+#: includes/altcha.php:181
 msgid "New key generated."
 msgstr ""
 
-#: includes/altcha.php:179
+#: includes/altcha.php:185
 msgid "Only needed if the key may have leaked, from a copied database for instance."
 msgstr ""
 
@@ -250,49 +255,132 @@ msgstr ""
 msgid "Forms accept any submission, including from bots."
 msgstr ""
 
-#: includes/form-endpoint.php:28
-msgid "Unknown form."
+#: includes/channel-classifier.php:81
+msgid "Google Ads"
 msgstr ""
 
-#: includes/form-endpoint.php:50
-msgid "Security verification failed. Please try again."
+#: includes/channel-classifier.php:82
+msgid "Paid social"
 msgstr ""
 
-#: includes/form-endpoint.php:64
+#: includes/channel-classifier.php:83
+msgid "Other ads"
+msgstr ""
+
+#: includes/channel-classifier.php:84
+#: includes/submissions-list-table.php:37
+#: includes/submissions-page.php:369
+msgid "Email"
+msgstr ""
+
+#: includes/channel-classifier.php:85
+msgid "Social networks"
+msgstr ""
+
+#: includes/channel-classifier.php:86
+msgid "Organic search"
+msgstr ""
+
+#: includes/channel-classifier.php:87
+msgid "Other campaign"
+msgstr ""
+
+#: includes/channel-classifier.php:88
+msgid "Other website"
+msgstr ""
+
+#: includes/channel-classifier.php:89
+msgid "Direct"
+msgstr ""
+
+#. translators: %d: number of messages
+#: includes/failure-notice.php:36
 #, php-format
-msgid "The field \"%s\" is required."
+msgid "%d form message could not be emailed."
+msgid_plural "%d form messages could not be emailed."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/failure-notice.php:39
+msgid "They are saved: you can read them and send them again."
 msgstr ""
 
-#: includes/form-endpoint.php:85
-msgid "Some fields are invalid or missing. Please check and try again."
+#: includes/failure-notice.php:43
+msgid "Last error:"
 msgstr ""
 
-#: includes/form-endpoint.php:104
-msgid "Failed to send email."
+#: includes/failure-notice.php:47
+msgid "See the messages"
+msgstr ""
+
+#: includes/failure-notice.php:48
+msgid "Dismiss"
+msgstr ""
+
+#: includes/failure-notice.php:58
+msgid "Form emails that failed"
+msgstr ""
+
+#: includes/failure-notice.php:73
+#: includes/submissions-page.php:375
+msgid "The request stopped before the email was sent."
+msgstr ""
+
+#: includes/failure-notice.php:78
+msgid "All failed emails"
+msgstr ""
+
+#: includes/failure-notice.php:87
+#: includes/submission-settings.php:79
+#: includes/submissions-page.php:152
+#: includes/submissions-page.php:173
+msgid "You are not allowed to do this."
 msgstr ""
 
 #. translators: %s: the field name
-#: includes/form-endpoint.php:163
+#: includes/field-validator.php:67
 #, php-format
 msgid "The field \"%s\" must be a valid email address."
 msgstr ""
 
 #. translators: %s: the field name
-#: includes/form-endpoint.php:165
+#: includes/field-validator.php:69
 #, php-format
 msgid "The field \"%s\" must be a number."
 msgstr ""
 
 #. translators: %s: the field name
-#: includes/form-endpoint.php:167
+#: includes/field-validator.php:71
 #, php-format
 msgid "The field \"%s\" must be a valid URL."
 msgstr ""
 
 #. translators: %s: the field name
-#: includes/form-endpoint.php:169
+#: includes/field-validator.php:73
 #, php-format
 msgid "The field \"%s\" must be a valid phone number."
+msgstr ""
+
+#: includes/form-endpoint.php:28
+msgid "Unknown form."
+msgstr ""
+
+#: includes/form-endpoint.php:50
+#: includes/form-renderer.php:113
+msgid "Security verification failed. Please try again."
+msgstr ""
+
+#: includes/form-endpoint.php:65
+#, php-format
+msgid "The field \"%s\" is required."
+msgstr ""
+
+#: includes/form-endpoint.php:87
+msgid "Some fields are invalid or missing. Please check and try again."
+msgstr ""
+
+#: includes/form-endpoint.php:108
+msgid "Failed to send email."
 msgstr ""
 
 #: includes/form-renderer.php:111
@@ -304,79 +392,92 @@ msgstr ""
 msgid "An error occurred."
 msgstr ""
 
-#: includes/form-renderer.php:113
-msgid "Security verification in progress. Please try again."
-msgstr ""
-
-#: includes/meta-fields.php:21
+#: includes/meta-fields.php:22
 msgid "Mail Fields"
 msgstr ""
 
-#: includes/meta-fields.php:45
+#: includes/meta-fields.php:46
 msgid "Unique identifier in kebab-case (e.g. contact, reset-password). Used for the shortcode, REST endpoint and form file."
 msgstr ""
 
-#: includes/meta-fields.php:50
+#: includes/meta-fields.php:51
 msgid "To"
 msgstr ""
 
-#: includes/meta-fields.php:55
+#: includes/meta-fields.php:56
 msgid "Reply-To"
 msgstr ""
 
-#: includes/meta-fields.php:58
+#: includes/meta-fields.php:59
 msgid "Optional. Supports placeholders (e.g. [email* email] to reply to the form sender)."
 msgstr ""
 
-#: includes/meta-fields.php:63
+#: includes/meta-fields.php:64
 msgid "Subject"
 msgstr ""
 
-#: includes/meta-fields.php:68
+#: includes/meta-fields.php:69
 msgid "Content"
 msgstr ""
 
-#: includes/meta-fields.php:133
+#: includes/meta-fields.php:81
+#: includes/privacy.php:20
+#: includes/privacy.php:30
+#: includes/privacy.php:57
+#: includes/submissions-page.php:37
+#: includes/submissions-page.php:308
+msgid "Received messages"
+msgstr ""
+
+#: includes/meta-fields.php:84
+msgid "Save the messages sent through this form"
+msgstr ""
+
+#: includes/meta-fields.php:85
+msgid "They appear under Email templates → Received messages, and are anonymized or deleted after the retention period set there."
+msgstr ""
+
+#: includes/meta-fields.php:153
 msgid "Placeholder syntax reference"
 msgstr ""
 
-#: includes/meta-fields.php:140
+#: includes/meta-fields.php:160
 msgid "Syntax"
 msgstr ""
 
-#: includes/meta-fields.php:141
+#: includes/meta-fields.php:161
 msgid "Result"
 msgstr ""
 
-#: includes/meta-fields.php:145
+#: includes/meta-fields.php:165
 msgid "Optional field, type text"
 msgstr ""
 
-#: includes/meta-fields.php:146
+#: includes/meta-fields.php:166
 msgid "Required field, type text"
 msgstr ""
 
-#: includes/meta-fields.php:147
+#: includes/meta-fields.php:167
 msgid "Optional field with explicit type"
 msgstr ""
 
-#: includes/meta-fields.php:148
+#: includes/meta-fields.php:168
 msgid "Required field with explicit type"
 msgstr ""
 
-#: includes/meta-fields.php:152
+#: includes/meta-fields.php:172
 msgid "Available types:"
 msgstr ""
 
-#: includes/meta-fields.php:157
+#: includes/meta-fields.php:177
 msgid "HTML output"
 msgstr ""
 
-#: includes/meta-fields.php:173
+#: includes/meta-fields.php:193
 msgid "Example content:"
 msgstr ""
 
-#: includes/meta-fields.php:186
+#: includes/meta-fields.php:206
 msgid "Built-in placeholders (always available): [currentUserLink], [currentUserEmail]"
 msgstr ""
 
@@ -418,6 +519,39 @@ msgstr ""
 
 #: includes/post-type.php:30
 msgid "No email templates found in trash"
+msgstr ""
+
+#: includes/privacy.php:46
+#: includes/submissions-list-table.php:38
+#: includes/submissions-page.php:380
+msgid "Date"
+msgstr ""
+
+#: includes/privacy.php:47
+#: includes/submissions-list-table.php:34
+#: includes/submissions-page.php:381
+msgid "Form"
+msgstr ""
+
+#: includes/privacy.php:48
+#: includes/stats-page.php:73
+#: includes/submissions-list-table.php:35
+#: includes/submissions-page.php:382
+msgid "Sent from"
+msgstr ""
+
+#: includes/privacy.php:90
+msgid "they are then deleted"
+msgstr ""
+
+#: includes/privacy.php:91
+msgid "they are then anonymized: only the date, the form, the page and the origin of the visit are kept, for statistics"
+msgstr ""
+
+#. translators: 1: number of days, 2: what happens after
+#: includes/privacy.php:95
+#, php-format
+msgid "The messages you send through our forms are saved on this site for %1$d days so we can answer and follow up on your request; %2$s. We record the page you sent it from and how you reached the site (search engine, ad, other site, campaign), never your IP address."
 msgstr ""
 
 #: includes/settings.php:38
@@ -515,4 +649,316 @@ msgstr ""
 
 #: includes/settings.php:482
 msgid "Use this image"
+msgstr ""
+
+#: includes/stats-page.php:26
+#: includes/stats-page.php:27
+#: includes/stats-page.php:49
+msgid "Statistics"
+msgstr ""
+
+#: includes/stats-page.php:42
+msgid "Last 30 days"
+msgstr ""
+
+#: includes/stats-page.php:43
+msgid "Last 90 days"
+msgstr ""
+
+#: includes/stats-page.php:44
+msgid "Last 12 months"
+msgstr ""
+
+#: includes/stats-page.php:45
+msgid "Everything"
+msgstr ""
+
+#: includes/stats-page.php:60
+msgid "Messages"
+msgstr ""
+
+#: includes/stats-page.php:61
+msgid "Emails not sent"
+msgstr ""
+
+#: includes/stats-page.php:63
+msgid "Average time on the form"
+msgstr ""
+
+#: includes/stats-page.php:69
+msgid "By month"
+msgstr ""
+
+#: includes/stats-page.php:70
+msgid "By source"
+msgstr ""
+
+#: includes/stats-page.php:71
+msgid "By campaign"
+msgstr ""
+
+#: includes/stats-page.php:72
+msgid "By form"
+msgstr ""
+
+#: includes/stats-page.php:74
+#: includes/submissions-page.php:383
+msgid "Landing page"
+msgstr ""
+
+#: includes/stats-page.php:75
+#: includes/submissions-page.php:385
+msgid "Referring site"
+msgstr ""
+
+#: includes/stats-page.php:76
+#: includes/submissions-page.php:388
+msgid "Device"
+msgstr ""
+
+#: includes/stats-page.php:108
+msgid "No data for this period."
+msgstr ""
+
+#: includes/stats-page.php:117
+msgid "(not set)"
+msgstr ""
+
+#: includes/submission-recorder.php:68
+msgid "The email could not be built: check that its template is published and has a recipient."
+msgstr ""
+
+#: includes/submission-settings.php:40
+#: includes/submission-settings.php:41
+#: includes/submission-settings.php:102
+msgid "Data retention"
+msgstr ""
+
+#. translators: 1: number of anonymized messages, 2: number of deleted messages
+#: includes/submission-settings.php:109
+#, php-format
+msgid "Purge done: %1$d messages anonymized, %2$d deleted."
+msgstr ""
+
+#: includes/submission-settings.php:122
+msgid "Keep personal data for"
+msgstr ""
+
+#: includes/submission-settings.php:126
+msgid "days after the message was sent"
+msgstr ""
+
+#: includes/submission-settings.php:128
+msgid "The GDPR sets no fixed period: data may be kept as long as its purpose needs it. For prospects, the CNIL accepts at most 3 years (1095 days) after the last contact. State this period in your privacy policy."
+msgstr ""
+
+#: includes/submission-settings.php:134
+msgid "When the period ends"
+msgstr ""
+
+#: includes/submission-settings.php:138
+msgid "Anonymize: erase what the visitor typed, keep the date, form, page and source for statistics"
+msgstr ""
+
+#: includes/submission-settings.php:140
+msgid "Delete the whole message"
+msgstr ""
+
+#: includes/submission-settings.php:146
+msgid "Keep anonymized statistics for"
+msgstr ""
+
+#: includes/submission-settings.php:150
+msgid "days"
+msgstr ""
+
+#: includes/submission-settings.php:151
+msgid "0 keeps them forever: once anonymized, they are no longer personal data."
+msgstr ""
+
+#: includes/submission-settings.php:157
+msgid "Advanced settings"
+msgstr ""
+
+#: includes/submission-settings.php:161
+msgid "Visit origin without a consent tool"
+msgstr ""
+
+#: includes/submission-settings.php:165
+msgid "Remember the landing page and campaign in the visitor's browser when no consent tool is installed"
+msgstr ""
+
+#: includes/submission-settings.php:168
+msgid "With a consent tool compatible with WP Consent API, this is only done after the visitor accepts statistics, whatever this setting. Without one, storing it needs consent under the ePrivacy rules: untick this to only record the page the form was sent from."
+msgstr ""
+
+#: includes/submission-settings.php:180
+#: includes/submission-settings.php:185
+msgid "Purge now"
+msgstr ""
+
+#: includes/submission-settings.php:181
+msgid "The purge runs once a day, when the site gets visits. Run it now to apply new settings at once."
+msgstr ""
+
+#: includes/submissions-list-table.php:33
+msgid "Sender"
+msgstr ""
+
+#: includes/submissions-list-table.php:36
+#: includes/submissions-page.php:384
+msgid "Source"
+msgstr ""
+
+#: includes/submissions-list-table.php:58
+msgid "No messages yet."
+msgstr ""
+
+#: includes/submissions-list-table.php:66
+msgid "All"
+msgstr ""
+
+#: includes/submissions-list-table.php:67
+msgid "Unread"
+msgstr ""
+
+#: includes/submissions-list-table.php:68
+msgid "Email failed"
+msgstr ""
+
+#: includes/submissions-list-table.php:69
+msgid "Spam"
+msgstr ""
+
+#: includes/submissions-list-table.php:90
+msgid "Mark as read"
+msgstr ""
+
+#: includes/submissions-list-table.php:91
+#: includes/submissions-page.php:414
+msgid "Mark as processed"
+msgstr ""
+
+#: includes/submissions-list-table.php:92
+#: includes/submissions-page.php:416
+msgid "Mark as spam"
+msgstr ""
+
+#: includes/submissions-list-table.php:93
+#: includes/submissions-list-table.php:143
+#: includes/submissions-page.php:433
+msgid "Delete"
+msgstr ""
+
+#: includes/submissions-list-table.php:107
+msgid "All forms"
+msgstr ""
+
+#: includes/submissions-list-table.php:113
+msgid "All sources"
+msgstr ""
+
+#: includes/submissions-list-table.php:119
+msgid "Filter"
+msgstr ""
+
+#: includes/submissions-list-table.php:132
+msgid "Anonymized"
+msgstr ""
+
+#: includes/submissions-list-table.php:133
+msgid "(no text)"
+msgstr ""
+
+#: includes/submissions-list-table.php:142
+msgid "View"
+msgstr ""
+
+#: includes/submissions-list-table.php:143
+#: includes/submissions-page.php:433
+msgid "Delete this message for good?"
+msgstr ""
+
+#: includes/submissions-list-table.php:163
+#: includes/submissions-page.php:372
+msgid "Sent"
+msgstr ""
+
+#: includes/submissions-list-table.php:164
+#: includes/submissions-page.php:374
+msgid "Not sent"
+msgstr ""
+
+#: includes/submissions-page.php:284
+msgid "Messages updated."
+msgstr ""
+
+#: includes/submissions-page.php:285
+msgid "Messages deleted."
+msgstr ""
+
+#: includes/submissions-page.php:286
+msgid "Email sent."
+msgstr ""
+
+#: includes/submissions-page.php:287
+msgid "The email could not be sent again. The reason is shown below."
+msgstr ""
+
+#: includes/submissions-page.php:309
+msgid "Export CSV"
+msgstr ""
+
+#: includes/submissions-page.php:324
+msgid "Search messages"
+msgstr ""
+
+#: includes/submissions-page.php:333
+msgid "Received message"
+msgstr ""
+
+#: includes/submissions-page.php:334
+msgid "Back to the messages"
+msgstr ""
+
+#: includes/submissions-page.php:337
+msgid "This message no longer exists."
+msgstr ""
+
+#: includes/submissions-page.php:344
+msgid "Message"
+msgstr ""
+
+#. translators: %s: date of the anonymization
+#: includes/submissions-page.php:351
+#, php-format
+msgid "Personal data anonymized on %s."
+msgstr ""
+
+#: includes/submissions-page.php:386
+msgid "Campaign"
+msgstr ""
+
+#: includes/submissions-page.php:387
+msgid "Ad click"
+msgstr ""
+
+#: includes/submissions-page.php:389
+msgid "Browser language"
+msgstr ""
+
+#: includes/submissions-page.php:390
+msgid "Time on the form"
+msgstr ""
+
+#: includes/submissions-page.php:393
+msgid "Context"
+msgstr ""
+
+#: includes/submissions-page.php:410
+msgid "Send the email again"
+msgstr ""
+
+#: includes/submissions-page.php:415
+msgid "Mark as unread"
 msgstr ""

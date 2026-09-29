@@ -20,8 +20,24 @@ lcmt-dev-mailer/
 │   ├── captcha-provider.php     # CaptchaProvider — interface every spam protection implements
 │   ├── captcha.php              # Captcha — resolves the selected provider and routes verify/widget/routes to it
 │   ├── altcha.php               # Altcha — ALTCHA provider (challenge route, one-time proofs, auto-generated key)
+│   ├── submission-data.php      # SubmissionData — shapes typed values for storage (snapshot) and back
+│   ├── submission-context.php   # SubmissionContext — cleans the `_context` object sent by the browser
+│   ├── channel-classifier.php   # ChannelClassifier — sorts a visit into a channel (Google Ads, organic search…)
+│   ├── submission-schema.php    # SubmissionSchema — creates/upgrades the submissions table
+│   ├── submission-repository.php# SubmissionRepository — every query on the submissions table
+│   ├── submission-recorder.php  # SubmissionRecorder — saves a submission, then records the send result
+│   ├── attribution.php          # Attribution — enqueues attribution.js on public pages
+│   ├── submissions-page.php     # SubmissionsPage — Received messages screen (list, detail, actions, CSV)
+│   ├── submissions-list-table.php # SubmissionsListTable — WP_List_Table of the messages
+│   ├── submission-csv.php       # SubmissionCsv — turns submissions into spreadsheet rows
+│   ├── submission-settings.php  # SubmissionSettings — Data retention settings page and "Purge now"
+│   ├── retention.php            # Retention — daily purge (anonymize or delete)
+│   ├── privacy.php              # Privacy — WordPress export/erase tools, policy text, [lcmt-retention-days]
+│   ├── failure-notice.php       # FailureNotice — admin banner and dashboard widget for unsent emails
+│   ├── stats-page.php           # StatsPage — Statistics screen
 │   └── updater.php              # Updater — Plugin Update Checker wired to the GitHub releases
-├── tests/                       # PHPUnit tests, run without WordPress (see Build)
+├── uninstall.php                # Drops the table and options when the plugin is deleted
+├── tests/                       # unit/ JS / integration tests (see Build)
 ├── lib/
 │   └── plugin-update-checker/   # Vendored YahnisElsts/plugin-update-checker v5.7 (do not edit)
 ├── templates/
@@ -30,7 +46,9 @@ lcmt-dev-mailer/
 │   ├── src/                     # JS source files (vanilla, no jQuery)
 │   │   ├── admin-test-mail.js
 │   │   ├── admin-generate-template.js
-│   │   └── form-handler.js
+│   │   ├── attribution.js       # Remembers the landing page of the visit
+│   │   ├── form-handler.js
+│   │   └── lib/attribution.js   # Shared module (not built on its own)
 │   └── dist/                    # Minified output (esbuild)
 └── package.json                 # Build config (esbuild)
 ```
@@ -110,6 +128,58 @@ Admin sidebar metabox with:
 - "Generate a new key" posts to `admin-post.php?action=lcmt_mailer_regenerate_altcha_key` (nonce + `manage_options`).
 - A valid proof is spent: its challenge is stored in a `lcmt_altcha_used_{challenge}` transient until it expires, so it cannot be replayed.
 
+### SubmissionData
+Pure helpers around the stored `fields` JSON: `snapshot()` freezes each submitted value with its field name and type (password fields are never stored), `toPlaceholders()` rebuilds the placeholders for a resend, `containsEmail()` matches an exact value, `summary()` builds the line shown in lists. `PERSONAL_COLUMNS` (`fields`, `mail_error`) lists what anonymization clears.
+
+### SubmissionContext
+`fromRequest($raw, $siteHost)` turns the untrusted `_context` object into column values. Every value is checked against its expected shape and cut to its column size, anything else becomes empty. Only paths and hosts are kept, never query strings; the referrer is reduced to its host (without `www.`), and empty when it is the site itself. Click ids are kept by name (`gclid`, `fbclid`…), never their value.
+
+### ChannelClassifier
+`classify($context)` returns one of `CHANNELS`: `google_ads`, `paid_social`, `paid_other`, `email`, `social`, `organic_search`, `campaign`, `referral`, `direct`. Paid signals (click id, paid medium) win, then explicit mediums, then the referrer host. `label()` gives the translated name. The result goes through the `lcmt_mailer_submission_channel` filter.
+
+### SubmissionSchema
+Table `{prefix}lcmt_mailer_submissions`, created with `dbDelta`. `maybeUpgrade()` runs on `plugins_loaded` and compares the `lcmt_mailer_db_version` option with `VERSION`, because updates from GitHub never run the activation hook. Bump `VERSION` and edit the `CREATE TABLE` to change the schema.
+
+| Column | Content | Cleared by anonymization |
+|--------|---------|--------------------------|
+| `id`, `form_key`, `mail_post_id`, `created_at` (UTC), `status` (`new`, `read`, `processed`, `spam`), `mail_sent` | Identity and state | no |
+| `fields` | JSON snapshot of `{name, type, value}` | yes |
+| `mail_error` | wp_mail error text (may quote an address) | yes |
+| `page_path`, `page_id`, `landing_path`, `referrer_host`, `channel`, `utm_source`, `utm_medium`, `utm_campaign`, `click_id_type`, `device`, `locale`, `form_seconds` | Context, for statistics | no |
+| `anonymized_at` | Set when anonymized | (set) |
+
+### SubmissionRepository
+All SQL on the table: `insert`, `update`, `find`, `search`/`count` (filters: form, status, failed, channel, search), `setStatus`, `delete`, `anonymize`, `anonymizeBefore`, `deleteBefore`, `deleteAnonymizedBefore`, `findContaining` (privacy tools), `countUnread`, `unresolvedFailures`/`countUnresolvedFailures`, and the stats queries `countBy`, `countByMonth`, `totals`. Use it instead of touching `$wpdb` elsewhere.
+
+### SubmissionRecorder
+- `record()` saves a submission when the mail template stores submissions (`MetaFields::storesSubmissions()`, on by default) and returns its id, or 0.
+- `send($id, $key, $placeholders)` calls `Mailer::sendByKey()` and stores `mail_sent` / `mail_error`.
+- `captureMailError()` listens to `wp_mail_failed` to keep the reason of a failure.
+
+### Attribution
+Enqueues `assets/dist/attribution.js` on public pages (after `wp-consent-api` when installed) and passes `lcmtMailerAttribution.storeWithoutConsent` from the `lcmt_mailer_attribution_without_consent` option (default on). See Frontend → Attribution.
+
+### SubmissionsPage / SubmissionsListTable
+Email templates → Received messages, capability from `SubmissionsPage::capability()` (`manage_options`, filter `lcmt_mailer_submissions_capability`). List with filters, unread bubble in the menu, detail view (opening a message marks it read via `markOpenedAsRead()`), single and bulk actions (resend, processed, unread, spam, delete), CSV export (`handleExport()` streams through `writeCsv()`). `listQueryArgs()` keeps the current filters after an action.
+
+### SubmissionCsv
+`table($rows)` builds the header and rows: context columns then one column per field name found. `cell()` prefixes values a spreadsheet would run as formulas (`= + - @`, tab, CR) with a quote (CSV injection).
+
+### SubmissionSettings / Retention
+`SubmissionSettings` renders Email templates → Data retention (days before anonymization, `anonymize` or `delete`, days to keep anonymized statistics, attribution without consent, "Purge now"). `Retention::run()` is the daily cron `lcmt_mailer_purge_submissions` (scheduled on `init` since activation hooks do not run on updates, cleared on deactivation), works in batches of 500 and never purges with a period below 1 day (invalid values fall back to the default). Defaults: 1095 days, then anonymize; anonymized statistics kept forever (0).
+
+### Privacy
+Registers an exporter and an eraser in Tools → Export/Erase Personal Data, adds text to the privacy policy guide, and the `[lcmt-retention-days]` shortcode. Matching is on an **exact** field value equal to the email; an address only written inside a free-text message is not found. Erasing anonymizes (statistics are kept).
+
+### FailureNotice
+Admin banner and dashboard widget listing unsent emails (`mail_sent = 0`, not anonymized, not processed/spam) with the last error. `dismiss()` stores the current time in `lcmt_mailer_failures_dismissed_at`; only newer failures bring the banner back.
+
+### StatsPage
+Email templates → Statistics: totals, failures, average time on the form, and counts by month, channel, campaign, form, page, landing page, referrer and device for 30 days, 90 days, 12 months or everything. Anonymized messages count, spam does not.
+
+### Uninstall
+`uninstall.php` (run only by "Delete") drops the table and removes the options and cron hook. Deactivating or updating keeps the data.
+
 ### Permissions
 Every capability of the `mail` post type maps to `manage_options`, and the admin AJAX actions check it: only administrators can see, edit or test mails.
 
@@ -132,6 +202,14 @@ Every capability of the `mail` post type maps to `manage_options`, and the admin
     → Mailer::buildForm() → replaces placeholders
     → TemplateLoader::render() → wraps in HTML email
     → wp_mail()
+
+2b'. Received messages, inside FormEndpoint::handle():
+    validates fields
+    → SubmissionRecorder::record()      inserts the row (mail_sent = 0) from the `_context` object
+    → do_action('lcmt_mailer_before_send')
+    → SubmissionRecorder::send()        Mailer::sendByKey(), then updates mail_sent / mail_error
+    → do_action('lcmt_mailer_after_send') (only when sent)
+    A failed email leaves the message saved and shown in the failure banner.
 
 2c. Direct PHP call (no form):
     Mailer::sendByKey('contact', ['firstname' => 'John', ...])

@@ -3,10 +3,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: LCMT Mailer 2.1.0\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-05 00:00+0000\n"
-"PO-Revision-Date: 2026-04-05 00:00+0000\n"
+"Project-Id-Version: LCMT Mailer 2.2.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/lcmt-dev-mailer\n"
+"POT-Creation-Date: 2026-09-29T13:33:36+00:00\n"
+"PO-Revision-Date: 2026-09-29 00:00+0000\n"
 "Last-Translator: Amaury Lecomte\n"
 "Language-Team: French\n"
 "Language: fr_FR\n"
@@ -15,479 +15,1033 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: includes/post-type.php
-msgid "Email templates"
-msgstr "Modèles d'e-mails"
+#. Plugin Name of the plugin
+#: lcmt-dev-mailer.php
+msgid "LCMT Mailer"
+msgstr ""
 
-#: includes/post-type.php
-msgid "Email template"
-msgstr "Modèle d'e-mail"
+#. Plugin URI of the plugin
+#: lcmt-dev-mailer.php
+msgid "https://github.com/Brukols/lcmt-dev-mailer"
+msgstr ""
 
-#: includes/post-type.php
-msgid "Add New"
-msgstr "Ajouter"
+#. Description of the plugin
+#: lcmt-dev-mailer.php
+msgid ""
+"Developer-oriented mail engine. Create mail templates in WP admin, auto-"
+"generates REST endpoints, form rendering, validation and TypeScript types."
+msgstr ""
+"Moteur d'emails pour développeurs. Créez des modèles d'emails dans l'admin "
+"WordPress ; le plugin génère les endpoints REST, le rendu des formulaires, "
+"la validation et les types TypeScript."
 
-#: includes/post-type.php
-msgid "Add New Email Template"
-msgstr "Ajouter un modèle d'e-mail"
+#. Author of the plugin
+#: lcmt-dev-mailer.php
+msgid "Amaury Lecomte"
+msgstr ""
 
-#: includes/post-type.php
-msgid "Edit Email Template"
-msgstr "Modifier le modèle d'e-mail"
-
-#: includes/post-type.php
-msgid "New Email Template"
-msgstr "Nouveau modèle d'e-mail"
-
-#: includes/post-type.php
-msgid "View Email Template"
-msgstr "Voir le modèle d'e-mail"
-
-#: includes/post-type.php
-msgid "Search Email Templates"
-msgstr "Rechercher des modèles d'e-mails"
-
-#: includes/post-type.php
-msgid "No email templates found"
-msgstr "Aucun modèle d'e-mail trouvé"
-
-#: includes/post-type.php
-msgid "No email templates found in trash"
-msgstr "Aucun modèle d'e-mail dans la corbeille"
-
-#: includes/meta-fields.php
-msgid "Mail Fields"
-msgstr "Champs du mail"
-
-#: includes/meta-fields.php
-msgid "Key"
-msgstr "Clé"
-
-#: includes/meta-fields.php
-msgid "Unique identifier in kebab-case (e.g. contact, reset-password). Used for the shortcode, REST endpoint and form file."
-msgstr "Identifiant unique en kebab-case (ex. contact, reset-password). Utilisé pour le shortcode, l'endpoint REST et le fichier de formulaire."
-
-#: includes/meta-fields.php
-msgid "To"
-msgstr "Destinataire"
-
-#: includes/meta-fields.php
-msgid "Reply-To"
-msgstr "Répondre à"
-
-#: includes/meta-fields.php
-msgid "Optional. Supports placeholders (e.g. [email* email] to reply to the form sender)."
-msgstr "Optionnel. Supporte les placeholders (ex. [email* email] pour répondre à l'expéditeur du formulaire)."
-
-#: includes/meta-fields.php
-msgid "Subject"
-msgstr "Sujet"
-
-#: includes/meta-fields.php
-msgid "Content"
-msgstr "Contenu"
-
-#: includes/meta-fields.php
-msgid "Placeholder syntax reference"
-msgstr "Référence de la syntaxe des placeholders"
-
-#: includes/meta-fields.php
-msgid "Syntax"
-msgstr "Syntaxe"
-
-#: includes/meta-fields.php
-msgid "Result"
-msgstr "Résultat"
-
-#: includes/meta-fields.php
-msgid "Optional field, type text"
-msgstr "Champ optionnel, type texte"
-
-#: includes/meta-fields.php
-msgid "Required field, type text"
-msgstr "Champ obligatoire, type texte"
-
-#: includes/meta-fields.php
-msgid "Optional field with explicit type"
-msgstr "Champ optionnel avec type explicite"
-
-#: includes/meta-fields.php
-msgid "Required field with explicit type"
-msgstr "Champ obligatoire avec type explicite"
-
-#: includes/meta-fields.php
-msgid "Available types:"
-msgstr "Types disponibles :"
-
-#: includes/meta-fields.php
-msgid "Type"
-msgstr "Type"
-
-#: includes/meta-fields.php
-msgid "HTML output"
-msgstr "Rendu HTML"
-
-#: includes/meta-fields.php
-msgid "Example content:"
-msgstr "Exemple de contenu :"
-
-#: includes/meta-fields.php
-msgid "Built-in placeholders (always available): [currentUserLink], [currentUserEmail]"
-msgstr "Placeholders intégrés (toujours disponibles) : [currentUserLink], [currentUserEmail]"
-
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:15
 msgid "Actions & Usage"
 msgstr "Actions & Utilisation"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:47
 msgid "Language:"
 msgstr "Langue :"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:52
 msgid "Shortcode:"
 msgstr "Shortcode :"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:64
 msgid "Form fields:"
 msgstr "Champs du formulaire :"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:67
 msgid "name=\"\""
 msgstr "name=\"\""
 
-#: includes/admin-mail-sender.php
-msgid "Use these as name=\"\" attributes on your form inputs."
-msgstr "Utilisez ces valeurs comme attributs name=\"\" sur vos champs de formulaire."
+#: includes/admin-mail-sender.php:68 includes/meta-fields.php:176
+msgid "Type"
+msgstr "Type"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:81
+msgid "Use these as name=\"\" attributes on your form inputs."
+msgstr ""
+"Utilisez ces valeurs comme attributs name=\"\" sur vos champs de formulaire."
+
+#: includes/admin-mail-sender.php:86
 msgid "Form file:"
 msgstr "Fichier formulaire :"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:92
 msgid "missing"
 msgstr "manquant"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:97 includes/admin-mail-sender.php:171
 msgid "Generate form template"
 msgstr "Générer le template du formulaire"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:105
 msgid "Save the post with a key to see usage info."
-msgstr "Enregistrez l'article avec une clé pour voir les informations d'utilisation."
+msgstr ""
+"Enregistrez l'article avec une clé pour voir les informations d'utilisation."
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:110
 msgid "Test email:"
 msgstr "Email de test :"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:115
 msgid "Test values:"
 msgstr "Valeurs de test :"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:131 includes/admin-mail-sender.php:168
 msgid "Send Test Email"
 msgstr "Envoyer un email de test"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:165
 msgid "Please enter a recipient email."
 msgstr "Veuillez saisir un email de destinataire."
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:166
 msgid "Please enter a valid email."
 msgstr "Veuillez saisir un email valide."
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:167
 msgid "Sending..."
 msgstr "Envoi en cours..."
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:169
 msgid "Connection error"
 msgstr "Erreur de connexion"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:170
 msgid "Generating..."
 msgstr "Génération en cours..."
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:172
 msgid "This will create the form template file. Continue?"
 msgstr "Cela va créer le fichier template du formulaire. Continuer ?"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:184 includes/admin-mail-sender.php:258
 msgid "Security check failed"
 msgstr "Vérification de sécurité échouée"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:188 includes/admin-mail-sender.php:262
+#: includes/altcha.php:199
 msgid "Insufficient permissions"
 msgstr "Permissions insuffisantes"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:196
 msgid "Email recipient is required"
 msgstr "L'email du destinataire est requis"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:204
 msgid "Invalid JSON in placeholders"
 msgstr "JSON invalide dans les placeholders"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:210 includes/admin-mail-sender.php:269
 msgid "Invalid mail post"
 msgstr "Article mail invalide"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:216 includes/admin-mail-sender.php:275
 msgid "No key found for this mail post"
 msgstr "Aucune clé trouvée pour cet article mail"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:236
 msgid "Could not build email for key: "
 msgstr "Impossible de construire l'email pour la clé : "
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:244
 msgid "Email sent successfully to "
 msgstr "Email envoyé avec succès à "
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:246
 msgid "Failed to send email"
 msgstr "Échec de l'envoi de l'email"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:249
 msgid "Error: "
 msgstr "Erreur : "
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:282
 msgid "File already exists: forms/"
 msgstr "Le fichier existe déjà : forms/"
 
-#: includes/admin-mail-sender.php
-msgid "No fields found in the mail content. Add placeholders like [firstname*] first."
-msgstr "Aucun champ trouvé dans le contenu du mail. Ajoutez des placeholders comme [firstname*] d'abord."
+#: includes/admin-mail-sender.php:292
+msgid ""
+"No fields found in the mail content. Add placeholders like [firstname*] "
+"first."
+msgstr ""
+"Aucun champ trouvé dans le contenu du mail. Ajoutez des placeholders comme "
+"[firstname*] d'abord."
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:306
 msgid "Could not write file. Check directory permissions."
-msgstr "Impossible d'écrire le fichier. Vérifiez les permissions du répertoire."
+msgstr ""
+"Impossible d'écrire le fichier. Vérifiez les permissions du répertoire."
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:309
 msgid "Template created: forms/"
 msgstr "Template créé : forms/"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:355
 msgid "Submit"
 msgstr "Envoyer"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:369 includes/meta-fields.php:43
+msgid "Key"
+msgstr "Clé"
+
+#: includes/admin-mail-sender.php:370
 msgid "Form file"
 msgstr "Fichier formulaire"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:371
 msgid "Actions"
 msgstr "Actions"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:393
 msgid "Manage"
 msgstr "Gérer"
 
-#: includes/admin-mail-sender.php
+#: includes/admin-mail-sender.php:407
 msgid "Tip:"
 msgstr "Astuce :"
 
-#: includes/admin-mail-sender.php
-msgid "You can send test emails directly from the edit page using the \"Actions & Usage\" panel on the right."
-msgstr "Vous pouvez envoyer des emails de test directement depuis la page d'édition en utilisant le panneau \"Actions & Utilisation\" sur la droite."
+#: includes/admin-mail-sender.php:407
+msgid ""
+"You can send test emails directly from the edit page using the \"Actions & "
+"Usage\" panel on the right."
+msgstr ""
+"Vous pouvez envoyer des emails de test directement depuis la page d'édition "
+"en utilisant le panneau \"Actions & Utilisation\" sur la droite."
 
-#: includes/form-endpoint.php
-msgid "Unknown form."
-msgstr "Formulaire inconnu."
-
-#: includes/form-endpoint.php
-#, php-format
-msgid "The field \"%s\" is required."
-msgstr "Le champ \"%s\" est obligatoire."
-
-#: includes/form-endpoint.php
-#. translators: %s: the field name
-#, php-format
-msgid "The field \"%s\" must be a valid email address."
-msgstr "Le champ \"%s\" doit contenir une adresse email valide."
-
-#: includes/form-endpoint.php
-#. translators: %s: the field name
-#, php-format
-msgid "The field \"%s\" must be a number."
-msgstr "Le champ \"%s\" doit contenir un nombre."
-
-#: includes/form-endpoint.php
-#. translators: %s: the field name
-#, php-format
-msgid "The field \"%s\" must be a valid URL."
-msgstr "Le champ \"%s\" doit contenir une URL valide."
-
-#: includes/form-endpoint.php
-#. translators: %s: the field name
-#, php-format
-msgid "The field \"%s\" must be a valid phone number."
-msgstr "Le champ \"%s\" doit contenir un numéro de téléphone valide."
-
-#: includes/form-endpoint.php
-msgid "Some fields are invalid or missing. Please check and try again."
-msgstr "Certains champs sont invalides ou manquants. Veuillez vérifier et réessayer."
-
-#: includes/form-endpoint.php
-msgid "Failed to send email."
-msgstr "Échec de l'envoi de l'email."
-
-#: includes/form-endpoint.php
-msgid "Email sent successfully."
-msgstr "Email envoyé avec succès."
-
-#: includes/form-renderer.php
-msgid "Please fill in all required fields."
-msgstr "Veuillez remplir tous les champs obligatoires."
-
-#: includes/form-renderer.php
-msgid "An error occurred."
-msgstr "Une erreur est survenue."
-
-#: includes/settings.php
-msgid "Mailer Settings"
-msgstr "Paramètres du mailer"
-
-#: includes/settings.php
-msgid "Sender address"
-msgstr "Adresse d'expédition"
-
-#: includes/settings.php
-#. translators: %s: the default sender address, e.g. no-reply@example.com
-#, php-format
-msgid "The From address of every email the plugin sends. Leave empty to use %s, which follows the site host across environments."
-msgstr "L'adresse d'expédition (From) de tous les emails envoyés par le plugin. Laissez vide pour utiliser %s, qui suit le domaine du site selon l'environnement."
-
-#: includes/settings.php
-msgid "Use an address on a domain this site is allowed to send for. An address on a domain you do not control (a Gmail or Outlook mailbox, for instance) fails SPF and DKIM checks, and the messages are dropped as spoofing."
-msgstr "Utilisez une adresse sur un domaine depuis lequel ce site a le droit d'envoyer. Une adresse sur un domaine que vous ne contrôlez pas (une boîte Gmail ou Outlook, par exemple) échoue aux contrôles SPF et DKIM, et les messages sont rejetés comme usurpation."
-
-#: includes/settings.php
-msgid "Success message"
-msgstr "Message de confirmation"
-
-#: includes/settings.php
-msgid "Shown to the visitor after a successful submission. Leave empty to use the default."
-msgstr "Affiché au visiteur après un envoi réussi. Laissez vide pour utiliser le message par défaut."
-
-#: includes/settings.php
-msgid "Success color"
-msgstr "Couleur de confirmation"
-
-#: includes/settings.php
-msgid "Background of the confirmation alert."
-msgstr "Fond de l'alerte de confirmation."
-
-#: includes/settings.php
-msgid "Success text color"
-msgstr "Couleur du texte de confirmation"
-
-#: includes/settings.php
-msgid "Leave empty to pick automatically whichever of black or white reads best on the background."
-msgstr "Laissez vide pour choisir automatiquement le noir ou le blanc, selon ce qui se lit le mieux sur le fond."
-
-#: includes/settings.php
-msgid "Error color"
-msgstr "Couleur d'erreur"
-
-#: includes/settings.php
-msgid "Error text color"
-msgstr "Couleur du texte d'erreur"
-
-#: includes/settings.php
-msgid "Leave empty to pick automatically."
-msgstr "Laissez vide pour un choix automatique."
-
-#: includes/settings.php
-msgid "Preview"
-msgstr "Aperçu"
-
-#: includes/settings.php
-msgid "WCAG 1.4.3 asks for at least 4.5:1 between the text and its background."
-msgstr "Le critère WCAG 1.4.3 demande un contraste d'au moins 4,5:1 entre le texte et son fond."
-
-#: lcmt-dev-mailer.php
-#. Description of the plugin
-msgid "Developer-oriented mail engine. Create mail templates in WP admin, auto-generates REST endpoints, form rendering, validation and TypeScript types."
-msgstr "Moteur d'emails pour développeurs. Créez des modèles d'emails dans l'admin WordPress ; le plugin génère les endpoints REST, le rendu des formulaires, la validation et les types TypeScript."
-
-#: includes/settings.php
-msgid "Settings"
-msgstr "Paramètres"
-
-#: includes/settings.php
-msgid "Email logo"
-msgstr "Logo de l'email"
-
-#: includes/settings.php
-msgid "Select image"
-msgstr "Sélectionner une image"
-
-#: includes/settings.php
-msgid "Remove"
-msgstr "Supprimer"
-
-#: includes/settings.php
-msgid "This logo appears at the top of all emails sent by the plugin."
-msgstr "Ce logo apparaît en haut de tous les emails envoyés par le plugin."
-
-#: includes/settings.php
-msgid "Select email logo"
-msgstr "Sélectionner le logo de l'email"
-
-#: includes/settings.php
-msgid "Use this image"
-msgstr "Utiliser cette image"
-
-#: includes/form-renderer.php
-msgid "Security verification in progress. Please try again."
-msgstr "Vérification de sécurité en cours. Veuillez réessayer."
-
-#: includes/form-endpoint.php
-msgid "Security verification failed. Please try again."
-msgstr "La vérification de sécurité a échoué. Veuillez réessayer."
-
-#: includes/captcha-settings.php
-msgid "Spam protection"
-msgstr "Protection anti-spam"
-
-#: includes/captcha-settings.php
-msgid "None"
-msgstr "Aucune"
-
-#: includes/captcha-settings.php
-msgid "Forms accept any submission, including from bots."
-msgstr "Les formulaires acceptent tous les envois, y compris ceux des robots."
-
-#: includes/altcha.php
+#: includes/altcha.php:159
 msgid "ALTCHA key"
 msgstr "Clé ALTCHA"
 
-#: includes/altcha.php
+#. translators: %1$s: constant name, %2$s: file name
+#: includes/altcha.php:166
 #, php-format
 msgid "Set by the %1$s constant in %2$s."
 msgstr "Définie par la constante %1$s dans %2$s."
 
-#: includes/altcha.php
-msgid "Generated automatically and stored in the database. Nothing to configure."
-msgstr "Générée automatiquement et enregistrée en base de données. Rien à configurer."
+#: includes/altcha.php:173
+msgid ""
+"Generated automatically and stored in the database. Nothing to configure."
+msgstr ""
+"Générée automatiquement et enregistrée en base de données. Rien à configurer."
 
-#: includes/altcha.php
-msgid "Generate a new key? A visitor who opened a form in the last five minutes will have to submit it again."
-msgstr "Générer une nouvelle clé ? Un visiteur qui a ouvert un formulaire dans les cinq dernières minutes devra le renvoyer."
+#: includes/altcha.php:177
+msgid ""
+"Generate a new key? A visitor who opened a form in the last five minutes "
+"will have to submit it again."
+msgstr ""
+"Générer une nouvelle clé ? Un visiteur qui a ouvert un formulaire dans les "
+"cinq dernières minutes devra le renvoyer."
 
-#: includes/altcha.php
+#: includes/altcha.php:178
 msgid "Generate a new key"
 msgstr "Générer une nouvelle clé"
 
-#: includes/altcha.php
+#: includes/altcha.php:181
 msgid "New key generated."
 msgstr "Nouvelle clé générée."
 
-#: includes/altcha.php
-msgid "Only needed if the key may have leaked, from a copied database for instance."
-msgstr "Utile uniquement si la clé a pu fuiter, par exemple depuis une copie de la base de données."
+#: includes/altcha.php:185
+msgid ""
+"Only needed if the key may have leaked, from a copied database for instance."
+msgstr ""
+"Utile uniquement si la clé a pu fuiter, par exemple depuis une copie de la "
+"base de données."
 
-#: includes/captcha-settings.php
+#: includes/captcha-settings.php:21 includes/captcha-settings.php:22
+#: includes/captcha-settings.php:51
+msgid "Spam protection"
+msgstr "Protection anti-spam"
+
+#: includes/captcha-settings.php:61
 msgid "Protection"
 msgstr "Protection"
+
+#: includes/captcha-settings.php:66
+msgid "None"
+msgstr "Aucune"
+
+#: includes/captcha-settings.php:75
+msgid "Forms accept any submission, including from bots."
+msgstr "Les formulaires acceptent tous les envois, y compris ceux des robots."
+
+#: includes/channel-classifier.php:81
+msgid "Google Ads"
+msgstr "Google Ads"
+
+#: includes/channel-classifier.php:82
+msgid "Paid social"
+msgstr "Réseaux sociaux (payant)"
+
+#: includes/channel-classifier.php:83
+msgid "Other ads"
+msgstr "Autres publicités"
+
+#: includes/channel-classifier.php:84 includes/submissions-list-table.php:37
+#: includes/submissions-page.php:369
+msgid "Email"
+msgstr "E-mail"
+
+#: includes/channel-classifier.php:85
+msgid "Social networks"
+msgstr "Réseaux sociaux"
+
+#: includes/channel-classifier.php:86
+msgid "Organic search"
+msgstr "Recherche naturelle"
+
+#: includes/channel-classifier.php:87
+msgid "Other campaign"
+msgstr "Autre campagne"
+
+#: includes/channel-classifier.php:88
+msgid "Other website"
+msgstr "Autre site web"
+
+#: includes/channel-classifier.php:89
+msgid "Direct"
+msgstr "Accès direct"
+
+#. translators: %d: number of messages
+#: includes/failure-notice.php:36
+#, php-format
+msgid "%d form message could not be emailed."
+msgid_plural "%d form messages could not be emailed."
+msgstr[0] "%d message de formulaire n'a pas pu être envoyé par e-mail."
+msgstr[1] "%d messages de formulaire n'ont pas pu être envoyés par e-mail."
+
+#: includes/failure-notice.php:39
+msgid "They are saved: you can read them and send them again."
+msgstr "Ils sont enregistrés : vous pouvez les lire et les renvoyer."
+
+#: includes/failure-notice.php:43
+msgid "Last error:"
+msgstr "Dernière erreur :"
+
+#: includes/failure-notice.php:47
+msgid "See the messages"
+msgstr "Voir les messages"
+
+#: includes/failure-notice.php:48
+msgid "Dismiss"
+msgstr "Ignorer"
+
+#: includes/failure-notice.php:58
+msgid "Form emails that failed"
+msgstr "E-mails de formulaire en échec"
+
+#: includes/failure-notice.php:73 includes/submissions-page.php:375
+msgid "The request stopped before the email was sent."
+msgstr "La requête s'est arrêtée avant l'envoi de l'e-mail."
+
+#: includes/failure-notice.php:78
+msgid "All failed emails"
+msgstr "Tous les e-mails en échec"
+
+#: includes/failure-notice.php:87 includes/submission-settings.php:79
+#: includes/submissions-page.php:152 includes/submissions-page.php:173
+msgid "You are not allowed to do this."
+msgstr "Vous n'êtes pas autorisé à effectuer cette action."
+
+#. translators: %s: the field name
+#: includes/field-validator.php:67
+#, php-format
+msgid "The field \"%s\" must be a valid email address."
+msgstr "Le champ \"%s\" doit contenir une adresse email valide."
+
+#. translators: %s: the field name
+#: includes/field-validator.php:69
+#, php-format
+msgid "The field \"%s\" must be a number."
+msgstr "Le champ \"%s\" doit contenir un nombre."
+
+#. translators: %s: the field name
+#: includes/field-validator.php:71
+#, php-format
+msgid "The field \"%s\" must be a valid URL."
+msgstr "Le champ \"%s\" doit contenir une URL valide."
+
+#. translators: %s: the field name
+#: includes/field-validator.php:73
+#, php-format
+msgid "The field \"%s\" must be a valid phone number."
+msgstr "Le champ \"%s\" doit contenir un numéro de téléphone valide."
+
+#: includes/form-endpoint.php:28
+msgid "Unknown form."
+msgstr "Formulaire inconnu."
+
+#: includes/form-endpoint.php:50 includes/form-renderer.php:113
+msgid "Security verification failed. Please try again."
+msgstr "La vérification de sécurité a échoué. Veuillez réessayer."
+
+#: includes/form-endpoint.php:65
+#, php-format
+msgid "The field \"%s\" is required."
+msgstr "Le champ \"%s\" est obligatoire."
+
+#: includes/form-endpoint.php:87
+msgid "Some fields are invalid or missing. Please check and try again."
+msgstr ""
+"Certains champs sont invalides ou manquants. Veuillez vérifier et réessayer."
+
+#: includes/form-endpoint.php:108
+msgid "Failed to send email."
+msgstr "Échec de l'envoi de l'email."
+
+#: includes/form-renderer.php:111
+msgid "Please fill in all required fields."
+msgstr "Veuillez remplir tous les champs obligatoires."
+
+#: includes/form-renderer.php:112 includes/settings.php:384
+msgid "An error occurred."
+msgstr "Une erreur est survenue."
+
+#: includes/meta-fields.php:22
+msgid "Mail Fields"
+msgstr "Champs du mail"
+
+#: includes/meta-fields.php:46
+msgid ""
+"Unique identifier in kebab-case (e.g. contact, reset-password). Used for the "
+"shortcode, REST endpoint and form file."
+msgstr ""
+"Identifiant unique en kebab-case (ex. contact, reset-password). Utilisé pour "
+"le shortcode, l'endpoint REST et le fichier de formulaire."
+
+#: includes/meta-fields.php:51
+msgid "To"
+msgstr "Destinataire"
+
+#: includes/meta-fields.php:56
+msgid "Reply-To"
+msgstr "Répondre à"
+
+#: includes/meta-fields.php:59
+msgid ""
+"Optional. Supports placeholders (e.g. [email* email] to reply to the form "
+"sender)."
+msgstr ""
+"Optionnel. Supporte les placeholders (ex. [email* email] pour répondre à "
+"l'expéditeur du formulaire)."
+
+#: includes/meta-fields.php:64
+msgid "Subject"
+msgstr "Sujet"
+
+#: includes/meta-fields.php:69
+msgid "Content"
+msgstr "Contenu"
+
+#: includes/meta-fields.php:81 includes/privacy.php:20 includes/privacy.php:30
+#: includes/privacy.php:57 includes/submissions-page.php:37
+#: includes/submissions-page.php:308
+msgid "Received messages"
+msgstr "Messages reçus"
+
+#: includes/meta-fields.php:84
+msgid "Save the messages sent through this form"
+msgstr "Enregistrer les messages envoyés via ce formulaire"
+
+#: includes/meta-fields.php:85
+msgid ""
+"They appear under Email templates → Received messages, and are anonymized or "
+"deleted after the retention period set there."
+msgstr ""
+"Ils apparaissent sous Modèles d'e-mails → Messages reçus, et sont "
+"anonymisés ou supprimés à l'issue de la durée de conservation définie à "
+"cet endroit."
+
+#: includes/meta-fields.php:153
+msgid "Placeholder syntax reference"
+msgstr "Référence de la syntaxe des placeholders"
+
+#: includes/meta-fields.php:160
+msgid "Syntax"
+msgstr "Syntaxe"
+
+#: includes/meta-fields.php:161
+msgid "Result"
+msgstr "Résultat"
+
+#: includes/meta-fields.php:165
+msgid "Optional field, type text"
+msgstr "Champ optionnel, type texte"
+
+#: includes/meta-fields.php:166
+msgid "Required field, type text"
+msgstr "Champ obligatoire, type texte"
+
+#: includes/meta-fields.php:167
+msgid "Optional field with explicit type"
+msgstr "Champ optionnel avec type explicite"
+
+#: includes/meta-fields.php:168
+msgid "Required field with explicit type"
+msgstr "Champ obligatoire avec type explicite"
+
+#: includes/meta-fields.php:172
+msgid "Available types:"
+msgstr "Types disponibles :"
+
+#: includes/meta-fields.php:177
+msgid "HTML output"
+msgstr "Rendu HTML"
+
+#: includes/meta-fields.php:193
+msgid "Example content:"
+msgstr "Exemple de contenu :"
+
+#: includes/meta-fields.php:206
+msgid ""
+"Built-in placeholders (always available): [currentUserLink], "
+"[currentUserEmail]"
+msgstr ""
+"Placeholders intégrés (toujours disponibles) : [currentUserLink], "
+"[currentUserEmail]"
+
+#: includes/post-type.php:21
+msgid "Email templates"
+msgstr "Modèles d'e-mails"
+
+#: includes/post-type.php:22
+msgid "Email template"
+msgstr "Modèle d'e-mail"
+
+#: includes/post-type.php:23
+msgid "Add New"
+msgstr "Ajouter"
+
+#: includes/post-type.php:24
+msgid "Add New Email Template"
+msgstr "Ajouter un modèle d'e-mail"
+
+#: includes/post-type.php:25
+msgid "Edit Email Template"
+msgstr "Modifier le modèle d'e-mail"
+
+#: includes/post-type.php:26
+msgid "New Email Template"
+msgstr "Nouveau modèle d'e-mail"
+
+#: includes/post-type.php:27
+msgid "View Email Template"
+msgstr "Voir le modèle d'e-mail"
+
+#: includes/post-type.php:28
+msgid "Search Email Templates"
+msgstr "Rechercher des modèles d'e-mails"
+
+#: includes/post-type.php:29
+msgid "No email templates found"
+msgstr "Aucun modèle d'e-mail trouvé"
+
+#: includes/post-type.php:30
+msgid "No email templates found in trash"
+msgstr "Aucun modèle d'e-mail dans la corbeille"
+
+#: includes/privacy.php:46 includes/submissions-list-table.php:38
+#: includes/submissions-page.php:380
+msgid "Date"
+msgstr "Date"
+
+#: includes/privacy.php:47 includes/submissions-list-table.php:34
+#: includes/submissions-page.php:381
+msgid "Form"
+msgstr "Formulaire"
+
+#: includes/privacy.php:48 includes/stats-page.php:73
+#: includes/submissions-list-table.php:35 includes/submissions-page.php:382
+msgid "Sent from"
+msgstr "Envoyé depuis"
+
+#: includes/privacy.php:90
+msgid "they are then deleted"
+msgstr "ils sont ensuite supprimés"
+
+#: includes/privacy.php:91
+msgid ""
+"they are then anonymized: only the date, the form, the page and the origin "
+"of the visit are kept, for statistics"
+msgstr ""
+"ils sont ensuite anonymisés : seuls la date, le formulaire, la page et "
+"l'origine de la visite sont conservés, à des fins statistiques"
+
+#. translators: 1: number of days, 2: what happens after
+#: includes/privacy.php:95
+#, php-format
+msgid ""
+"The messages you send through our forms are saved on this site for %1$d days "
+"so we can answer and follow up on your request; %2$s. We record the page you "
+"sent it from and how you reached the site (search engine, ad, other site, "
+"campaign), never your IP address."
+msgstr ""
+"Les messages que vous envoyez via nos formulaires sont enregistrés sur "
+"ce site pendant %1$d jours afin que nous puissions répondre à votre "
+"demande et en assurer le suivi ; %2$s. Nous enregistrons la page depuis "
+"laquelle vous l'avez envoyé et la manière dont vous êtes arrivé sur le "
+"site (moteur de recherche, publicité, autre site, campagne), jamais "
+"votre adresse IP."
+
+#: includes/settings.php:38 includes/settings.php:201
+msgid "Mailer Settings"
+msgstr "Paramètres du mailer"
+
+#: includes/settings.php:39
+msgid "Settings"
+msgstr "Paramètres"
+
+#: includes/settings.php:149 includes/settings.php:268
+#: includes/settings.php:383
+msgid "Email sent successfully."
+msgstr "Email envoyé avec succès."
+
+#: includes/settings.php:209
+msgid "Sender address"
+msgstr "Adresse d'expédition"
+
+#. translators: %s: the default sender address, e.g. no-reply@example.com
+#: includes/settings.php:222
+#, php-format
+msgid ""
+"The From address of every email the plugin sends. Leave empty to use %s, "
+"which follows the site host across environments."
+msgstr ""
+"L'adresse d'expédition (From) de tous les emails envoyés par le plugin. "
+"Laissez vide pour utiliser %s, qui suit le domaine du site selon "
+"l'environnement."
+
+#: includes/settings.php:228
+msgid ""
+"Use an address on a domain this site is allowed to send for. An address on a "
+"domain you do not control (a Gmail or Outlook mailbox, for instance) fails "
+"SPF and DKIM checks, and the messages are dropped as spoofing."
+msgstr ""
+"Utilisez une adresse sur un domaine depuis lequel ce site a le droit "
+"d'envoyer. Une adresse sur un domaine que vous ne contrôlez pas (une boîte "
+"Gmail ou Outlook, par exemple) échoue aux contrôles SPF et DKIM, et les "
+"messages sont rejetés comme usurpation."
+
+#: includes/settings.php:235
+msgid "Email logo"
+msgstr "Logo de l'email"
+
+#: includes/settings.php:247
+msgid "Select image"
+msgstr "Sélectionner une image"
+
+#: includes/settings.php:250
+msgid "Remove"
+msgstr "Supprimer"
+
+#: includes/settings.php:254
+msgid "This logo appears at the top of all emails sent by the plugin."
+msgstr "Ce logo apparaît en haut de tous les emails envoyés par le plugin."
+
+#: includes/settings.php:260
+msgid "Success message"
+msgstr "Message de confirmation"
+
+#: includes/settings.php:270
+msgid ""
+"Shown to the visitor after a successful submission. Leave empty to use the "
+"default."
+msgstr ""
+"Affiché au visiteur après un envoi réussi. Laissez vide pour utiliser le "
+"message par défaut."
+
+#: includes/settings.php:277
+msgid "Success color"
+msgstr "Couleur de confirmation"
+
+#: includes/settings.php:287
+msgid "Background of the confirmation alert."
+msgstr "Fond de l'alerte de confirmation."
+
+#: includes/settings.php:294
+msgid "Success text color"
+msgstr "Couleur du texte de confirmation"
+
+#: includes/settings.php:304
+msgid ""
+"Leave empty to pick automatically whichever of black or white reads best on "
+"the background."
+msgstr ""
+"Laissez vide pour choisir automatiquement le noir ou le blanc, selon ce qui "
+"se lit le mieux sur le fond."
+
+#: includes/settings.php:311
+msgid "Error color"
+msgstr "Couleur d'erreur"
+
+#: includes/settings.php:325
+msgid "Error text color"
+msgstr "Couleur du texte d'erreur"
+
+#: includes/settings.php:335
+msgid "Leave empty to pick automatically."
+msgstr "Laissez vide pour un choix automatique."
+
+#: includes/settings.php:341
+msgid "Preview"
+msgstr "Aperçu"
+
+#: includes/settings.php:357
+msgid "WCAG 1.4.3 asks for at least 4.5:1 between the text and its background."
+msgstr ""
+"Le critère WCAG 1.4.3 demande un contraste d'au moins 4,5:1 entre le texte "
+"et son fond."
+
+#: includes/settings.php:481
+msgid "Select email logo"
+msgstr "Sélectionner le logo de l'email"
+
+#: includes/settings.php:482
+msgid "Use this image"
+msgstr "Utiliser cette image"
+
+#: includes/stats-page.php:26 includes/stats-page.php:27
+#: includes/stats-page.php:49
+msgid "Statistics"
+msgstr "Statistiques"
+
+#: includes/stats-page.php:42
+msgid "Last 30 days"
+msgstr "30 derniers jours"
+
+#: includes/stats-page.php:43
+msgid "Last 90 days"
+msgstr "90 derniers jours"
+
+#: includes/stats-page.php:44
+msgid "Last 12 months"
+msgstr "12 derniers mois"
+
+#: includes/stats-page.php:45
+msgid "Everything"
+msgstr "Tout"
+
+#: includes/stats-page.php:60
+msgid "Messages"
+msgstr "Messages"
+
+#: includes/stats-page.php:61
+msgid "Emails not sent"
+msgstr "E-mails non envoyés"
+
+#: includes/stats-page.php:63
+msgid "Average time on the form"
+msgstr "Temps moyen sur le formulaire"
+
+#: includes/stats-page.php:69
+msgid "By month"
+msgstr "Par mois"
+
+#: includes/stats-page.php:70
+msgid "By source"
+msgstr "Par source"
+
+#: includes/stats-page.php:71
+msgid "By campaign"
+msgstr "Par campagne"
+
+#: includes/stats-page.php:72
+msgid "By form"
+msgstr "Par formulaire"
+
+#: includes/stats-page.php:74 includes/submissions-page.php:383
+msgid "Landing page"
+msgstr "Page d'arrivée"
+
+#: includes/stats-page.php:75 includes/submissions-page.php:385
+msgid "Referring site"
+msgstr "Site référent"
+
+#: includes/stats-page.php:76 includes/submissions-page.php:388
+msgid "Device"
+msgstr "Appareil"
+
+#: includes/stats-page.php:108
+msgid "No data for this period."
+msgstr "Aucune donnée pour cette période."
+
+#: includes/stats-page.php:117
+msgid "(not set)"
+msgstr "(non renseigné)"
+
+#: includes/submission-recorder.php:68
+msgid ""
+"The email could not be built: check that its template is published and has a "
+"recipient."
+msgstr ""
+"L'e-mail n'a pas pu être construit : vérifiez que son modèle est publié "
+"et a un destinataire."
+
+#: includes/submission-settings.php:40 includes/submission-settings.php:41
+#: includes/submission-settings.php:102
+msgid "Data retention"
+msgstr "Conservation des données"
+
+#. translators: 1: number of anonymized messages, 2: number of deleted messages
+#: includes/submission-settings.php:109
+#, php-format
+msgid "Purge done: %1$d messages anonymized, %2$d deleted."
+msgstr "Purge effectuée : %1$d messages anonymisés, %2$d supprimés."
+
+#: includes/submission-settings.php:122
+msgid "Keep personal data for"
+msgstr "Conserver les données personnelles pendant"
+
+#: includes/submission-settings.php:126
+msgid "days after the message was sent"
+msgstr "jours après l'envoi du message"
+
+#: includes/submission-settings.php:128
+msgid ""
+"The GDPR sets no fixed period: data may be kept as long as its purpose needs "
+"it. For prospects, the CNIL accepts at most 3 years (1095 days) after the "
+"last contact. State this period in your privacy policy."
+msgstr ""
+"Le RGPD ne fixe pas de durée précise : les données peuvent être "
+"conservées aussi longtemps que leur finalité l'exige. Pour les "
+"prospects, la CNIL admet au maximum 3 ans (1095 jours) après le dernier "
+"contact. Indiquez cette durée dans votre politique de confidentialité."
+
+#: includes/submission-settings.php:134
+msgid "When the period ends"
+msgstr "À la fin de cette durée"
+
+#: includes/submission-settings.php:138
+msgid ""
+"Anonymize: erase what the visitor typed, keep the date, form, page and "
+"source for statistics"
+msgstr ""
+"Anonymiser : effacer ce que le visiteur a saisi, conserver la date, le "
+"formulaire, la page et la source pour les statistiques"
+
+#: includes/submission-settings.php:140
+msgid "Delete the whole message"
+msgstr "Supprimer le message entier"
+
+#: includes/submission-settings.php:146
+msgid "Keep anonymized statistics for"
+msgstr "Conserver les statistiques anonymisées pendant"
+
+#: includes/submission-settings.php:150
+msgid "days"
+msgstr "jours"
+
+#: includes/submission-settings.php:151
+msgid ""
+"0 keeps them forever: once anonymized, they are no longer personal data."
+msgstr ""
+"0 les conserve indéfiniment : une fois anonymisées, elles ne sont plus "
+"des données personnelles."
+
+#: includes/submission-settings.php:157
+msgid "Advanced settings"
+msgstr "Réglages avancés"
+
+#: includes/submission-settings.php:161
+msgid "Visit origin without a consent tool"
+msgstr "Origine de la visite sans outil de consentement"
+
+#: includes/submission-settings.php:165
+msgid ""
+"Remember the landing page and campaign in the visitor's browser when no "
+"consent tool is installed"
+msgstr ""
+"Mémoriser la page d'arrivée et la campagne dans le navigateur du "
+"visiteur lorsqu'aucun outil de consentement n'est installé"
+
+#: includes/submission-settings.php:168
+msgid ""
+"With a consent tool compatible with WP Consent API, this is only done after "
+"the visitor accepts statistics, whatever this setting. Without one, storing "
+"it needs consent under the ePrivacy rules: untick this to only record the "
+"page the form was sent from."
+msgstr ""
+"Avec un outil de consentement compatible avec WP Consent API, cela n'est"
+" fait qu'après l'acceptation des statistiques par le visiteur, quel que "
+"soit ce réglage. Sans outil, cette mémorisation nécessite un "
+"consentement au titre des règles ePrivacy : décochez cette case pour "
+"enregistrer uniquement la page depuis laquelle le formulaire a été "
+"envoyé."
+
+#: includes/submission-settings.php:180 includes/submission-settings.php:185
+msgid "Purge now"
+msgstr "Purger maintenant"
+
+#: includes/submission-settings.php:181
+msgid ""
+"The purge runs once a day, when the site gets visits. Run it now to apply "
+"new settings at once."
+msgstr ""
+"La purge s'exécute une fois par jour, lorsque le site reçoit des "
+"visites. Lancez-la maintenant pour appliquer immédiatement les nouveaux "
+"réglages."
+
+#: includes/submissions-list-table.php:33
+msgid "Sender"
+msgstr "Expéditeur"
+
+#: includes/submissions-list-table.php:36 includes/submissions-page.php:384
+msgid "Source"
+msgstr "Source"
+
+#: includes/submissions-list-table.php:58
+msgid "No messages yet."
+msgstr "Aucun message pour le moment."
+
+#: includes/submissions-list-table.php:66
+msgid "All"
+msgstr "Tous"
+
+#: includes/submissions-list-table.php:67
+msgid "Unread"
+msgstr "Non lus"
+
+#: includes/submissions-list-table.php:68
+msgid "Email failed"
+msgstr "E-mail en échec"
+
+#: includes/submissions-list-table.php:69
+msgid "Spam"
+msgstr "Spam"
+
+#: includes/submissions-list-table.php:90
+msgid "Mark as read"
+msgstr "Marquer comme lu"
+
+#: includes/submissions-list-table.php:91 includes/submissions-page.php:414
+msgid "Mark as processed"
+msgstr "Marquer comme traité"
+
+#: includes/submissions-list-table.php:92 includes/submissions-page.php:416
+msgid "Mark as spam"
+msgstr "Marquer comme spam"
+
+#: includes/submissions-list-table.php:93
+#: includes/submissions-list-table.php:143 includes/submissions-page.php:433
+msgid "Delete"
+msgstr "Supprimer"
+
+#: includes/submissions-list-table.php:107
+msgid "All forms"
+msgstr "Tous les formulaires"
+
+#: includes/submissions-list-table.php:113
+msgid "All sources"
+msgstr "Toutes les sources"
+
+#: includes/submissions-list-table.php:119
+msgid "Filter"
+msgstr "Filtrer"
+
+#: includes/submissions-list-table.php:132
+msgid "Anonymized"
+msgstr "Anonymisé"
+
+#: includes/submissions-list-table.php:133
+msgid "(no text)"
+msgstr "(aucun texte)"
+
+#: includes/submissions-list-table.php:142
+msgid "View"
+msgstr "Voir"
+
+#: includes/submissions-list-table.php:143 includes/submissions-page.php:433
+msgid "Delete this message for good?"
+msgstr "Supprimer définitivement ce message ?"
+
+#: includes/submissions-list-table.php:163 includes/submissions-page.php:372
+msgid "Sent"
+msgstr "Envoyé"
+
+#: includes/submissions-list-table.php:164 includes/submissions-page.php:374
+msgid "Not sent"
+msgstr "Non envoyé"
+
+#: includes/submissions-page.php:284
+msgid "Messages updated."
+msgstr "Messages mis à jour."
+
+#: includes/submissions-page.php:285
+msgid "Messages deleted."
+msgstr "Messages supprimés."
+
+#: includes/submissions-page.php:286
+msgid "Email sent."
+msgstr "E-mail envoyé."
+
+#: includes/submissions-page.php:287
+msgid "The email could not be sent again. The reason is shown below."
+msgstr "L'e-mail n'a pas pu être renvoyé. La raison est indiquée ci-dessous."
+
+#: includes/submissions-page.php:309
+msgid "Export CSV"
+msgstr "Exporter en CSV"
+
+#: includes/submissions-page.php:324
+msgid "Search messages"
+msgstr "Rechercher des messages"
+
+#: includes/submissions-page.php:333
+msgid "Received message"
+msgstr "Message reçu"
+
+#: includes/submissions-page.php:334
+msgid "Back to the messages"
+msgstr "Retour aux messages"
+
+#: includes/submissions-page.php:337
+msgid "This message no longer exists."
+msgstr "Ce message n'existe plus."
+
+#: includes/submissions-page.php:344
+msgid "Message"
+msgstr "Message"
+
+#. translators: %s: date of the anonymization
+#: includes/submissions-page.php:351
+#, php-format
+msgid "Personal data anonymized on %s."
+msgstr "Données personnelles anonymisées le %s."
+
+#: includes/submissions-page.php:386
+msgid "Campaign"
+msgstr "Campagne"
+
+#: includes/submissions-page.php:387
+msgid "Ad click"
+msgstr "Clic publicitaire"
+
+#: includes/submissions-page.php:389
+msgid "Browser language"
+msgstr "Langue du navigateur"
+
+#: includes/submissions-page.php:390
+msgid "Time on the form"
+msgstr "Temps passé sur le formulaire"
+
+#: includes/submissions-page.php:393
+msgid "Context"
+msgstr "Contexte"
+
+#: includes/submissions-page.php:410
+msgid "Send the email again"
+msgstr "Renvoyer l'e-mail"
+
+#: includes/submissions-page.php:415
+msgid "Mark as unread"
+msgstr "Marquer comme non lu"
+
+#~ msgid "Security verification in progress. Please try again."
+#~ msgstr "Vérification de sécurité en cours. Veuillez réessayer."
