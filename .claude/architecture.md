@@ -138,7 +138,7 @@ Pure helpers around the stored `fields` JSON: `snapshot()` freezes each submitte
 `classify($context)` returns one of `CHANNELS`: `google_ads`, `paid_social`, `paid_other`, `email`, `social`, `organic_search`, `campaign`, `referral`, `direct`. Paid signals (click id, paid medium) win, then explicit mediums, then the referrer host. `label()` gives the translated name. The result goes through the `lcmt_mailer_submission_channel` filter.
 
 ### SubmissionSchema
-Table `{prefix}lcmt_mailer_submissions`, created with `dbDelta`. `maybeUpgrade()` runs on `plugins_loaded` and compares the `lcmt_mailer_db_version` option with `VERSION`, because updates from GitHub never run the activation hook. Bump `VERSION` and edit the `CREATE TABLE` to change the schema.
+Table `{prefix}lcmt_mailer_submissions`, created with `dbDelta`. `maybeUpgrade()` runs on `plugins_loaded` and compares the `lcmt_mailer_db_version` option with `VERSION`, because updates from GitHub never run the activation hook. `install()` only records the version once `SHOW TABLES LIKE` finds the table, so a failed `dbDelta` is retried on the next load. Bump `VERSION` and edit the `CREATE TABLE` to change the schema.
 
 | Column | Content | Cleared by anonymization |
 |--------|---------|--------------------------|

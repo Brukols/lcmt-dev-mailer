@@ -65,6 +65,13 @@ class SubmissionSchema
             KEY anonymized_at (anonymized_at)
         ) {$charset};");
 
-        update_option(self::OPTION_VERSION, self::VERSION);
+        // dbDelta reports no error: when the table is still missing (no
+        // CREATE privilege, full disk), leave the version unset so the next
+        // load tries again instead of saving into a table that is not there.
+        $exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table))) === $table;
+
+        if ($exists) {
+            update_option(self::OPTION_VERSION, self::VERSION);
+        }
     }
 }
