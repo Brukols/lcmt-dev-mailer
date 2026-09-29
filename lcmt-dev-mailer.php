@@ -57,6 +57,7 @@ require_once LCMT_MAILER_PATH . 'includes/retention.php';
 require_once LCMT_MAILER_PATH . 'includes/submission-settings.php';
 require_once LCMT_MAILER_PATH . 'includes/privacy.php';
 require_once LCMT_MAILER_PATH . 'includes/failure-notice.php';
+require_once LCMT_MAILER_PATH . 'includes/stats-page.php';
 
 // ── Updates from the GitHub releases ──
 LcmtDevMailer\Updater::register(__FILE__);
@@ -88,6 +89,7 @@ add_action('save_post', ['LcmtDevMailer\\MetaFields', 'save']);
 
 // ── Admin UI ──
 add_action('admin_menu', ['LcmtDevMailer\\SubmissionsPage', 'addSubmenu']);
+add_action('admin_menu', ['LcmtDevMailer\\StatsPage', 'addSubmenu']);
 add_action('admin_post_' . LcmtDevMailer\SubmissionsPage::ACTION, ['LcmtDevMailer\\SubmissionsPage', 'handleSingle']);
 add_action('admin_post_' . LcmtDevMailer\SubmissionsPage::EXPORT_ACTION, ['LcmtDevMailer\\SubmissionsPage', 'handleExport']);
 add_action('admin_notices', ['LcmtDevMailer\\FailureNotice', 'banner']);
