@@ -44,6 +44,11 @@ require_once LCMT_MAILER_PATH . 'includes/captcha.php';
 require_once LCMT_MAILER_PATH . 'includes/altcha.php';
 require_once LCMT_MAILER_PATH . 'includes/captcha-settings.php';
 require_once LCMT_MAILER_PATH . 'includes/updater.php';
+require_once LCMT_MAILER_PATH . 'includes/submission-data.php';
+require_once LCMT_MAILER_PATH . 'includes/submission-context.php';
+require_once LCMT_MAILER_PATH . 'includes/channel-classifier.php';
+require_once LCMT_MAILER_PATH . 'includes/submission-schema.php';
+require_once LCMT_MAILER_PATH . 'includes/submission-repository.php';
 
 // ── Updates from the GitHub releases ──
 LcmtDevMailer\Updater::register(__FILE__);
@@ -52,6 +57,9 @@ LcmtDevMailer\Updater::register(__FILE__);
 add_action('init', function () {
     load_plugin_textdomain('lcmt-dev-mailer', false, basename(LCMT_MAILER_PATH) . '/languages');
 });
+
+// ── Received messages ──
+add_action('plugins_loaded', ['LcmtDevMailer\\SubmissionSchema', 'maybeUpgrade']);
 
 // ── Post type & fields ──
 add_action('init', ['LcmtDevMailer\\PostType', 'register']);
