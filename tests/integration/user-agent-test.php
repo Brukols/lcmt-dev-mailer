@@ -186,7 +186,7 @@ lcmt_it('the policy text mentions the user agent and the kept families', functio
         $text = lcmt_pv_policy_text();
         lcmt_assert_true(str_contains($text, 'user agent'), 'user agent: ' . $text);
         lcmt_assert_true(str_contains($text, 'erased when the message is anonymized'), 'erased: ' . $text);
-        lcmt_assert_true(str_contains($text, 'browser and operating system families'), 'families kept: ' . $text);
+        lcmt_assert_true(str_contains($text, 'only the day, the form, the page, the origin of the visit, the type of device, the language of your browser and the browser and operating system families are kept'), 'one complete list of what is kept: ' . $text);
 
         update_option(SubmissionSettings::OPTION_ACTION, 'delete');
         $text = lcmt_pv_policy_text();
@@ -195,4 +195,11 @@ lcmt_it('the policy text mentions the user agent and the kept families', functio
     } finally {
         $action === false ? delete_option(SubmissionSettings::OPTION_ACTION) : update_option(SubmissionSettings::OPTION_ACTION, $action);
     }
+});
+
+lcmt_it('the schema check sees the columns of the table', function () {
+    lcmt_assert_true(LcmtDevMailer\SubmissionSchema::hasColumns(['user_agent', 'browser', 'os']), 'present');
+    lcmt_assert_true(LcmtDevMailer\SubmissionSchema::hasColumns(LcmtDevMailer\SubmissionSchema::COLUMNS), 'every column of the schema');
+    lcmt_assert_same(false, LcmtDevMailer\SubmissionSchema::hasColumns(['no_such_column']), 'missing');
+    lcmt_assert_same(false, LcmtDevMailer\SubmissionSchema::hasColumns(['user_agent', 'no_such_column']), 'one missing');
 });

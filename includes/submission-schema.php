@@ -17,6 +17,16 @@ class SubmissionSchema
     public const VERSION = '2';
     public const OPTION_VERSION = 'lcmt_mailer_db_version';
 
+    /**
+     * Every column of the current schema, to tell an upgrade that worked from one that did not.
+     */
+    public const COLUMNS = [
+        'id', 'form_key', 'mail_post_id', 'created_at', 'status', 'mail_sent', 'mail_error', 'fields',
+        'page_path', 'page_id', 'landing_path', 'referrer_host', 'channel', 'utm_source', 'utm_medium',
+        'utm_campaign', 'click_id_type', 'device', 'locale', 'form_seconds', 'user_agent', 'browser', 'os',
+        'anonymized_at',
+    ];
+
     public static function maybeUpgrade(): void
     {
         if (get_option(self::OPTION_VERSION) === self::VERSION) {
@@ -69,12 +79,27 @@ class SubmissionSchema
         ) {$charset};");
 
         // dbDelta reports no error: when the table is still missing (no
-        // CREATE privilege, full disk), leave the version unset so the next
-        // load tries again instead of saving into a table that is not there.
+        // CREATE privilege, full disk) or an ALTER failed, leave the version
+        // unset so the next load tries again instead of saving into a table
+        // that is not there or lacks a column (every insert would fail).
         $exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table))) === $table;
 
-        if ($exists) {
+        if ($exists && self::hasColumns(self::COLUMNS)) {
             update_option(self::OPTION_VERSION, self::VERSION);
         }
+    }
+
+    /**
+     * Whether the submissions table has all these columns.
+     *
+     * @param list<string> $columns
+     */
+    public static function hasColumns(array $columns): bool
+    {
+        global $wpdb;
+
+        $existing = $wpdb->get_col('SHOW COLUMNS FROM ' . SubmissionRepository::table());
+
+        return !array_diff($columns, $existing ?: []);
     }
 }
