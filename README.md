@@ -104,13 +104,13 @@ Content-Type: application/json
 
 **Responses:**
 
-- `200` — Email sent successfully
+- `200` — Email sent successfully, or the message was saved in Received messages although its email failed (the admin sees the failure in a banner and can send it again; telling the visitor it failed would only get it sent twice)
 - `403` — Spam protection check failed
 - `422` — Validation failed (missing required field, or a value that does not match its type)
 
 A `tel` value holds 6 to 20 digits, an optional leading `+`, and any spaces, dots, dashes, slashes or brackets: `+33 6 12 34 56 78`, `06.12.34.56.78` and `+33 (0)6 12 34 56 78` all pass.
 - `404` — Unknown form key
-- `500` — Email sending failed
+- `500` — Email sending failed and the message was not saved (template with "Save received messages" off, or the insert failed)
 
 ### Direct PHP call (without form)
 
@@ -275,7 +275,7 @@ add_action('lcmt_mailer_before_send', function (string $key, array $placeholders
 
 ### `lcmt_mailer_after_send`
 
-Fired after a successful send from the REST endpoint.
+Fired after a successful send from the REST endpoint (not when the email failed, even if the visitor gets a 200 because the message was saved).
 
 ```php
 add_action('lcmt_mailer_after_send', function (string $key, array $placeholders, \WP_Post $post) {

@@ -102,21 +102,26 @@ class FormEndpoint
 
         $sent = SubmissionRecorder::send($submissionId, $key, $placeholders);
 
-        if (!$sent) {
+        if (!$sent && !$submissionId) {
             return new \WP_REST_Response([
                 'success' => false,
                 'message' => __('Failed to send email.', 'lcmt-dev-mailer'),
             ], 500);
         }
 
-        /**
-         * Action fired after the form email was sent successfully.
-         *
-         * @param string $key          The form key.
-         * @param array  $placeholders The sanitized form data as placeholders.
-         * @param \WP_Post $post       The mail post.
-         */
-        do_action('lcmt_mailer_after_send', $key, $placeholders, $post);
+        // A saved message whose email failed is in Received messages, with
+        // the admin banner: telling the visitor it failed would only get it
+        // sent twice.
+        if ($sent) {
+            /**
+             * Action fired after the form email was sent successfully.
+             *
+             * @param string $key          The form key.
+             * @param array  $placeholders The sanitized form data as placeholders.
+             * @param \WP_Post $post       The mail post.
+             */
+            do_action('lcmt_mailer_after_send', $key, $placeholders, $post);
+        }
 
         return new \WP_REST_Response([
             'success' => true,

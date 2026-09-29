@@ -165,7 +165,9 @@ Headers:
 { "success": false, "message": "Unknown form." }
 ```
 
-**500 — Send failure:**
+**200 after a failed send:** when the message was saved in Received messages, a failed email still answers `200` with the normal success message, so the visitor does not send it twice; the admin sees it in the failure banner.
+
+**500 — Send failure (message not saved):**
 ```json
 { "success": false, "message": "Failed to send email." }
 ```

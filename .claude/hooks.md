@@ -114,7 +114,7 @@ add_action('lcmt_mailer_before_send', function (string $key, array $placeholders
 Used in: `FormEndpoint::handle()`.
 
 ### `lcmt_mailer_after_send`
-Fired after a successful send from the REST endpoint.
+Fired after a successful send from the REST endpoint. Not fired when the email failed, even when the visitor gets a 200 because the message was saved.
 
 ```php
 add_action('lcmt_mailer_after_send', function (string $key, array $placeholders, \WP_Post $post) {
