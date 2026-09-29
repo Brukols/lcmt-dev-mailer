@@ -65,6 +65,12 @@ class SubmissionSettings
             'default'           => 0,
         ]);
 
+        register_setting(self::GROUP, Uninstaller::OPTION_DELETE_DATA, [
+            'type'              => 'string',
+            'sanitize_callback' => [Uninstaller::class, 'sanitize'],
+            'default'           => '0',
+        ]);
+
         // options.php sends null for an unchecked box.
         register_setting(self::GROUP, Attribution::OPTION_WITHOUT_CONSENT, [
             'type'              => 'string',
@@ -140,6 +146,17 @@ class SubmissionSettings
                                     <?php esc_html_e('Delete the whole message', 'lcmt-dev-mailer'); ?></label>
                             </fieldset>
                             <p class="description"><?php esc_html_e('When deleting, anonymized statistics older than this period are deleted too, whatever the setting below.', 'lcmt-dev-mailer'); ?></p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row"><?php esc_html_e('When the plugin is deleted', 'lcmt-dev-mailer'); ?></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="<?= esc_attr(Uninstaller::OPTION_DELETE_DATA) ?>" value="1" <?php checked(get_option(Uninstaller::OPTION_DELETE_DATA, '0'), '1'); ?> />
+                                <?php esc_html_e('Delete received messages when the plugin is deleted', 'lcmt-dev-mailer'); ?>
+                            </label>
+                            <p class="description"><?php esc_html_e('Unticked, deleting the plugin keeps the messages and their statistics in the database. The Delete link of the Plugins screen asks again and stores the answer here.', 'lcmt-dev-mailer'); ?></p>
                         </td>
                     </tr>
 

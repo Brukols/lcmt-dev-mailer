@@ -58,6 +58,7 @@ require_once LCMT_MAILER_PATH . 'includes/submission-settings.php';
 require_once LCMT_MAILER_PATH . 'includes/privacy.php';
 require_once LCMT_MAILER_PATH . 'includes/failure-notice.php';
 require_once LCMT_MAILER_PATH . 'includes/stats-page.php';
+require_once LCMT_MAILER_PATH . 'includes/uninstaller.php';
 
 // ── Updates from the GitHub releases ──
 LcmtDevMailer\Updater::register(__FILE__);
@@ -102,6 +103,8 @@ add_action('admin_init', ['LcmtDevMailer\\CaptchaSettings', 'registerSettings'])
 add_action('admin_menu', ['LcmtDevMailer\\SubmissionSettings', 'addSubmenu']);
 add_action('admin_init', ['LcmtDevMailer\\SubmissionSettings', 'registerSettings']);
 add_action('admin_post_' . LcmtDevMailer\SubmissionSettings::PURGE_ACTION, ['LcmtDevMailer\\SubmissionSettings', 'handlePurgeNow']);
+add_action('admin_enqueue_scripts', ['LcmtDevMailer\\Uninstaller', 'enqueue']);
+add_action('wp_ajax_' . LcmtDevMailer\Uninstaller::AJAX_ACTION, ['LcmtDevMailer\\Uninstaller', 'handleAjax']);
 add_action('admin_enqueue_scripts', ['LcmtDevMailer\\Settings', 'enqueueAdminAssets']);
 add_action('add_meta_boxes', ['LcmtDevMailer\\AdminMailSender', 'addMetaBox']);
 add_action('wp_ajax_lcmt_send_test_mail', ['LcmtDevMailer\\AdminMailSender', 'handleSendTestMail']);

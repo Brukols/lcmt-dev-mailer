@@ -28,10 +28,11 @@ yarn install
 |---------------------------------|----------------------------------|----------|------------------------------------|
 | `src/admin-test-mail.js`        | `dist/admin-test-mail.js`        | Admin    | Test email sender in metabox       |
 | `src/admin-generate-template.js`| `dist/admin-generate-template.js`| Admin    | Generate form template button      |
+| `src/admin-uninstall.js`        | `dist/admin-uninstall.js`        | Admin    | Plugins screen: asks whether deleting the plugin deletes the messages |
 | `src/form-handler.js`           | `dist/form-handler.js`           | Frontend | Auto form submit, validation, fetch|
 | `src/attribution.js`            | `dist/attribution.js`            | Frontend | Remembers the landing page of the visit |
 
-`src/lib/` holds shared modules (`lib/attribution.js`): imported by entry points, not emitted on their own since the build only globs `src/*.js`.
+`src/lib/` holds shared modules (`lib/attribution.js`, `lib/uninstall-prompt.js`): imported by entry points, not emitted on their own since the build only globs `src/*.js`.
 
 ## Rules
 
@@ -67,7 +68,7 @@ Three suites.
 phpunit
 ```
 
-**JS tests** (`tests/js/`) use the Node test runner, bundled with esbuild (no extra dependency): `attribution.test.js` (the shared module) and `attribution-entry.test.js` (the entry point, with a stubbed browser from `env.js`).
+**JS tests** (`tests/js/`) use the Node test runner, bundled with esbuild (no extra dependency): `attribution.test.js` (the shared module), `attribution-entry.test.js` (the entry point, with a stubbed browser from `env.js`) and `uninstall-prompt.test.js` (confirm → request → continue flow of the Delete-link prompt, with fake links, `confirm` and `fetch`).
 
 ```bash
 yarn test:js
