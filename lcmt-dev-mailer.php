@@ -53,6 +53,8 @@ require_once LCMT_MAILER_PATH . 'includes/submission-recorder.php';
 require_once LCMT_MAILER_PATH . 'includes/attribution.php';
 require_once LCMT_MAILER_PATH . 'includes/submissions-page.php';
 require_once LCMT_MAILER_PATH . 'includes/submission-csv.php';
+require_once LCMT_MAILER_PATH . 'includes/retention.php';
+require_once LCMT_MAILER_PATH . 'includes/submission-settings.php';
 
 // ── Updates from the GitHub releases ──
 LcmtDevMailer\Updater::register(__FILE__);
@@ -66,6 +68,9 @@ add_action('init', function () {
 add_action('plugins_loaded', ['LcmtDevMailer\\SubmissionSchema', 'maybeUpgrade']);
 add_action('wp_mail_failed', ['LcmtDevMailer\\SubmissionRecorder', 'captureMailError']);
 add_action('wp_enqueue_scripts', ['LcmtDevMailer\\Attribution', 'enqueue']);
+add_action('init', ['LcmtDevMailer\\Retention', 'schedule']);
+add_action(LcmtDevMailer\Retention::CRON_HOOK, ['LcmtDevMailer\\Retention', 'run']);
+register_deactivation_hook(__FILE__, ['LcmtDevMailer\\Retention', 'unschedule']);
 
 // Tell WP Consent API this plugin follows its consent categories.
 add_filter('wp_consent_api_registered_' . plugin_basename(__FILE__), '__return_true');
@@ -83,6 +88,9 @@ add_action('admin_menu', ['LcmtDevMailer\\Settings', 'addSubmenu']);
 add_action('admin_init', ['LcmtDevMailer\\Settings', 'registerSettings']);
 add_action('admin_menu', ['LcmtDevMailer\\CaptchaSettings', 'addSubmenu']);
 add_action('admin_init', ['LcmtDevMailer\\CaptchaSettings', 'registerSettings']);
+add_action('admin_menu', ['LcmtDevMailer\\SubmissionSettings', 'addSubmenu']);
+add_action('admin_init', ['LcmtDevMailer\\SubmissionSettings', 'registerSettings']);
+add_action('admin_post_' . LcmtDevMailer\SubmissionSettings::PURGE_ACTION, ['LcmtDevMailer\\SubmissionSettings', 'handlePurgeNow']);
 add_action('admin_enqueue_scripts', ['LcmtDevMailer\\Settings', 'enqueueAdminAssets']);
 add_action('add_meta_boxes', ['LcmtDevMailer\\AdminMailSender', 'addMetaBox']);
 add_action('wp_ajax_lcmt_send_test_mail', ['LcmtDevMailer\\AdminMailSender', 'handleSendTestMail']);
