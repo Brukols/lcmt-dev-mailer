@@ -6,7 +6,10 @@ use LcmtDevMailer\SubmissionRepository;
 const LCMT_IT_FUTURE = '2090-01-01 00:00:00';
 
 lcmt_it('insert and find round trip decodes fields', function () {
-    $fields = ['name' => 'Élodie', 'site' => 'https://example.com/a/b'];
+    $fields = [
+        ['name' => 'firstname', 'type' => 'text', 'value' => 'Élodie'],
+        ['name' => 'site', 'type' => 'url', 'value' => 'https://example.com/a/b'],
+    ];
     $id     = lcmt_it_insert(['fields' => wp_json_encode($fields, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
     $row    = SubmissionRepository::find($id);
 
@@ -15,10 +18,10 @@ lcmt_it('insert and find round trip decodes fields', function () {
 });
 
 lcmt_it('stored fields keep accents and slashes unescaped', function () {
-    $id  = lcmt_it_insert(['fields' => wp_json_encode(['a' => 'é/x'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
+    $id  = lcmt_it_insert(['fields' => wp_json_encode([['name' => 'a', 'type' => 'text', 'value' => 'é/x']], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
     $raw = $GLOBALS['wpdb']->get_var($GLOBALS['wpdb']->prepare('SELECT fields FROM ' . SubmissionRepository::table() . ' WHERE id = %d', $id));
 
-    lcmt_assert_same('{"a":"é/x"}', $raw);
+    lcmt_assert_same('[{"name":"a","type":"text","value":"é/x"}]', $raw);
 });
 
 lcmt_it('null fields come back as null', function () {
@@ -185,8 +188,9 @@ lcmt_it('deleteAnonymizedBefore only deletes anonymized rows', function () {
 
 lcmt_it('findContaining ignores anonymized rows', function () {
     $needle = 'zq' . uniqid();
-    $live   = lcmt_it_insert(['fields' => wp_json_encode(['email' => "{$needle}@example.com"])]);
-    $anon   = lcmt_it_insert(['fields' => wp_json_encode(['email' => "{$needle}@example.com"])]);
+    $fields = wp_json_encode([['name' => 'email', 'type' => 'email', 'value' => "{$needle}@example.com"]]);
+    $live   = lcmt_it_insert(['fields' => $fields]);
+    $anon   = lcmt_it_insert(['fields' => $fields]);
     SubmissionRepository::anonymize([$anon]);
 
     lcmt_assert_same([$live], lcmt_it_ids(SubmissionRepository::findContaining($needle)));

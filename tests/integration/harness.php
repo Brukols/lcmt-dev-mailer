@@ -81,7 +81,11 @@ function lcmt_it_insert(array $overrides = []): int
         'created_at' => current_time('mysql', true),
         'status'     => 'new',
         'mail_sent'  => 1,
-        'fields'     => wp_json_encode(['email' => 'a@example.com'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        // The shape SubmissionData::snapshot() stores.
+        'fields'     => wp_json_encode([
+            ['name' => 'firstname', 'type' => 'text', 'value' => 'Ann'],
+            ['name' => 'email', 'type' => 'email', 'value' => 'a@example.com'],
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         'channel'    => 'direct',
     ]);
 

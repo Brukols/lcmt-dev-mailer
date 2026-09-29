@@ -229,3 +229,30 @@ lcmt_it('send records a neutral reason when wp_mail fails without saying why', f
     lcmt_assert_same('The email was not sent and the mail system gave no reason.', SubmissionRepository::find($id)['mail_error']);
     remove_all_filters('pre_wp_mail');
 });
+
+lcmt_it('when the message cannot be saved, the endpoint still sends the email and answers 200', function () {
+    $mails = new ArrayObject();
+    remove_all_filters('pre_wp_mail');
+    add_filter('pre_wp_mail', static function () use ($mails) {
+        $mails[] = 1;
+        return true;
+    });
+    [, $key] = lcmt_it_template();
+
+    // Break the INSERT into the submissions table, and only that query.
+    $insert = 'INSERT INTO `' . SubmissionRepository::table() . '`';
+    $break  = static fn($query) => str_starts_with((string) $query, $insert) ? '' : $query;
+    add_filter('query', $break);
+
+    try {
+        $response = lcmt_it_post($key, lcmt_it_values());
+    } finally {
+        remove_filter('query', $break);
+    }
+
+    lcmt_assert_same(200, $response->get_status());
+    lcmt_assert_true($response->get_data()['success'], 'success');
+    lcmt_assert_count(1, $mails, 'email sent');
+    lcmt_assert_count(0, lcmt_it_rows($key), 'nothing saved');
+    remove_all_filters('pre_wp_mail');
+});
