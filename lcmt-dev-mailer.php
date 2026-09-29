@@ -56,6 +56,7 @@ require_once LCMT_MAILER_PATH . 'includes/submission-csv.php';
 require_once LCMT_MAILER_PATH . 'includes/retention.php';
 require_once LCMT_MAILER_PATH . 'includes/submission-settings.php';
 require_once LCMT_MAILER_PATH . 'includes/privacy.php';
+require_once LCMT_MAILER_PATH . 'includes/failure-notice.php';
 
 // ── Updates from the GitHub releases ──
 LcmtDevMailer\Updater::register(__FILE__);
@@ -89,6 +90,9 @@ add_action('save_post', ['LcmtDevMailer\\MetaFields', 'save']);
 add_action('admin_menu', ['LcmtDevMailer\\SubmissionsPage', 'addSubmenu']);
 add_action('admin_post_' . LcmtDevMailer\SubmissionsPage::ACTION, ['LcmtDevMailer\\SubmissionsPage', 'handleSingle']);
 add_action('admin_post_' . LcmtDevMailer\SubmissionsPage::EXPORT_ACTION, ['LcmtDevMailer\\SubmissionsPage', 'handleExport']);
+add_action('admin_notices', ['LcmtDevMailer\\FailureNotice', 'banner']);
+add_action('wp_dashboard_setup', ['LcmtDevMailer\\FailureNotice', 'addDashboardWidget']);
+add_action('admin_post_' . LcmtDevMailer\FailureNotice::DISMISS_ACTION, ['LcmtDevMailer\\FailureNotice', 'handleDismiss']);
 add_action('admin_menu', ['LcmtDevMailer\\Settings', 'addSubmenu']);
 add_action('admin_init', ['LcmtDevMailer\\Settings', 'registerSettings']);
 add_action('admin_menu', ['LcmtDevMailer\\CaptchaSettings', 'addSubmenu']);
