@@ -1,5 +1,6 @@
 <?php
 
+use LcmtDevMailer\Attribution;
 use LcmtDevMailer\Privacy;
 use LcmtDevMailer\SubmissionRepository;
 use LcmtDevMailer\SubmissionSettings;
@@ -203,6 +204,28 @@ lcmt_it('privacy: policy text follows the retention settings', function () {
     } finally {
         $days === false ? delete_option(SubmissionSettings::OPTION_DAYS) : update_option(SubmissionSettings::OPTION_DAYS, $days);
         $action === false ? delete_option(SubmissionSettings::OPTION_ACTION) : update_option(SubmissionSettings::OPTION_ACTION, $action);
+    }
+});
+
+lcmt_it('privacy: policy text names the browser storage, the recorded context and the day kept after anonymization', function () {
+    $action  = get_option(SubmissionSettings::OPTION_ACTION, false);
+    $consent = get_option(Attribution::OPTION_WITHOUT_CONSENT, false);
+
+    try {
+        update_option(SubmissionSettings::OPTION_ACTION, 'anonymize');
+        update_option(Attribution::OPTION_WITHOUT_CONSENT, '1');
+        $text = lcmt_pv_policy_text();
+        lcmt_assert_true(str_contains($text, 'kept in your browser until you close the tab'), 'browser storage: ' . $text);
+        lcmt_assert_true(str_contains($text, 'type of device, the language of your browser and the time spent on the form'), 'context: ' . $text);
+        lcmt_assert_true(str_contains($text, 'only the day'), 'day kept: ' . $text);
+
+        update_option(Attribution::OPTION_WITHOUT_CONSENT, '0');
+        $text = lcmt_pv_policy_text();
+        lcmt_assert_same(false, str_contains($text, 'in your browser'), 'nothing stored in the browser: ' . $text);
+        lcmt_assert_true(str_contains($text, 'time spent on the form'), 'context still recorded');
+    } finally {
+        $action === false ? delete_option(SubmissionSettings::OPTION_ACTION) : update_option(SubmissionSettings::OPTION_ACTION, $action);
+        $consent === false ? delete_option(Attribution::OPTION_WITHOUT_CONSENT) : update_option(Attribution::OPTION_WITHOUT_CONSENT, $consent);
     }
 });
 

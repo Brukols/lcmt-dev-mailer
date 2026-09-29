@@ -97,14 +97,25 @@ class Privacy
 
         $end = SubmissionSettings::retentionAction() === 'delete'
             ? __('they are then deleted', 'lcmt-dev-mailer')
-            : __('they are then anonymized: only the date, the form, the page and the origin of the visit are kept, for statistics', 'lcmt-dev-mailer');
+            : __('they are then anonymized: only the day, the form, the page and the origin of the visit are kept, for statistics', 'lcmt-dev-mailer');
 
-        $text = sprintf(
-            /* translators: 1: number of days, 2: what happens after */
-            __('The messages you send through our forms are saved on this site for %1$d days so we can answer and follow up on your request; %2$s. We record the page you sent it from and how you reached the site (search engine, ad, other site, campaign), never your IP address.', 'lcmt-dev-mailer'),
-            SubmissionSettings::retentionDays(),
-            $end
-        );
+        $paragraphs = [
+            sprintf(
+                /* translators: 1: number of days, 2: what happens after */
+                __('The messages you send through our forms are saved on this site for %1$d days so we can answer and follow up on your request; %2$s. We record the page you sent it from and how you reached the site (search engine, ad, other site, campaign), never your IP address.', 'lcmt-dev-mailer'),
+                SubmissionSettings::retentionDays(),
+                $end
+            ),
+            __('With your message, we also record the type of device, the language of your browser and the time spent on the form.', 'lcmt-dev-mailer'),
+        ];
+
+        if (Attribution::consentApiActive()) {
+            $paragraphs[] = __('Once you accept statistics, the page you arrived on and the campaign that brought you are kept in your browser until you close the tab, so a form sent later in the visit knows where it started.', 'lcmt-dev-mailer');
+        } elseif (Attribution::storesWithoutConsent()) {
+            $paragraphs[] = __('The page you arrived on and the campaign that brought you are kept in your browser until you close the tab, so a form sent later in the visit knows where it started.', 'lcmt-dev-mailer');
+        }
+
+        $text = implode("\n\n", $paragraphs);
 
         wp_add_privacy_policy_content('LCMT Mailer', wp_kses_post(wpautop($text)));
     }
