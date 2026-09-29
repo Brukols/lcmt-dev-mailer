@@ -121,6 +121,12 @@ The attribute value is set to `submitting`, `success`, or `error`. The text cont
 
 `seconds` is the time between the first interaction with the form and the send. The server trusts none of it: `SubmissionContext::fromRequest()` validates and truncates each value.
 
+## Admin scripts
+
+- **`admin-stats.js`** (Statistics tab only): `lib/stats-view.js` restores each box's Chart | Table choice from `localStorage` (`lcmt-stats-view:<box id>`, wrapped in try/catch: without storage the toggle works and forgets), reveals the toggle buttons (`[data-lcmt-toggle]`, hidden by default) and switches the `[data-lcmt-view="chart|table"]` panels on a click on `[data-lcmt-set-view]`, keeping `aria-pressed` in step.
+- **`admin-uninstall.js`** (plugins.php): `lib/uninstall-prompt.js` runs the Deactivate flow, `lib/deactivate-dialog.js` drives the `<dialog>` printed by `Uninstaller::printDialog()` (`[data-lcmt-delete]`, `[data-lcmt-help]` with `data-help-on` / `data-help-off`, `[data-lcmt-cancel]`, `[data-lcmt-confirm]` with `data-busy-label`).
+- **Chart colors:** one hue, WordPress admin blue `#2271b1` (over 3:1 on white) for marks; text stays in the normal ink colors; grid lines and axes are light gray (`#dcdcde`). No legend for a single series: the box title names it.
+
 ## REST API
 
 ### Endpoint
