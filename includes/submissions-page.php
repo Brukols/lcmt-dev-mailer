@@ -384,12 +384,12 @@ class SubmissionsPage
 
         echo '<h1 class="wp-heading-inline">';
         echo esc_html($id ? __('Received message', 'lcmt-dev-mailer') : __('Received messages', 'lcmt-dev-mailer'));
+        echo '</h1>';
 
+        // Beside the title, not in it: the heading's accessible name stays the title.
         if ($row) {
             echo ' <span class="lcmt-badges">' . self::statusBadge((string) $row['status']) . ' ' . self::mailBadge((int) $row['mail_sent'] === 1) . '</span>';
         }
-
-        echo '</h1>';
 
         if ($tab === self::TAB_MESSAGES && !$id) {
             echo ' <a href="' . esc_url(self::exportUrl()) . '" class="page-title-action">' . esc_html__('Export CSV', 'lcmt-dev-mailer') . '</a>';
@@ -451,8 +451,8 @@ class SubmissionsPage
     public static function mailBadge(bool $sent): string
     {
         return $sent
-            ? '<span class="lcmt-badge lcmt-badge--sent">&#10003; ' . esc_html__('Sent', 'lcmt-dev-mailer') . '</span>'
-            : '<span class="lcmt-badge lcmt-badge--unsent">&#10007; ' . esc_html__('Not sent', 'lcmt-dev-mailer') . '</span>';
+            ? '<span class="lcmt-badge lcmt-badge--sent"><span aria-hidden="true">&#10003;</span> ' . esc_html__('Sent', 'lcmt-dev-mailer') . '</span>'
+            : '<span class="lcmt-badge lcmt-badge--unsent"><span aria-hidden="true">&#10007;</span> ' . esc_html__('Not sent', 'lcmt-dev-mailer') . '</span>';
     }
 
     /**

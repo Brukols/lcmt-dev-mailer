@@ -179,6 +179,10 @@ lcmt_it('The retention form comes back to the retention tab after saving', funct
     lcmt_assert_same(SubmissionsPage::PAGE_SLUG, $query['page'] ?? null, 'page');
     lcmt_assert_true(str_contains($html, 'name="option_page" value="' . SubmissionSettings::GROUP . '"'), 'option_page');
     lcmt_assert_true(str_contains($html, 'name="_wpnonce"'), 'nonce');
+
+    // The nonce is built by hand (settings_fields() would set the wrong referer): options.php must accept it.
+    lcmt_assert_same(1, preg_match('/name="_wpnonce" value="([^"]+)"/', $html, $nonce), 'nonce value');
+    lcmt_assert_true((bool) wp_verify_nonce($nonce[1], SubmissionSettings::GROUP . '-options'), 'options.php accepts the nonce');
 });
 
 lcmt_it('Purge now redirects to the retention tab with its counts', function () {
@@ -389,8 +393,8 @@ lcmt_it('The Email column shows sent and not sent badges', function () {
 
     $html = lcmt_sp_render(['form_key' => $key]);
 
-    lcmt_assert_true(str_contains($html, '<span class="lcmt-badge lcmt-badge--sent">&#10003; Sent</span>'), 'sent');
-    lcmt_assert_true(str_contains($html, '<span class="lcmt-badge lcmt-badge--unsent">&#10007; Not sent</span>'), 'not sent');
+    lcmt_assert_true(str_contains($html, '<span class="lcmt-badge lcmt-badge--sent"><span aria-hidden="true">&#10003;</span> Sent</span>'), 'sent');
+    lcmt_assert_true(str_contains($html, '<span class="lcmt-badge lcmt-badge--unsent"><span aria-hidden="true">&#10007;</span> Not sent</span>'), 'not sent');
     lcmt_assert_same(false, str_contains($html, 'style="color: #'), 'no colored text');
 });
 
@@ -403,24 +407,33 @@ lcmt_it('Unread rows stay bold', function () {
     lcmt_assert_true(str_contains(lcmt_sp_render(['form_key' => $key]), '<strong>Ann'), 'bold summary');
 });
 
-lcmt_it('The message heading carries its status and email badges', function () {
+lcmt_it('The message badges sit beside the heading, not inside it', function () {
     lcmt_sp_admin();
 
     $id   = lcmt_it_insert(['status' => 'processed', 'mail_sent' => 0]);
     $html = lcmt_sp_render(['submission' => (string) $id]);
 
     preg_match('#<h1[^>]*>(.*?)</h1>#s', $html, $h1);
+    lcmt_assert_same('Received message', $h1[1] ?? null, 'the accessible name is the title alone');
 
-    lcmt_assert_true(str_contains($h1[1] ?? '', 'Received message'), 'heading');
-    lcmt_assert_true(str_contains($h1[1] ?? '', '<span class="lcmt-badge lcmt-badge--processed">Processed</span>'), 'status');
-    lcmt_assert_true(str_contains($h1[1] ?? '', 'lcmt-badge--unsent'), 'email');
+    lcmt_assert_same(1, preg_match('#</h1>\s*<span class="lcmt-badges">(.*?)</span>\s*<hr class="wp-header-end">#s', $html, $badges), 'badges follow the heading, in the same header row');
+    lcmt_assert_true(str_contains($badges[1], '<span class="lcmt-badge lcmt-badge--processed">Processed</span>'), 'status');
+    lcmt_assert_true(str_contains($badges[1], 'lcmt-badge--unsent'), 'email');
+    lcmt_assert_true(str_contains($badges[1], '<span aria-hidden="true">&#10007;</span>'), 'glyph hidden from screen readers');
 
     $id   = lcmt_it_insert(['status' => 'spam', 'mail_sent' => 1]);
     $html = lcmt_sp_render(['submission' => (string) $id]);
 
-    preg_match('#<h1[^>]*>(.*?)</h1>#s', $html, $h1);
-    lcmt_assert_true(str_contains($h1[1] ?? '', 'lcmt-badge--spam'), 'spam');
-    lcmt_assert_true(str_contains($h1[1] ?? '', 'lcmt-badge--sent'), 'sent');
+    lcmt_assert_same(1, preg_match('#</h1>\s*<span class="lcmt-badges">(.*?)</span>\s*<hr#s', $html, $badges), 'spam row');
+    lcmt_assert_true(str_contains($badges[1], 'lcmt-badge--spam'), 'spam');
+    lcmt_assert_true(str_contains($badges[1], 'lcmt-badge--sent'), 'sent');
+    lcmt_assert_true(str_contains($badges[1], '<span aria-hidden="true">&#10003;</span>'), 'glyph hidden');
+});
+
+lcmt_it('The list heading has no badges', function () {
+    lcmt_sp_admin();
+
+    lcmt_assert_same(false, str_contains(lcmt_sp_render([]), 'class="lcmt-badges"'));
 });
 
 lcmt_it('The badge styles are printed once, with the six colors', function () {
