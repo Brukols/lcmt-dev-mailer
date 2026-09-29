@@ -13,13 +13,13 @@ if (!defined('ABSPATH')) {
 class StatsPage
 {
     /**
-     * Period key => days (0 = everything).
-     */
-    /**
      * The one hue of every mark: WordPress admin blue, over 3:1 on white.
      */
     private const MARK_COLOR = '#2271b1';
 
+    /**
+     * Period key => days (0 = everything).
+     */
     private const PERIODS = ['30' => 30, '90' => 90, '365' => 365, 'all' => 0];
 
     /**
@@ -98,9 +98,7 @@ class StatsPage
             .lcmt-stats__hbar-track { display: block; min-width: 0; }
             .lcmt-stats__hbar-fill { display: block; height: 12px; min-height: 8px; min-width: 2px; background: #2271b1; border-radius: 4px; }
             .lcmt-stats__hbar-value { min-width: 2.5em; text-align: right; font-variant-numeric: tabular-nums; }
-            .lcmt-stats__bar { background: #2271b1; height: 8px; border-radius: 4px; min-width: 2px; }
-            .lcmt-stats td.num { width: 60px; text-align: right; font-variant-numeric: tabular-nums; }
-            .lcmt-stats td.bar { width: 40%; }
+            .lcmt-stats .num { width: 60px; text-align: right; font-variant-numeric: tabular-nums; }
         </style>
         <?php
 
@@ -147,7 +145,7 @@ class StatsPage
             return;
         }
 
-        $table = self::table($rows, static fn(string $month) => date_i18n('F Y', strtotime($month . '-01')));
+        $table = self::table($rows, $title, static fn(string $month) => date_i18n('F Y', strtotime($month . '-01')));
         // Time is continuous on the x axis: a month without message is an empty slot.
         $rows  = self::withEmptyMonths($rows);
         $mark  = self::MARK_COLOR;
@@ -165,11 +163,18 @@ class StatsPage
         $every = max(1, (int) ceil(46 / $slot));
         $f     = static fn(float $n): string => sprintf('%.1F', $n);
 
+        $peak = $rows[array_search($max, array_column($rows, 'total'), true)];
         $svg  = sprintf(
             '<svg class="lcmt-stats__months" viewBox="0 0 %d %d" width="100%%" role="img" aria-label="%s" focusable="false">',
             $width,
             $base + 24,
-            esc_attr($title)
+            esc_attr(sprintf(
+                /* translators: 1: chart title, 2: highest monthly count, 3: month of that count */
+                __('%1$s: highest %2$d in %3$s', 'lcmt-dev-mailer'),
+                $title,
+                $max,
+                date_i18n('F Y', strtotime($peak['label'] . '-01'))
+            ))
         );
 
         for ($tick = $step; $tick <= $max; $tick += $step) {
@@ -187,7 +192,8 @@ class StatsPage
         $svg .= sprintf('<line class="lcmt-stats__baseline" x1="%s" x2="%s" y1="%s" y2="%s" stroke="#c3c4c7" stroke-width="1"/>', $f($left), $f($right), $f($base), $f($base));
         $svg .= sprintf('<text class="lcmt-stats__tick" x="%s" y="%s" text-anchor="end">0</text>', $f($left - 4), $f($base + 4));
 
-        $labelled = false;
+        $labelled  = false;
+        $lastYear  = '';
 
         foreach ($rows as $i => $row) {
             $time  = strtotime($row['label'] . '-01');
@@ -222,7 +228,10 @@ class StatsPage
             }
 
             if ($i % $every === 0) {
-                $format = $i === 0 || substr($row['label'], 5, 2) === '01' ? 'M Y' : 'M';
+                // The year goes on the first label drawn of each year.
+                $year     = substr($row['label'], 0, 4);
+                $format   = $year !== $lastYear ? 'M Y' : 'M';
+                $lastYear = $year;
                 $svg   .= sprintf('<text class="lcmt-stats__month" x="%s" y="%s" text-anchor="middle">%s</text>', $f($slotX + $slot / 2), $f($base + 16), esc_html(date_i18n($format, $time)));
             }
         }
@@ -261,7 +270,7 @@ class StatsPage
 
         $list .= '</ul>';
 
-        self::box($id, $title, $list, self::table($rows, $label));
+        self::box($id, $title, $list, self::table($rows, $title, $label));
     }
 
     /**
@@ -272,7 +281,7 @@ class StatsPage
     {
         echo '<div class="postbox lcmt-stats__box" data-lcmt-stats-box="' . esc_attr($id) . '"><div class="inside">';
         echo '<div class="lcmt-stats__head"><h2>' . esc_html($title) . '</h2>';
-        echo '<div class="lcmt-stats__toggle" role="group" aria-label="' . esc_attr__('View', 'lcmt-dev-mailer') . '" data-lcmt-toggle hidden>';
+        echo '<div class="lcmt-stats__toggle" role="group" aria-label="' . esc_attr_x('View', 'statistics display mode', 'lcmt-dev-mailer') . '" data-lcmt-toggle hidden>';
         echo '<button type="button" class="button button-small" data-lcmt-set-view="chart" aria-pressed="true">' . esc_html__('Chart', 'lcmt-dev-mailer') . '</button>';
         echo '<button type="button" class="button button-small" data-lcmt-set-view="table" aria-pressed="false">' . esc_html__('Table', 'lcmt-dev-mailer') . '</button>';
         echo '</div></div>';
@@ -291,16 +300,14 @@ class StatsPage
     /**
      * @param list<array{label: string, total: int}> $rows
      */
-    private static function table(array $rows, ?callable $label): string
+    private static function table(array $rows, string $title, ?callable $label): string
     {
-        $max  = max(array_column($rows, 'total')) ?: 1;
-        $html = '<table class="widefat striped"><tbody>';
+        $html = '<table class="widefat striped"><thead><tr><th>' . esc_html($title) . '</th><th class="num">' . esc_html__('Messages', 'lcmt-dev-mailer') . '</th></tr></thead><tbody>';
 
         foreach ($rows as $row) {
             $html .= sprintf(
-                '<tr><td>%s</td><td class="bar"><div class="lcmt-stats__bar" style="width: %.1f%%;"></div></td><td class="num">%s</td></tr>',
+                '<tr><td>%s</td><td class="num">%s</td></tr>',
                 esc_html(self::rowLabel($row['label'], $label)),
-                $row['total'] / $max * 100,
                 esc_html(number_format_i18n($row['total']))
             );
         }

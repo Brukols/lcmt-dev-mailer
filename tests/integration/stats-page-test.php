@@ -117,11 +117,14 @@ lcmt_it('StatsPage render shows tiles, labels, escaped values and proportional b
     lcmt_assert_same(10, substr_count($html, 'class="postbox lcmt-stats__box"'), 'ten boxes');
 
     // Spam rows (five Google Ads) are not counted: Google Ads 2, Direct 1.
-    lcmt_assert_same(1, preg_match('/<td>Google Ads<\/td><td class="bar"><div class="lcmt-stats__bar" style="width: 100\.0%;"><\/div><\/td><td class="num">2<\/td>/', $html), 'Google Ads 100%');
-    lcmt_assert_same(1, preg_match('/<td>Direct<\/td><td class="bar"><div class="lcmt-stats__bar" style="width: 50\.0%;"><\/div><\/td><td class="num">1<\/td>/', $html), 'Direct 50%');
+    lcmt_assert_true(str_contains($html, '<tr><td>Google Ads</td><td class="num">2</td></tr>'), 'Google Ads row');
+    lcmt_assert_true(str_contains($html, '<tr><td>Direct</td><td class="num">1</td></tr>'), 'Direct row');
+    lcmt_assert_same(false, str_contains($html, 'lcmt-stats__bar"'), 'no bar cell in the table');
+    lcmt_assert_same(10, substr_count($html, '<thead><tr><th>'), 'a header row per table');
+    lcmt_assert_true(str_contains($html, '<thead><tr><th>By source</th><th class="num">Messages</th></tr></thead>'), 'label and count headers');
 
     // Campaign: '' twice (top, "(not set)"), the script campaign once (50%).
-    lcmt_assert_same(1, preg_match('/<td>\(not set\)<\/td><td class="bar"><div class="lcmt-stats__bar" style="width: 100\.0%;"><\/div><\/td><td class="num">2<\/td>/', $html), '(not set) top row');
+    lcmt_assert_true(str_contains($html, '<tr><td>(not set)</td><td class="num">2</td></tr>'), '(not set) top row');
     lcmt_assert_true(str_contains($html, '&lt;script&gt;alert(1)&lt;/script&gt;'), 'escaped campaign');
     lcmt_assert_same(false, str_contains($html, '<script>alert(1)</script>'), 'no raw script');
 });
@@ -178,7 +181,7 @@ lcmt_it('StatsPage draws the months as a column chart with one column per month'
     lcmt_assert_true($svg !== '', 'svg');
     lcmt_assert_same(1, preg_match('/viewBox="0 0 \d+ \d+"/', $svg), 'viewBox');
     lcmt_assert_same(1, preg_match('/<svg[^>]* width="100%"/', $svg), 'fits the box');
-    lcmt_assert_same(1, preg_match('/<svg[^>]* role="img"[^>]* aria-label="By month"/', $svg), 'accessible name');
+    lcmt_assert_same(1, preg_match('/<svg[^>]* role="img"[^>]* aria-label="By month: highest 3 in January 2026"/', $svg), 'accessible name summarizes the chart');
     lcmt_assert_same(3, substr_count($svg, 'class="lcmt-stats__col"'), 'one column per month, spam left out');
     lcmt_assert_same(3, substr_count($svg, 'fill="#2271b1"'), 'one hue');
 });
@@ -222,6 +225,7 @@ lcmt_it('StatsPage abbreviates the month labels in the site locale', function ()
     lcmt_assert_true(str_contains($svg, '>Jan 2026</text>'), 'first label carries the year');
     lcmt_assert_true(str_contains($svg, '>Feb</text>'), 'abbreviated month');
     lcmt_assert_true(str_contains($svg, '>Mar</text>'), 'abbreviated month');
+    lcmt_assert_same(1, substr_count($svg, '2026</text>'), 'the year shows once');
 });
 
 lcmt_it('StatsPage gives every month column a full-slot tooltip', function () {
@@ -249,6 +253,30 @@ lcmt_it('StatsPage leaves an empty slot for a month without message', function (
     lcmt_assert_true(str_contains($svg, '<title>December 2025 — 0</title>'), 'tooltip of an empty month');
     lcmt_assert_same(2, substr_count($html, '<td>November 2025</td>') + substr_count($html, '<td>February 2026</td>'), 'the table lists months with data only');
     lcmt_assert_same(false, str_contains($html, '<td>December 2025</td>'), 'no zero row in the table');
+});
+
+lcmt_it('StatsPage shows the year on the first label of each new year', function () {
+    lcmt_stats_empty_table();
+    lcmt_it_insert(['created_at' => '2025-11-15 10:00:00']);
+    lcmt_it_insert(['created_at' => '2026-02-10 10:00:00']);
+
+    $svg = lcmt_stats_month_svg(lcmt_stats_render(['period' => 'all']));
+
+    preg_match_all('#<text class="lcmt-stats__month"[^>]*>([^<]*)</text>#', $svg, $m);
+    lcmt_assert_same(['Nov 2025', 'Dec', 'Jan 2026', 'Feb'], $m[1]);
+});
+
+lcmt_it('StatsPage puts the year on the first drawn label of a year even when labels are skipped', function () {
+    lcmt_stats_empty_table();
+    lcmt_it_insert(['created_at' => '2024-05-15 10:00:00']);
+    lcmt_it_insert(['created_at' => '2026-05-10 10:00:00']);
+
+    $svg = lcmt_stats_month_svg(lcmt_stats_render(['period' => 'all']));
+
+    preg_match_all('#<text class="lcmt-stats__month"[^>]*>([^<]*)</text>#', $svg, $m);
+    lcmt_assert_same(1, count(array_filter($m[1], static fn($l) => str_contains($l, '2024'))), 'first label has 2024');
+    lcmt_assert_same(1, count(array_filter($m[1], static fn($l) => str_contains($l, '2025'))), 'one label has 2025');
+    lcmt_assert_same(1, count(array_filter($m[1], static fn($l) => str_contains($l, '2026'))), 'one label has 2026');
 });
 
 lcmt_it('StatsPage keeps a single month readable', function () {
