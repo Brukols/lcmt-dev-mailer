@@ -52,6 +52,7 @@ require_once LCMT_MAILER_PATH . 'includes/submission-repository.php';
 require_once LCMT_MAILER_PATH . 'includes/submission-recorder.php';
 require_once LCMT_MAILER_PATH . 'includes/attribution.php';
 require_once LCMT_MAILER_PATH . 'includes/submissions-page.php';
+require_once LCMT_MAILER_PATH . 'includes/submission-csv.php';
 
 // ── Updates from the GitHub releases ──
 LcmtDevMailer\Updater::register(__FILE__);
@@ -77,6 +78,7 @@ add_action('save_post', ['LcmtDevMailer\\MetaFields', 'save']);
 // ── Admin UI ──
 add_action('admin_menu', ['LcmtDevMailer\\SubmissionsPage', 'addSubmenu']);
 add_action('admin_post_' . LcmtDevMailer\SubmissionsPage::ACTION, ['LcmtDevMailer\\SubmissionsPage', 'handleSingle']);
+add_action('admin_post_' . LcmtDevMailer\SubmissionsPage::EXPORT_ACTION, ['LcmtDevMailer\\SubmissionsPage', 'handleExport']);
 add_action('admin_menu', ['LcmtDevMailer\\Settings', 'addSubmenu']);
 add_action('admin_init', ['LcmtDevMailer\\Settings', 'registerSettings']);
 add_action('admin_menu', ['LcmtDevMailer\\CaptchaSettings', 'addSubmenu']);

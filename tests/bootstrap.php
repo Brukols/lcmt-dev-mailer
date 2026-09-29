@@ -60,3 +60,4 @@ require_once dirname(__DIR__) . '/includes/submission-context.php';
 require_once dirname(__DIR__) . '/includes/channel-classifier.php';
 require_once dirname(__DIR__) . '/includes/captcha-provider.php';
 require_once dirname(__DIR__) . '/includes/altcha.php';
+require_once dirname(__DIR__) . '/includes/submission-csv.php';

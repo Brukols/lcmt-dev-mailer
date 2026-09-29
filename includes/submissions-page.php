@@ -13,6 +13,7 @@ class SubmissionsPage
 {
     public const PAGE_SLUG = 'lcmt-mailer-submissions';
     public const ACTION = 'lcmt_mailer_submission';
+    public const EXPORT_ACTION = 'lcmt_mailer_export';
 
     public static function capability(): string
     {
@@ -163,6 +164,65 @@ class SubmissionsPage
     }
 
     /**
+     * admin-post.php handler: the filtered list as a CSV file Excel opens
+     * with accents and columns right (UTF-8 BOM, semicolons).
+     */
+    public static function handleExport(): void
+    {
+        if (!current_user_can(self::capability())) {
+            wp_die(esc_html__('You are not allowed to do this.', 'lcmt-dev-mailer'), 403);
+        }
+
+        check_admin_referer(self::EXPORT_ACTION);
+
+        $rows = SubmissionRepository::search(self::filtersFromRequest());
+
+        nocache_headers();
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="lcmt-messages-' . gmdate('Y-m-d') . '.csv"');
+
+        $out = fopen('php://output', 'w');
+        self::writeCsv($out, $rows);
+        fclose($out);
+        exit;
+    }
+
+    /**
+     * Write the submissions to a stream: UTF-8 BOM, then semicolon-separated
+     * lines, with the dates in the site's timezone.
+     *
+     * @param resource    $stream
+     * @param list<array> $rows Hydrated submissions.
+     */
+    public static function writeCsv($stream, array $rows): void
+    {
+        foreach ($rows as &$row) {
+            $row['created_at'] = get_date_from_gmt((string) $row['created_at'], 'Y-m-d H:i:s');
+        }
+        unset($row);
+
+        fwrite($stream, "\xEF\xBB\xBF");
+
+        foreach (SubmissionCsv::table($rows) as $line) {
+            fputcsv($stream, $line, ';');
+        }
+    }
+
+    /**
+     * The export link for the list being shown: same filters, no page number.
+     */
+    public static function exportUrl(): string
+    {
+        $args = self::listQueryArgs();
+        unset($args['paged']);
+
+        return wp_nonce_url(
+            add_query_arg(['action' => self::EXPORT_ACTION] + $args, admin_url('admin-post.php')),
+            self::EXPORT_ACTION
+        );
+    }
+
+    /**
      * @param list<int> $ids
      * @return string A notice code for render().
      */
@@ -176,6 +236,18 @@ class SubmissionsPage
         if ($do === 'delete') {
             SubmissionRepository::delete($ids);
             return 'deleted';
+        }
+
+        if ($do === 'resend') {
+            $row = SubmissionRepository::find((int) ($ids[0] ?? 0));
+
+            if (!$row || $row['fields'] === null) {
+                return 'resend_failed';
+            }
+
+            $sent = SubmissionRecorder::send((int) $row['id'], (string) $row['form_key'], SubmissionData::toPlaceholders($row['fields']));
+
+            return $sent ? 'resent' : 'resend_failed';
         }
 
         return '';
@@ -234,6 +306,7 @@ class SubmissionsPage
         $table->prepare_items();
 
         echo '<h1 class="wp-heading-inline">' . esc_html__('Received messages', 'lcmt-dev-mailer') . '</h1>';
+        echo ' <a href="' . esc_url(self::exportUrl()) . '" class="page-title-action">' . esc_html__('Export CSV', 'lcmt-dev-mailer') . '</a>';
         echo '<hr class="wp-header-end">';
 
         $table->views();
@@ -331,7 +404,13 @@ class SubmissionsPage
         echo '</tbody></table>';
 
         // ── Actions ──
-        $buttons = [
+        $buttons = [];
+
+        if ((int) $row['mail_sent'] !== 1 && $row['fields'] !== null) {
+            $buttons['resend'] = __('Send the email again', 'lcmt-dev-mailer');
+        }
+
+        $buttons += [
             'processed' => __('Mark as processed', 'lcmt-dev-mailer'),
             'new'       => __('Mark as unread', 'lcmt-dev-mailer'),
             'spam'      => __('Mark as spam', 'lcmt-dev-mailer'),
