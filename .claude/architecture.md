@@ -180,7 +180,7 @@ Admin banner and dashboard widget listing unsent emails (`mail_sent = 0`, not an
 Email templates → Statistics: totals, failures, average time on the form, and counts by month, channel, campaign, form, page, landing page, referrer and device for 30 days, 90 days, 12 months or everything. Anonymized messages count, spam does not.
 
 ### Uninstall
-`uninstall.php` (run only by "Delete") drops the table and removes the options and cron hook. Deactivating or updating keeps the data.
+`uninstall.php` (run only by "Delete") drops the table and removes the options and cron hook. On multisite it does so for every site of the network (`get_sites()` + `switch_to_blog()`), since each site has its own table, options and cron. Deactivating or updating keeps the data.
 
 ### Permissions
 Every capability of the `mail` post type maps to `manage_options`, and the admin AJAX actions check it: only administrators can see, edit or test mails.
