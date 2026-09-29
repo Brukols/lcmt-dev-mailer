@@ -16,6 +16,9 @@
 
 require_once __DIR__ . '/harness.php';
 
+// The tests read the English source strings, whatever language the site uses.
+switch_to_locale('en_US');
+
 $files = glob(__DIR__ . '/*-test.php') ?: [];
 sort($files);
 
