@@ -57,5 +57,6 @@ require_once dirname(__DIR__) . '/includes/field-parser.php';
 require_once dirname(__DIR__) . '/includes/field-validator.php';
 require_once dirname(__DIR__) . '/includes/submission-data.php';
 require_once dirname(__DIR__) . '/includes/submission-context.php';
+require_once dirname(__DIR__) . '/includes/channel-classifier.php';
 require_once dirname(__DIR__) . '/includes/captcha-provider.php';
 require_once dirname(__DIR__) . '/includes/altcha.php';
