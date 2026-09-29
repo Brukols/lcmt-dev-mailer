@@ -245,7 +245,14 @@ class SubmissionsPage
                 return 'resend_failed';
             }
 
-            $sent = SubmissionRecorder::send((int) $row['id'], (string) $row['form_key'], SubmissionData::toPlaceholders($row['fields']));
+            // The built-in user placeholders would name the admin resending
+            // it; the visitor's own account is not known any more.
+            $placeholders = SubmissionData::toPlaceholders($row['fields']) + [
+                '[currentUserLink]'  => '',
+                '[currentUserEmail]' => '',
+            ];
+
+            $sent = SubmissionRecorder::send((int) $row['id'], (string) $row['form_key'], $placeholders);
 
             return $sent ? 'resent' : 'resend_failed';
         }

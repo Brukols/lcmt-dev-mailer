@@ -70,6 +70,8 @@ These are always available and don't need to be in the content:
 | `[currentUserLink]`  | Admin link to the current logged-in user |
 | `[currentUserEmail]` | Email of the current logged-in user      |
 
+A value passed under the same name to `Mailer::sendByKey()` wins. "Send the email again" on a received message passes them empty: the admin resending it is not the visitor.
+
 ---
 
 ## Usage

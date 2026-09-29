@@ -1,5 +1,6 @@
 <?php
 
+use LcmtDevMailer\Mailer;
 use LcmtDevMailer\SubmissionRepository;
 use LcmtDevMailer\SubmissionsPage;
 
@@ -143,4 +144,48 @@ lcmt_it('writeCsv writes a BOM, semicolons, local dates and neutralised formulas
     lcmt_assert_same(get_date_from_gmt($utc, 'Y-m-d H:i:s'), $cells[0], 'local time');
     lcmt_assert_same('it-form', $cells[1]);
     lcmt_assert_same("'=1+1", end($cells), 'formula');
+});
+
+lcmt_it('resend never fills the built-in user placeholders with the admin who resends', function () {
+    lcmt_sp_admin();
+    $admin = wp_get_current_user();
+
+    [$id, $key] = lcmt_re_failed_row();
+    $post = Mailer::getPostByKey($key);
+    update_post_meta($post->ID, '_lcmt_mail_subject', 'Hello [firstname*] [currentUserEmail]');
+    update_post_meta($post->ID, '_lcmt_mail_content', '[firstname*] [message textarea] by [currentUserEmail] [currentUserLink]');
+
+    $sent = new ArrayObject();
+    remove_all_filters('pre_wp_mail');
+    add_filter('pre_wp_mail', static function ($return, array $atts) use ($sent) {
+        $sent[] = $atts;
+        return true;
+    }, 10, 2);
+
+    lcmt_assert_same('resent', SubmissionsPage::apply('resend', [$id]));
+    lcmt_assert_count(1, $sent, 'mail attempts');
+
+    $mail = $sent[0];
+    lcmt_assert_true(str_contains($mail['message'], 'Élodie'), 'the visitor values are there');
+    lcmt_assert_same(false, str_contains($mail['subject'], $admin->user_email), 'admin email in the subject');
+    lcmt_assert_same(false, str_contains($mail['message'], $admin->user_email), 'admin email in the body');
+    lcmt_assert_same(false, str_contains($mail['message'], 'user_id=' . $admin->ID), 'admin link in the body');
+    remove_all_filters('pre_wp_mail');
+});
+
+lcmt_it('sendByKey still fills the built-in user placeholders when the caller does not pass them', function () {
+    lcmt_sp_admin();
+    $admin = wp_get_current_user();
+    [, $key] = lcmt_it_template(['_lcmt_mail_content' => 'By [currentUserEmail]']);
+
+    $sent = new ArrayObject();
+    remove_all_filters('pre_wp_mail');
+    add_filter('pre_wp_mail', static function ($return, array $atts) use ($sent) {
+        $sent[] = $atts;
+        return true;
+    }, 10, 2);
+
+    lcmt_assert_true(Mailer::sendByKey($key, []));
+    lcmt_assert_true(str_contains($sent[0]['message'], $admin->user_email), 'current user email');
+    remove_all_filters('pre_wp_mail');
 });

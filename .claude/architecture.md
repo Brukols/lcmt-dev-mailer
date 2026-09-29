@@ -87,7 +87,7 @@ Core email sending engine.
 - `buildForm($post, $placeholders)` — replaces placeholders in to/subject/content
 - Normalizes placeholders: bare keys get both `[field]` and `[field*]` forms
 - Polylang translation support via `lcmt_mailer_user_language` filter
-- Built-in placeholders: `[currentUserLink]`, `[currentUserEmail]`
+- Built-in placeholders: `[currentUserLink]`, `[currentUserEmail]`, filled only when the caller did not pass them (the resend passes them empty)
 
 ### FormRenderer
 - `render($key)` / shortcode `[lcmt-form key="..."]`

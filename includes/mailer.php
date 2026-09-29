@@ -89,10 +89,24 @@ class Mailer
         $subject = MetaFields::get($post->ID, 'subject');
         $content = MetaFields::get($post->ID, 'content');
 
-        // Built-in placeholders
+        // Built-in placeholders, unless the caller passed a value of its own
+        // (a resend passes them empty: the admin resending is not the sender).
+        $passed = [];
+
+        foreach (array_keys($placeholders) as $k) {
+            $passed[trim((string) $k, '[]* ')] = true;
+        }
+
         $user = wp_get_current_user();
-        $placeholders['[currentUserLink]']  = admin_url('user-edit.php?user_id=' . $user->ID);
-        $placeholders['[currentUserEmail]'] = $user->user_email;
+
+        foreach ([
+            'currentUserLink'  => admin_url('user-edit.php?user_id=' . $user->ID),
+            'currentUserEmail' => $user->user_email,
+        ] as $name => $value) {
+            if (!isset($passed[$name])) {
+                $placeholders['[' . $name . ']'] = $value;
+            }
+        }
 
         // Normalize placeholders: ensure all placeholder variants are replaced
         // A field "phone" with type "tel" can appear as: [phone], [phone*], [phone tel], [phone* tel]
