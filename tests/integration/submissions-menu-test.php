@@ -1,5 +1,6 @@
 <?php
 
+use LcmtDevMailer\StatsPage;
 use LcmtDevMailer\SubmissionRepository;
 use LcmtDevMailer\SubmissionSettings;
 use LcmtDevMailer\SubmissionsPage;
@@ -18,21 +19,6 @@ function lcmt_tabs_editor_with_filter(): callable
     add_filter('lcmt_mailer_submissions_capability', $filter);
 
     return $filter;
-}
-
-function lcmt_tabs_tab_hrefs(string $html): array
-{
-    preg_match('#<nav class="nav-tab-wrapper".*?</nav>#s', $html, $nav);
-    preg_match_all('#<a href="([^"]+)" class="nav-tab( nav-tab-active)?"#', $nav[0] ?? '', $m, PREG_SET_ORDER);
-
-    $tabs = [];
-
-    foreach ($m as $link) {
-        parse_str((string) wp_parse_url(html_entity_decode($link[1]), PHP_URL_QUERY), $query);
-        $tabs[] = ['tab' => $query['tab'] ?? 'messages', 'active' => !empty($link[2]), 'page' => $query['page'] ?? ''];
-    }
-
-    return $tabs;
 }
 
 /**
@@ -60,113 +46,66 @@ function lcmt_tabs_redirect_of(callable $callback): string
     throw new RuntimeException('no redirect');
 }
 
-lcmt_it('SubmissionsPage currentTab defaults to messages and falls back on an unknown tab', function () {
+lcmt_it('Each page has its own URL helper', function () {
+    foreach ([
+        [SubmissionsPage::url(), 'lcmt-mailer-submissions'],
+        [StatsPage::url(['period' => '30']), 'lcmt-mailer-stats'],
+        [SubmissionSettings::url(), 'lcmt-mailer-retention'],
+    ] as [$url, $slug]) {
+        parse_str((string) wp_parse_url($url, PHP_URL_QUERY), $query);
+
+        lcmt_assert_same($slug, $query['page'] ?? null, $url);
+        lcmt_assert_same('mail', $query['post_type'] ?? null, $url);
+        lcmt_assert_same(false, isset($query['tab']), 'no tab arg');
+    }
+});
+
+lcmt_it('The three screens have their own wrap and heading and no nav tabs', function () {
     lcmt_sp_admin();
 
-    foreach ([[], ['tab' => 'bogus'], ['tab' => ''], ['tab' => 'messages']] as $get) {
-        lcmt_assert_same('messages', lcmt_sp_with_get($get, fn() => SubmissionsPage::currentTab()), json_encode($get));
+    $screens = [
+        'Received messages' => lcmt_sp_render([]),
+        'Statistics'        => lcmt_sp_page(StatsPage::class),
+        'Data retention'    => lcmt_sp_page(SubmissionSettings::class),
+    ];
+
+    foreach ($screens as $title => $html) {
+        lcmt_assert_same(1, substr_count($html, '<div class="wrap">'), $title . ' wrap');
+        lcmt_assert_same(1, preg_match('#<h1[^>]*>' . preg_quote($title, '#') . '</h1>#', $html), $title . ' heading');
+        lcmt_assert_same(1, substr_count($html, '<h1'), $title . ' one heading');
+        lcmt_assert_same(false, str_contains($html, 'nav-tab'), $title . ' no nav tabs');
     }
 
-    lcmt_assert_same('stats', lcmt_sp_with_get(['tab' => 'stats'], fn() => SubmissionsPage::currentTab()));
-    lcmt_assert_same('retention', lcmt_sp_with_get(['tab' => 'retention'], fn() => SubmissionsPage::currentTab()));
+    lcmt_assert_true(str_contains($screens['Received messages'], 'class="wp-list-table'), 'messages list');
+    lcmt_assert_true(str_contains($screens['Statistics'], 'lcmt-stats__tile'), 'stats content');
+    lcmt_assert_true(str_contains($screens['Data retention'], 'name="' . SubmissionSettings::OPTION_DAYS . '"'), 'retention form');
 });
 
-lcmt_it('SubmissionsPage url carries the tab', function () {
-    parse_str((string) wp_parse_url(SubmissionsPage::url(['tab' => 'stats']), PHP_URL_QUERY), $query);
-
-    lcmt_assert_same('stats', $query['tab']);
-    lcmt_assert_same('lcmt-mailer-submissions', $query['page']);
-});
-
-lcmt_it('SubmissionsPage shows the three tabs in order with the current one active', function () {
-    lcmt_sp_admin();
-
-    $expected = ['messages' => 'Messages', 'stats' => 'Statistics', 'retention' => 'Data retention'];
-
-    foreach (['messages', 'stats', 'retention'] as $current) {
-        $html = lcmt_sp_render($current === 'messages' ? [] : ['tab' => $current]);
-        $tabs = lcmt_tabs_tab_hrefs($html);
-
-        lcmt_assert_same(array_keys($expected), array_column($tabs, 'tab'), 'order for ' . $current);
-        lcmt_assert_same([SubmissionsPage::PAGE_SLUG], array_values(array_unique(array_column($tabs, 'page'))), 'page slug');
-
-        foreach ($tabs as $tab) {
-            lcmt_assert_same($tab['tab'] === $current, $tab['active'], $tab['tab'] . ' active on ' . $current);
-        }
-
-        foreach ($expected as $label) {
-            lcmt_assert_true(str_contains($html, '>' . $label . '</a>'), $label);
-        }
-    }
-
-    $unknown = lcmt_tabs_tab_hrefs(lcmt_sp_render(['tab' => 'bogus']));
-    lcmt_assert_same(['messages'], array_column(array_filter($unknown, fn($t) => $t['active']), 'tab'), 'unknown tab marks messages');
-});
-
-lcmt_it('SubmissionsPage renders the content of the selected tab', function () {
-    lcmt_sp_admin();
-
-    $messages  = lcmt_sp_render([]);
-    $stats     = lcmt_sp_render(['tab' => 'stats']);
-    $retention = lcmt_sp_render(['tab' => 'retention']);
-    $unknown   = lcmt_sp_render(['tab' => 'bogus']);
-
-    lcmt_assert_true(str_contains($messages, 'class="wp-list-table'), 'messages list');
-    lcmt_assert_same(false, str_contains($messages, 'lcmt-stats__tile'), 'no stats in messages');
-
-    lcmt_assert_true(str_contains($stats, 'lcmt-stats__tile'), 'stats content');
-    lcmt_assert_same(false, str_contains($stats, 'class="wp-list-table'), 'no list in stats');
-
-    lcmt_assert_true(str_contains($retention, 'name="' . SubmissionSettings::OPTION_DAYS . '"'), 'retention form');
-    lcmt_assert_same(false, str_contains($retention, 'class="wp-list-table'), 'no list in retention');
-
-    lcmt_assert_true(str_contains($unknown, 'class="wp-list-table'), 'unknown falls back to the list');
-    lcmt_assert_same(1, substr_count($stats, '<h1'), 'one heading');
-});
-
-lcmt_it('SubmissionsPage keeps the tabs above a message', function () {
+lcmt_it('A message opened from the list shows its detail, whatever the tab arg', function () {
     lcmt_sp_admin();
 
     $id   = lcmt_it_insert();
     $html = lcmt_sp_render(['submission' => (string) $id]);
 
-    lcmt_assert_same(['messages', 'stats', 'retention'], array_column(lcmt_tabs_tab_hrefs($html), 'tab'));
     lcmt_assert_true(str_contains($html, 'Back to the messages'), 'detail');
+    lcmt_assert_same(false, str_contains($html, 'nav-tab'), 'no tabs');
 });
 
-lcmt_it('SubmissionsPage ignores a submission id outside the messages tab', function () {
+lcmt_it('markOpenedAsRead only acts on the Received messages page', function () {
     lcmt_sp_admin();
 
     $id = lcmt_it_insert(['status' => 'new']);
 
-    lcmt_sp_with_get(['page' => SubmissionsPage::PAGE_SLUG, 'tab' => 'stats', 'submission' => (string) $id], fn() => SubmissionsPage::markOpenedAsRead());
-    lcmt_assert_same('new', SubmissionRepository::find($id)['status'], 'not read');
-
-    $html = lcmt_sp_render(['tab' => 'stats', 'submission' => (string) $id]);
-    lcmt_assert_same(false, str_contains($html, 'Back to the messages'), 'no detail');
-});
-
-lcmt_it('SubmissionsPage hides the retention tab and its content without manage_options', function () {
-    $filter = lcmt_tabs_editor_with_filter();
-
-    try {
-        lcmt_assert_same('edit_pages', SubmissionsPage::capability());
-
-        foreach ([[], ['tab' => 'retention']] as $get) {
-            $html = lcmt_sp_render($get);
-
-            lcmt_assert_same(['messages', 'stats'], array_column(lcmt_tabs_tab_hrefs($html), 'tab'), 'tabs ' . json_encode($get));
-            lcmt_assert_same(false, str_contains($html, 'name="' . SubmissionSettings::OPTION_DAYS . '"'), 'no retention form');
-            lcmt_assert_true(str_contains($html, 'class="wp-list-table'), 'messages shown instead');
-        }
-
-        lcmt_assert_true(str_contains(lcmt_sp_render(['tab' => 'stats']), 'lcmt-stats__tile'), 'stats still open');
-    } finally {
-        remove_filter('lcmt_mailer_submissions_capability', $filter);
+    foreach (['lcmt-mailer-stats', 'lcmt-mailer-retention'] as $page) {
+        lcmt_sp_with_get(['page' => $page, 'submission' => (string) $id], fn() => SubmissionsPage::markOpenedAsRead());
+        lcmt_assert_same('new', SubmissionRepository::find($id)['status'], 'not read from ' . $page);
     }
+
+    lcmt_sp_with_get(['page' => SubmissionsPage::PAGE_SLUG, 'submission' => (string) $id], fn() => SubmissionsPage::markOpenedAsRead());
+    lcmt_assert_same('read', SubmissionRepository::find($id)['status'], 'read from the messages page');
 });
 
-lcmt_it('The retention form comes back to the retention tab after saving', function () {
+lcmt_it('The retention form comes back to the retention page after saving', function () {
     $html = lcmt_rt_render([]);
 
     preg_match_all('/name="_wp_http_referer" value="([^"]*)"/', $html, $m);
@@ -175,8 +114,8 @@ lcmt_it('The retention form comes back to the retention tab after saving', funct
 
     parse_str((string) wp_parse_url(html_entity_decode((string) $m[1][0]), PHP_URL_QUERY), $query);
 
-    lcmt_assert_same('retention', $query['tab'] ?? null, 'tab');
-    lcmt_assert_same(SubmissionsPage::PAGE_SLUG, $query['page'] ?? null, 'page');
+    lcmt_assert_same('lcmt-mailer-retention', $query['page'] ?? null, 'page');
+    lcmt_assert_same(false, isset($query['tab']), 'no tab');
     lcmt_assert_true(str_contains($html, 'name="option_page" value="' . SubmissionSettings::GROUP . '"'), 'option_page');
     lcmt_assert_true(str_contains($html, 'name="_wpnonce"'), 'nonce');
 
@@ -185,7 +124,7 @@ lcmt_it('The retention form comes back to the retention tab after saving', funct
     lcmt_assert_true((bool) wp_verify_nonce($nonce[1], SubmissionSettings::GROUP . '-options'), 'options.php accepts the nonce');
 });
 
-lcmt_it('Purge now redirects to the retention tab with its counts', function () {
+lcmt_it('Purge now redirects to the retention page with its counts', function () {
     lcmt_sp_admin();
 
     $_REQUEST['_wpnonce'] = wp_create_nonce(SubmissionSettings::PURGE_ACTION);
@@ -198,19 +137,18 @@ lcmt_it('Purge now redirects to the retention tab with its counts', function () 
 
     parse_str((string) wp_parse_url($location, PHP_URL_QUERY), $query);
 
-    lcmt_assert_same(SubmissionsPage::PAGE_SLUG, $query['page'] ?? null, 'page');
-    lcmt_assert_same('retention', $query['tab'] ?? null, 'tab');
+    lcmt_assert_same('lcmt-mailer-retention', $query['page'] ?? null, 'page');
+    lcmt_assert_same(false, isset($query['tab']), 'no tab');
     lcmt_assert_true(isset($query['anonymized'], $query['deleted']), 'counts');
 });
 
-lcmt_it('A bulk action from the messages tab redirects back to it and keeps the filters', function () {
+lcmt_it('A bulk action from the messages page redirects back to it and keeps the filters', function () {
     lcmt_sp_admin();
 
     $id = lcmt_it_insert(['form_key' => 'bulk-form']);
 
     $get = [
         'page'     => SubmissionsPage::PAGE_SLUG,
-        'tab'      => 'messages',
         'action'   => 'read',
         'ids'      => [(string) $id],
         'form_key' => 'bulk-form',
@@ -230,24 +168,7 @@ lcmt_it('A bulk action from the messages tab redirects back to it and keeps the 
     lcmt_assert_same(SubmissionsPage::PAGE_SLUG, $query['page'] ?? null);
     lcmt_assert_same('bulk-form', $query['form_key'] ?? null);
     lcmt_assert_same('updated', $query['notice'] ?? null);
-    lcmt_assert_same(false, isset($query['tab']) && $query['tab'] !== 'messages', 'not on another tab');
-});
-
-lcmt_it('A bulk action outside the messages tab is not run', function () {
-    lcmt_sp_admin();
-
-    $id  = lcmt_it_insert(['status' => 'new']);
-    $get = ['page' => SubmissionsPage::PAGE_SLUG, 'tab' => 'stats', 'action' => 'spam', 'ids' => [(string) $id], '_wpnonce' => wp_create_nonce('bulk-submissions')];
-
-    lcmt_sp_with_get($get, fn() => SubmissionsPage::handleLoad());
-
-    lcmt_assert_same('new', SubmissionRepository::find($id)['status']);
-});
-
-lcmt_it('SubmissionsPage listQueryArgs does not carry the tab', function () {
-    $args = lcmt_sp_with_get(['tab' => 'messages', 'status' => 'spam'], fn() => SubmissionsPage::listQueryArgs());
-
-    lcmt_assert_same(['status' => 'spam'], $args);
+    lcmt_assert_same(false, isset($query['tab']), 'no tab');
 });
 
 // ── Menu ──
@@ -283,16 +204,30 @@ function lcmt_tabs_build_menu(): array
     }
 }
 
-lcmt_it('The plugin registers a single Received messages submenu for the tabs', function () {
+lcmt_it('The plugin registers three submenus in order with their capabilities', function () {
     lcmt_sp_admin();
 
     $built = lcmt_tabs_build_menu();
-    $slugs = array_column($built['submenu'], 2);
 
-    lcmt_assert_same([SubmissionsPage::PAGE_SLUG], $slugs);
-    lcmt_assert_same(false, has_action('admin_menu', ['LcmtDevMailer\\StatsPage', 'addSubmenu']), 'stats hook');
-    lcmt_assert_same(false, has_action('admin_menu', ['LcmtDevMailer\\SubmissionSettings', 'addSubmenu']), 'retention hook');
-    lcmt_assert_true(is_int(has_action('admin_menu', ['LcmtDevMailer\\SubmissionsPage', 'addSubmenu'])), 'messages hook');
+    lcmt_assert_same(['lcmt-mailer-submissions', 'lcmt-mailer-stats', 'lcmt-mailer-retention'], array_column($built['submenu'], 2));
+    lcmt_assert_same(['Received messages', 'Statistics', 'Data retention'], array_column($built['submenu'], 3));
+    lcmt_assert_same(['manage_options', 'manage_options', 'manage_options'], array_column($built['submenu'], 1));
+    lcmt_assert_same(SubmissionsPage::PAGE_SLUG, 'lcmt-mailer-submissions');
+    lcmt_assert_same(false, has_action('admin_menu', ['LcmtDevMailer\\StatsPage', 'addSubmenu']), 'one hook registers all three');
+    lcmt_assert_true(is_int(has_action('admin_menu', ['LcmtDevMailer\\SubmissionsPage', 'addSubmenu'])), 'menu hook');
+});
+
+lcmt_it('Without manage_options the retention entry is absent and the others use the filtered capability', function () {
+    $filter = lcmt_tabs_editor_with_filter();
+
+    try {
+        $built = lcmt_tabs_build_menu();
+
+        lcmt_assert_same(['lcmt-mailer-submissions', 'lcmt-mailer-stats'], array_column($built['submenu'], 2));
+        lcmt_assert_same(['edit_pages', 'edit_pages'], array_column($built['submenu'], 1));
+    } finally {
+        remove_filter('lcmt_mailer_submissions_capability', $filter);
+    }
 });
 
 lcmt_it('The unread bubble shows on the top-level menu and the submenu with the same count', function () {
@@ -310,6 +245,8 @@ lcmt_it('The unread bubble shows on the top-level menu and the submenu with the 
     lcmt_assert_same('Email templates ' . $bubble, $built['menu'][21][0], 'top-level');
     lcmt_assert_same('Other', $built['menu'][20][0], 'other entries untouched');
     lcmt_assert_same('Received messages ' . $bubble, $built['submenu'][0][0], 'submenu');
+    lcmt_assert_same('Statistics', $built['submenu'][1][0], 'no bubble on statistics');
+    lcmt_assert_same('Data retention', $built['submenu'][2][0], 'no bubble on retention');
 });
 
 lcmt_it('The unread bubble is absent at zero', function () {

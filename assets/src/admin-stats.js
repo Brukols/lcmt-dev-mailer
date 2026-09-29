@@ -1,5 +1,5 @@
 /**
- * LCMT Mailer — Chart | Table toggle of the Statistics tab.
+ * LCMT Mailer — Chart | Table toggle of the Statistics page.
  */
 import { initStats } from './lib/stats-view';
 

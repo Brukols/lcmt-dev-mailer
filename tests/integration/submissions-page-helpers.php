@@ -58,3 +58,23 @@ function lcmt_sp_render(array $get): string
         return $html;
     });
 }
+
+/**
+ * Render the whole screen of a page class (StatsPage, SubmissionSettings).
+ */
+function lcmt_sp_page(string $class, array $get = []): string
+{
+    $_SERVER['HTTP_HOST'] ??= (string) wp_parse_url(home_url(), PHP_URL_HOST);
+
+    return lcmt_sp_with_get($get, function () use ($class) {
+        ob_start();
+
+        try {
+            $class::render();
+        } finally {
+            $html = ob_get_clean();
+        }
+
+        return $html;
+    });
+}

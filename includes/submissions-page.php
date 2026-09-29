@@ -7,18 +7,15 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Email templates → Received messages: one screen with three tabs (messages,
- * statistics, data retention). Owns the list, one message and its actions, and
- * dispatches the other two tabs to StatsPage and SubmissionSettings.
+ * Email templates → Received messages: the list, one message and its actions.
+ * Also registers the three submenus (Received messages, Statistics, Data
+ * retention), whose screens are StatsPage and SubmissionSettings.
  */
 class SubmissionsPage
 {
     public const PAGE_SLUG = 'lcmt-mailer-submissions';
     public const ACTION = 'lcmt_mailer_submission';
     public const EXPORT_ACTION = 'lcmt_mailer_export';
-    public const TAB_MESSAGES = 'messages';
-    public const TAB_STATS = 'stats';
-    public const TAB_RETENTION = 'retention';
 
     public static function capability(): string
     {
@@ -31,36 +28,6 @@ class SubmissionsPage
             array_merge(['post_type' => PostType::SLUG, 'page' => self::PAGE_SLUG], $args),
             admin_url('edit.php')
         );
-    }
-
-    /**
-     * The tabs the current user may open, tab => label. Data retention is
-     * settings: it needs manage_options, whatever the messages capability is.
-     *
-     * @return array<string, string>
-     */
-    public static function tabs(): array
-    {
-        $tabs = [
-            self::TAB_MESSAGES => __('Messages', 'lcmt-dev-mailer'),
-            self::TAB_STATS    => __('Statistics', 'lcmt-dev-mailer'),
-        ];
-
-        if (current_user_can('manage_options')) {
-            $tabs[self::TAB_RETENTION] = __('Data retention', 'lcmt-dev-mailer');
-        }
-
-        return $tabs;
-    }
-
-    /**
-     * The tab being shown: an unknown or forbidden one falls back to the messages.
-     */
-    public static function currentTab(): string
-    {
-        $tab = sanitize_key($_GET['tab'] ?? '');
-
-        return isset(self::tabs()[$tab]) ? $tab : self::TAB_MESSAGES;
     }
 
     public static function addSubmenu(): void
@@ -84,6 +51,25 @@ class SubmissionsPage
         if ($hook) {
             add_action('load-' . $hook, [self::class, 'handleLoad']);
         }
+
+        add_submenu_page(
+            'edit.php?post_type=' . PostType::SLUG,
+            __('Statistics', 'lcmt-dev-mailer'),
+            __('Statistics', 'lcmt-dev-mailer'),
+            self::capability(),
+            StatsPage::PAGE_SLUG,
+            [StatsPage::class, 'render']
+        );
+
+        // Settings: manage_options, whatever the messages capability is.
+        add_submenu_page(
+            'edit.php?post_type=' . PostType::SLUG,
+            __('Data retention', 'lcmt-dev-mailer'),
+            __('Data retention', 'lcmt-dev-mailer'),
+            'manage_options',
+            SubmissionSettings::PAGE_SLUG,
+            [SubmissionSettings::class, 'render']
+        );
 
         if ($bubble !== '' && current_user_can(self::capability())) {
             self::addTopLevelBubble($bubble);
@@ -154,7 +140,6 @@ class SubmissionsPage
             !$id
             || sanitize_key($_GET['page'] ?? '') !== self::PAGE_SLUG
             || !current_user_can(self::capability())
-            || self::currentTab() !== self::TAB_MESSAGES
         ) {
             return;
         }
@@ -171,10 +156,6 @@ class SubmissionsPage
      */
     public static function handleLoad(): void
     {
-        if (self::currentTab() !== self::TAB_MESSAGES) {
-            return;
-        }
-
         if (absint($_GET['submission'] ?? 0)) {
             self::markOpenedAsRead();
 
@@ -374,8 +355,7 @@ class SubmissionsPage
 
     public static function render(): void
     {
-        $tab = self::currentTab();
-        $id  = $tab === self::TAB_MESSAGES ? absint($_GET['submission'] ?? 0) : 0;
+        $id  = absint($_GET['submission'] ?? 0);
         $row = $id ? SubmissionRepository::find($id) : null;
 
         self::printStyles();
@@ -391,46 +371,21 @@ class SubmissionsPage
             echo ' <span class="lcmt-badges">' . self::statusBadge((string) $row['status']) . ' ' . self::mailBadge((int) $row['mail_sent'] === 1) . '</span>';
         }
 
-        if ($tab === self::TAB_MESSAGES && !$id) {
+        if (!$id) {
             echo ' <a href="' . esc_url(self::exportUrl()) . '" class="page-title-action">' . esc_html__('Export CSV', 'lcmt-dev-mailer') . '</a>';
         }
 
         echo '<hr class="wp-header-end">';
 
-        self::renderTabs($tab);
+        self::renderNotice();
 
-        if ($tab === self::TAB_STATS) {
-            StatsPage::render();
-        } elseif ($tab === self::TAB_RETENTION) {
-            SubmissionSettings::render();
+        if ($id) {
+            self::renderDetail($id, $row);
         } else {
-            self::renderNotice();
-
-            if ($id) {
-                self::renderDetail($id, $row);
-            } else {
-                self::renderList();
-            }
+            self::renderList();
         }
 
         echo '</div>';
-    }
-
-    private static function renderTabs(string $current): void
-    {
-        echo '<nav class="nav-tab-wrapper" aria-label="' . esc_attr__('Received messages sections', 'lcmt-dev-mailer') . '">';
-
-        foreach (self::tabs() as $tab => $label) {
-            printf(
-                '<a href="%s" class="nav-tab%s"%s>%s</a>',
-                esc_url(self::url($tab === self::TAB_MESSAGES ? [] : ['tab' => $tab])),
-                $tab === $current ? ' nav-tab-active' : '',
-                $tab === $current ? ' aria-current="page"' : '',
-                esc_html($label)
-            );
-        }
-
-        echo '</nav>';
     }
 
     /**

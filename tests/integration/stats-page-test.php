@@ -26,7 +26,7 @@ function lcmt_stats_days_ago(int $days): string
 function lcmt_stats_render(array $get = []): string
 {
     lcmt_sp_admin();
-    set_current_screen('mail_page_' . SubmissionsPage::PAGE_SLUG);
+    set_current_screen('mail_page_' . StatsPage::PAGE_SLUG);
     $_SERVER['HTTP_HOST'] ??= (string) wp_parse_url(home_url(), PHP_URL_HOST);
 
     return lcmt_sp_with_get($get, function () {
@@ -71,18 +71,18 @@ lcmt_it('StatsPage render defaults to 90 days and falls back to it for an unknow
     }
 });
 
-lcmt_it('StatsPage period links stay on the Statistics tab', function () {
+lcmt_it('StatsPage period links point at the Statistics page', function () {
     lcmt_stats_seed();
 
-    $html = lcmt_stats_render(['tab' => 'stats', 'period' => '30']);
+    $html = lcmt_stats_render(['period' => '30']);
 
     preg_match_all('/<li><a href="([^"]+)"/', $html, $m);
     lcmt_assert_count(4, $m[1], 'four period links');
 
     foreach ($m[1] as $href) {
         parse_str((string) wp_parse_url(html_entity_decode($href), PHP_URL_QUERY), $query);
-        lcmt_assert_same('stats', $query['tab'] ?? null, $href);
-        lcmt_assert_same(SubmissionsPage::PAGE_SLUG, $query['page'] ?? null, $href);
+        lcmt_assert_same('lcmt-mailer-stats', $query['page'] ?? null, $href);
+        lcmt_assert_same(false, isset($query['tab']), $href);
     }
 });
 
@@ -329,22 +329,19 @@ lcmt_it('StatsPage adds the browser and operating system boxes', function () {
     lcmt_assert_true(str_contains($html, 'title="macOS — 1"'), 'os count');
 });
 
-lcmt_it('StatsPage loads its script on the Statistics tab only', function () {
+lcmt_it('StatsPage loads its script on the Statistics page only', function () {
     lcmt_sp_admin();
-    $hook = 'mail_page_' . SubmissionsPage::PAGE_SLUG;
+    $hook = 'mail_page_' . StatsPage::PAGE_SLUG;
     wp_dequeue_script('lcmt-admin-stats');
     wp_deregister_script('lcmt-admin-stats');
 
-    foreach ([['tab' => 'messages'], [], ['tab' => 'retention']] as $get) {
-        lcmt_sp_with_get($get, static fn() => StatsPage::enqueue($hook));
-        lcmt_assert_same(false, wp_script_is('lcmt-admin-stats', 'enqueued'), 'tab ' . ($get['tab'] ?? 'default'));
+    foreach (['mail_page_' . SubmissionsPage::PAGE_SLUG, 'mail_page_lcmt-mailer-retention', 'index.php'] as $other) {
+        StatsPage::enqueue($other);
+        lcmt_assert_same(false, wp_script_is('lcmt-admin-stats', 'enqueued'), $other);
     }
 
-    lcmt_sp_with_get(['tab' => 'stats'], static fn() => StatsPage::enqueue('index.php'));
-    lcmt_assert_same(false, wp_script_is('lcmt-admin-stats', 'enqueued'), 'other screen');
-
-    lcmt_sp_with_get(['tab' => 'stats'], static fn() => StatsPage::enqueue($hook));
-    lcmt_assert_true(wp_script_is('lcmt-admin-stats', 'enqueued'), 'stats tab');
+    StatsPage::enqueue($hook);
+    lcmt_assert_true(wp_script_is('lcmt-admin-stats', 'enqueued'), 'stats page');
     lcmt_assert_true(str_ends_with((string) wp_scripts()->registered['lcmt-admin-stats']->src, 'assets/dist/admin-stats.js'), 'built file');
 
     wp_dequeue_script('lcmt-admin-stats');
@@ -353,4 +350,15 @@ lcmt_it('StatsPage loads its script on the Statistics tab only', function () {
 
 lcmt_it('StatsPage registers its script on admin_enqueue_scripts', function () {
     lcmt_assert_same(10, has_action('admin_enqueue_scripts', ['LcmtDevMailer\\StatsPage', 'enqueue']));
+});
+
+lcmt_it('StatsPage and the source filter know the AI assistants channel', function () {
+    lcmt_sp_admin();
+
+    global $wpdb;
+    $wpdb->query('DELETE FROM ' . SubmissionRepository::table());
+    lcmt_it_insert(['channel' => 'ai_assistant']);
+
+    lcmt_assert_true(str_contains(lcmt_stats_render(['period' => 'all']), 'AI assistants'), 'stats label');
+    lcmt_assert_true(str_contains(lcmt_sp_render([]), 'AI assistants'), 'source filter option');
 });

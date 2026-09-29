@@ -29,7 +29,7 @@ yarn install
 | `src/admin-test-mail.js`        | `dist/admin-test-mail.js`        | Admin    | Test email sender in metabox       |
 | `src/admin-generate-template.js`| `dist/admin-generate-template.js`| Admin    | Generate form template button      |
 | `src/admin-uninstall.js`        | `dist/admin-uninstall.js`        | Admin    | Plugins screen: on deactivation, asks whether a later deletion deletes the messages |
-| `src/admin-stats.js`            | `dist/admin-stats.js`            | Admin    | Statistics tab: Chart \| Table toggle of each box |
+| `src/admin-stats.js`            | `dist/admin-stats.js`            | Admin    | Statistics page: Chart \| Table toggle of each box |
 | `src/form-handler.js`           | `dist/form-handler.js`           | Frontend | Auto form submit, validation, fetch|
 | `src/attribution.js`            | `dist/attribution.js`            | Frontend | Remembers the landing page of the visit |
 

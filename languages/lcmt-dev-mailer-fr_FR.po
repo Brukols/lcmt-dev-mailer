@@ -1116,10 +1116,6 @@ msgstr "Message reçu"
 msgid "Export CSV"
 msgstr "Exporter en CSV"
 
-#: includes/submissions-page.php:421
-msgid "Received messages sections"
-msgstr "Sections des messages reçus"
-
 #: includes/submissions-page.php:442
 msgid "New"
 msgstr "Nouveau"

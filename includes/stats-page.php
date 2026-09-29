@@ -7,11 +7,13 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Received messages → Statistics tab: where the received messages come from.
+ * Email templates → Statistics: where the received messages come from.
  * Counts include anonymized messages and leave spam out.
  */
 class StatsPage
 {
+    public const PAGE_SLUG = 'lcmt-mailer-stats';
+
     /**
      * The one hue of every mark: WordPress admin blue, over 3:1 on white.
      */
@@ -22,8 +24,16 @@ class StatsPage
      */
     private const PERIODS = ['30' => 30, '90' => 90, '365' => 365, 'all' => 0];
 
+    public static function url(array $args = []): string
+    {
+        return add_query_arg(
+            array_merge(['post_type' => PostType::SLUG, 'page' => self::PAGE_SLUG], $args),
+            admin_url('edit.php')
+        );
+    }
+
     /**
-     * The content of the Statistics tab (SubmissionsPage prints the heading and tabs).
+     * The Statistics screen: heading, period links, tiles and boxes.
      */
     public static function render(): void
     {
@@ -39,12 +49,16 @@ class StatsPage
             'all' => __('Everything', 'lcmt-dev-mailer'),
         ];
 
+        echo '<div class="wrap">';
+        echo '<h1 class="wp-heading-inline">' . esc_html__('Statistics', 'lcmt-dev-mailer') . '</h1>';
+        echo '<hr class="wp-header-end">';
+
         echo '<div class="lcmt-stats">';
 
         echo '<ul class="subsubsub">';
         $links = [];
         foreach ($labels as $key => $label) {
-            $url     = SubmissionsPage::url(['tab' => SubmissionsPage::TAB_STATS, 'period' => $key]);
+            $url     = self::url(['period' => $key]);
             $links[] = '<li><a href="' . esc_url($url) . '"' . ((string) $key === $period ? ' class="current" aria-current="page"' : '') . '>' . esc_html($label) . '</a>';
         }
         echo implode(' | </li>', $links) . '</li></ul><br class="clear">';
@@ -103,6 +117,7 @@ class StatsPage
         <?php
 
         echo '</div>';
+        echo '</div>';
     }
 
     private static function tile(string $label, string $value): void
@@ -111,14 +126,11 @@ class StatsPage
     }
 
     /**
-     * Load the toggle script on the Statistics tab only.
+     * Load the toggle script on the Statistics page only.
      */
     public static function enqueue(string $hook): void
     {
-        if (
-            $hook !== PostType::SLUG . '_page_' . SubmissionsPage::PAGE_SLUG
-            || SubmissionsPage::currentTab() !== SubmissionsPage::TAB_STATS
-        ) {
+        if ($hook !== PostType::SLUG . '_page_' . self::PAGE_SLUG) {
             return;
         }
 

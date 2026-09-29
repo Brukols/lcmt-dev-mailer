@@ -278,7 +278,7 @@ function lcmt_rt_render(array $get): string
 {
     lcmt_sp_admin();
 
-    return lcmt_sp_render(['tab' => 'retention'] + $get);
+    return lcmt_sp_page(SubmissionSettings::class, $get);
 }
 
 lcmt_it('Settings page shows the fields, the advanced details and the purge form', function () {
