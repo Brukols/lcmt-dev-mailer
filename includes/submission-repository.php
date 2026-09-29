@@ -18,6 +18,13 @@ class SubmissionRepository
      */
     private const GROUPABLE = ['form_key', 'channel', 'utm_campaign', 'page_path', 'landing_path', 'referrer_host', 'device'];
 
+    /**
+     * Seconds a row with mail_sent = 0 is left alone by the failure queries:
+     * rows are saved before their email goes out, so a younger one is most
+     * likely still being sent.
+     */
+    public const FAILURE_GRACE = 120;
+
     public static function table(): string
     {
         global $wpdb;
@@ -192,6 +199,7 @@ class SubmissionRepository
             'SELECT id, form_key, created_at, mail_error FROM ' . self::table() . ' WHERE ' . self::unresolvedFailure() . '
              ORDER BY created_at DESC LIMIT %d',
             $since,
+            self::settledBefore(),
             $limit
         ), ARRAY_A) ?: [];
     }
@@ -202,7 +210,8 @@ class SubmissionRepository
 
         return (int) $wpdb->get_var($wpdb->prepare(
             'SELECT COUNT(*) FROM ' . self::table() . ' WHERE ' . self::unresolvedFailure(),
-            $since
+            $since,
+            self::settledBefore()
         ));
     }
 
@@ -353,11 +362,20 @@ class SubmissionRepository
     }
 
     /**
-     * Takes one %s: the date the admin last dismissed the failure banner.
+     * Takes two %s: the date the admin last dismissed the failure banner, then
+     * settledBefore().
      */
     private static function unresolvedFailure(): string
     {
-        return "mail_sent = 0 AND anonymized_at IS NULL AND status NOT IN ('processed', 'spam') AND created_at > %s";
+        return "mail_sent = 0 AND anonymized_at IS NULL AND status NOT IN ('processed', 'spam') AND created_at > %s AND created_at <= %s";
+    }
+
+    /**
+     * The UTC date before which an unsent row is a failure, not a send in progress.
+     */
+    private static function settledBefore(): string
+    {
+        return gmdate('Y-m-d H:i:s', time() - self::FAILURE_GRACE);
     }
 
     private static function hydrate(array $row): array

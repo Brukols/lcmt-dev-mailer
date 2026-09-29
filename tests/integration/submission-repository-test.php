@@ -227,11 +227,34 @@ lcmt_it('unresolved failures exclude sent, handled, spam, anonymized and old row
 });
 
 lcmt_it('unresolvedFailures respects the limit', function () {
-    lcmt_it_insert(['mail_sent' => 0, 'created_at' => '2090-01-02 00:00:00']);
-    lcmt_it_insert(['mail_sent' => 0, 'created_at' => '2090-01-03 00:00:00']);
+    $key = lcmt_it_key();
+    lcmt_it_insert(['form_key' => $key, 'mail_sent' => 0, 'created_at' => '2001-01-02 00:00:00']);
+    lcmt_it_insert(['form_key' => $key, 'mail_sent' => 0, 'created_at' => '2001-01-03 00:00:00']);
 
-    lcmt_assert_count(1, SubmissionRepository::unresolvedFailures(LCMT_IT_FUTURE, 1));
-    lcmt_assert_count(2, SubmissionRepository::unresolvedFailures(LCMT_IT_FUTURE, 10));
+    $mine = static fn(array $rows) => array_filter($rows, static fn(array $row) => $row['form_key'] === $key);
+
+    lcmt_assert_count(1, SubmissionRepository::unresolvedFailures('2001-01-01 00:00:00', 1));
+    lcmt_assert_count(2, $mine(SubmissionRepository::unresolvedFailures('2001-01-01 00:00:00', 1000)));
+});
+
+lcmt_it('unresolved failures leave out emails still being sent (under 2 minutes old)', function () {
+    $key   = lcmt_it_key();
+    $since = gmdate('Y-m-d H:i:s', time() - 3600);
+    $countBefore = SubmissionRepository::countUnresolvedFailures($since);
+
+    lcmt_it_insert(['form_key' => $key, 'mail_sent' => 0, 'created_at' => gmdate('Y-m-d H:i:s', time() - 30)]);
+
+    $mine = array_filter(
+        SubmissionRepository::unresolvedFailures($since, 1000),
+        static fn(array $row) => $row['form_key'] === $key
+    );
+
+    lcmt_assert_count(0, $mine, 'listed');
+    lcmt_assert_same($countBefore, SubmissionRepository::countUnresolvedFailures($since), 'counted');
+
+    lcmt_it_insert(['form_key' => $key, 'mail_sent' => 0, 'created_at' => gmdate('Y-m-d H:i:s', time() - 180)]);
+
+    lcmt_assert_same($countBefore + 1, SubmissionRepository::countUnresolvedFailures($since), 'an older failure counts');
 });
 
 lcmt_it('formKeys lists distinct keys sorted', function () {

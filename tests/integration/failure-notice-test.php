@@ -5,8 +5,9 @@ use LcmtDevMailer\SubmissionsPage;
 
 /**
  * Sets an administrator (or a subscriber) as the current user and a dismissal
- * moment just before the rows a test inserts, so rows already in the local
- * table never count.
+ * moment ten minutes ago, so rows already in the local table never count.
+ * The rows a test inserts are five minutes old by default: failures under two
+ * minutes old are emails still being sent and do not count yet.
  */
 function lcmt_it_failure_setup(bool $admin = true): void
 {
@@ -15,12 +16,16 @@ function lcmt_it_failure_setup(bool $admin = true): void
         : wp_insert_user(['user_login' => 'it-sub-' . uniqid(), 'user_pass' => wp_generate_password(), 'role' => 'subscriber']);
 
     wp_set_current_user($userId);
-    update_option(FailureNotice::OPTION_DISMISSED_AT, gmdate('Y-m-d H:i:s', time() - 60));
+    update_option(FailureNotice::OPTION_DISMISSED_AT, gmdate('Y-m-d H:i:s', time() - 600));
 }
 
 function lcmt_it_failed_row(array $overrides = []): int
 {
-    return lcmt_it_insert($overrides + ['mail_sent' => 0, 'mail_error' => 'SMTP connect() failed.']);
+    return lcmt_it_insert($overrides + [
+        'mail_sent'  => 0,
+        'mail_error' => 'SMTP connect() failed.',
+        'created_at' => gmdate('Y-m-d H:i:s', time() - 300),
+    ]);
 }
 
 function lcmt_it_capture(callable $render): string
@@ -73,8 +78,8 @@ lcmt_it('FailureNotice banner uses the singular for one failure', function () {
 
 lcmt_it('FailureNotice banner shows the latest error escaped', function () {
     lcmt_it_failure_setup();
-    lcmt_it_failed_row(['created_at' => gmdate('Y-m-d H:i:s', time() - 30), 'mail_error' => 'older error']);
-    lcmt_it_failed_row(['created_at' => gmdate('Y-m-d H:i:s', time() - 10), 'mail_error' => 'Boom <b>bold</b>']);
+    lcmt_it_failed_row(['created_at' => gmdate('Y-m-d H:i:s', time() - 400), 'mail_error' => 'older error']);
+    lcmt_it_failed_row(['created_at' => gmdate('Y-m-d H:i:s', time() - 300), 'mail_error' => 'Boom <b>bold</b>']);
 
     $html = lcmt_it_capture([FailureNotice::class, 'banner']);
 
@@ -134,7 +139,7 @@ lcmt_it('FailureNotice widget lists five failures newest first with escaped erro
     lcmt_it_failure_setup();
 
     for ($i = 1; $i <= 6; $i++) {
-        lcmt_it_failed_row(['created_at' => gmdate('Y-m-d H:i:s', time() - 60 + $i), 'mail_error' => "err-{$i} <i>x</i>"]);
+        lcmt_it_failed_row(['created_at' => gmdate('Y-m-d H:i:s', time() - 300 + $i), 'mail_error' => "err-{$i} <i>x</i>"]);
     }
 
     $html = lcmt_it_capture([FailureNotice::class, 'renderWidget']);
@@ -158,7 +163,7 @@ lcmt_it('FailureNotice widget falls back when the error is NULL', function () {
 
 lcmt_it('FailureNotice dismiss hides the banner until a new failure', function () {
     lcmt_it_failure_setup();
-    lcmt_it_failed_row(['created_at' => gmdate('Y-m-d H:i:s', time() - 5)]);
+    lcmt_it_failed_row(['created_at' => gmdate('Y-m-d H:i:s', time() - 400)]);
 
     lcmt_assert_true(lcmt_it_capture([FailureNotice::class, 'banner']) !== '', 'banner before');
 
@@ -166,7 +171,20 @@ lcmt_it('FailureNotice dismiss hides the banner until a new failure', function (
 
     lcmt_assert_same('', lcmt_it_capture([FailureNotice::class, 'banner']), 'banner after dismiss');
 
-    lcmt_it_failed_row(['created_at' => gmdate('Y-m-d H:i:s', time() + 5)]);
+    // A failure only counts once two minutes old, so move the dismissal back
+    // in time rather than wait: a failure after it must bring the banner back.
+    update_option(FailureNotice::OPTION_DISMISSED_AT, gmdate('Y-m-d H:i:s', time() - 350));
+    lcmt_assert_same('', lcmt_it_capture([FailureNotice::class, 'banner']), 'still hidden before the new failure');
+
+    lcmt_it_failed_row(['created_at' => gmdate('Y-m-d H:i:s', time() - 300)]);
 
     lcmt_assert_true(strpos(lcmt_it_capture([FailureNotice::class, 'banner']), '1 form message could not') !== false, 'banner back with 1');
+});
+
+lcmt_it('FailureNotice banner waits two minutes before counting a failure', function () {
+    lcmt_it_failure_setup();
+    lcmt_it_failed_row(['created_at' => gmdate('Y-m-d H:i:s', time() - 30)]);
+
+    lcmt_assert_same('', lcmt_it_capture([FailureNotice::class, 'banner']), 'in-flight send');
+    lcmt_assert_same([], lcmt_it_dashboard_widgets(), 'no widget');
 });
