@@ -290,6 +290,10 @@ msgid "Email"
 msgstr "E-mail"
 
 #: includes/channel-classifier.php:85
+msgid "AI assistants"
+msgstr "Assistants IA"
+
+#: includes/channel-classifier.php:85
 msgid "Social networks"
 msgstr "Réseaux sociaux"
 

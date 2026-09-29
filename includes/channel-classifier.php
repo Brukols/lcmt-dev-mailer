@@ -10,18 +10,36 @@ if (!defined('ABSPATH')) {
  * Sorts a submission into the channel that brought the visitor.
  *
  * Paid signals win over everything (an ad click that went through a search
- * page is still an ad), then explicit campaign mediums, then the referrer.
+ * page is still an ad), then explicit campaign mediums, then AI assistants, then the referrer.
  */
 class ChannelClassifier
 {
     public const CHANNELS = [
-        'google_ads', 'paid_social', 'paid_other', 'email',
+        'google_ads', 'paid_social', 'paid_other', 'email', 'ai_assistant',
         'social', 'organic_search', 'campaign', 'referral', 'direct',
     ];
 
     private const SEARCH_ENGINES = [
         'google', 'bing', 'yahoo', 'duckduckgo', 'qwant', 'ecosia',
         'yandex', 'baidu', 'startpage', 'lilo', 'search.brave.com',
+    ];
+
+    /**
+     * Dotted names: the host or its subdomains ("box.ai" is not "x.ai").
+     */
+    private const AI_HOSTS = [
+        'claude.ai', 'chatgpt.com', 'chat.openai.com', 'openai.com', 'perplexity.ai',
+        'gemini.google.com', 'bard.google.com', 'copilot.microsoft.com', 'copilot.cloud.microsoft',
+        'chat.mistral.ai', 'mistral.ai', 'deepseek.com', 'chat.deepseek.com', 'you.com',
+        'meta.ai', 'grok.com', 'x.ai',
+    ];
+
+    /**
+     * utm_source values (already lowercased), matched exactly.
+     */
+    private const AI_SOURCES = [
+        'chatgpt.com', 'chatgpt', 'openai', 'claude', 'claude.ai', 'perplexity',
+        'perplexity.ai', 'gemini', 'copilot', 'mistral', 'deepseek',
     ];
 
     private const SOCIAL_NETWORKS = [
@@ -58,6 +76,11 @@ class ChannelClassifier
             return 'email';
         }
 
+        // Before social and search: gemini.google.com would otherwise count as Google search.
+        if (in_array($source, self::AI_SOURCES, true) || self::matches($host, self::AI_HOSTS)) {
+            return 'ai_assistant';
+        }
+
         // fbclid is added to every outgoing Facebook link, ads or not.
         if ($medium === 'social' || $click === 'fbclid'
             || self::matches($source, self::SOCIAL_NETWORKS) || self::matches($host, self::SOCIAL_NETWORKS)) {
@@ -82,6 +105,7 @@ class ChannelClassifier
             'paid_social'    => __('Paid social', 'lcmt-dev-mailer'),
             'paid_other'     => __('Other ads', 'lcmt-dev-mailer'),
             'email'          => __('Email', 'lcmt-dev-mailer'),
+            'ai_assistant'   => __('AI assistants', 'lcmt-dev-mailer'),
             'social'         => __('Social networks', 'lcmt-dev-mailer'),
             'organic_search' => __('Organic search', 'lcmt-dev-mailer'),
             'campaign'       => __('Other campaign', 'lcmt-dev-mailer'),
