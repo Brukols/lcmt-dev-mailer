@@ -10,6 +10,8 @@
 
 use LcmtDevMailer\SubmissionRepository;
 
+require_once __DIR__ . '/helpers.php';
+
 $GLOBALS['lcmt_it_results'] = [];
 
 function lcmt_it(string $name, callable $test): void

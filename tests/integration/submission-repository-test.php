@@ -5,16 +5,6 @@ use LcmtDevMailer\SubmissionRepository;
 // Stats tests use far-future dates so rows already on the site never count.
 const LCMT_IT_FUTURE = '2090-01-01 00:00:00';
 
-function lcmt_it_key(): string
-{
-    return 'it-' . uniqid();
-}
-
-function lcmt_it_ids(array $rows): array
-{
-    return array_map(static fn(array $row) => (int) $row['id'], $rows);
-}
-
 lcmt_it('insert and find round trip decodes fields', function () {
     $fields = ['name' => 'Élodie', 'site' => 'https://example.com/a/b'];
     $id     = lcmt_it_insert(['fields' => wp_json_encode($fields, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
