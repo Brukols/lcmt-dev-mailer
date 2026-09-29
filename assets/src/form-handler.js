@@ -222,6 +222,12 @@ import { formContext } from './lib/attribution';
       }
     }
 
+    // The hidden ALTCHA widget keeps a required checkbox that its reset
+    // unchecks after each answer: left to the browser, that invisible field
+    // blocks every later submit before this handler runs. Required fields
+    // are checked here and every value again on the server.
+    form.noValidate = true;
+
     // Time spent filling the form, from the first field the visitor enters.
     var startedAt = null;
 
