@@ -71,12 +71,43 @@ class Retention
     }
 
     /**
-     * @return array{anonymized: int, deleted: int}
+     * Days a message stays in the trash before it is deleted for good:
+     * WordPress's EMPTY_TRASH_DAYS (30 unless wp-config.php says otherwise),
+     * which the lcmt_mailer_trash_days filter can change. 0 means no trash:
+     * deleting a message deletes it at once.
+     */
+    public static function trashDays(): int
+    {
+        $default = defined('EMPTY_TRASH_DAYS') ? (int) EMPTY_TRASH_DAYS : 30;
+
+        /**
+         * Filter the number of days a received message stays in the trash.
+         *
+         * @param int $days 0 disables the trash.
+         */
+        return max(0, (int) apply_filters('lcmt_mailer_trash_days', $default));
+    }
+
+    public static function trashEnabled(): bool
+    {
+        return self::trashDays() > 0;
+    }
+
+    /**
+     * @return array{anonymized: int, deleted: int, trash: int} Rows anonymized, rows deleted by
+     *         the retention period, rows deleted after their time in the trash.
      */
     public static function run(): array
     {
-        $now    = time();
-        $done   = ['anonymized' => 0, 'deleted' => 0];
+        $now         = time();
+        $done        = ['anonymized' => 0, 'deleted' => 0, 'trash' => 0];
+
+        // With the trash off (0 days), rows trashed before it was turned off are
+        // due at once, like WordPress does: they are still personal data.
+        $trashCutoff = self::cutoff(self::trashDays(), $now) ?? gmdate('Y-m-d H:i:s', $now + 1);
+
+        $done['trash'] += self::drain(static fn() => SubmissionRepository::deleteTrashedBefore($trashCutoff, self::BATCH));
+
         $cutoff = (string) self::cutoff(SubmissionSettings::retentionDays(), $now);
 
         if (SubmissionSettings::retentionAction() === 'delete') {

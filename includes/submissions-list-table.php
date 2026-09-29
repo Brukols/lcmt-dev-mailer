@@ -28,7 +28,7 @@ class SubmissionsListTable extends \WP_List_Table
 
     public function get_columns(): array
     {
-        return [
+        $columns = [
             'cb'            => '<input type="checkbox" />',
             'summary'       => __('Sender', 'lcmt-dev-mailer'),
             'status'        => __('Status', 'lcmt-dev-mailer'),
@@ -39,6 +39,17 @@ class SubmissionsListTable extends \WP_List_Table
             'mail'          => __('Email', 'lcmt-dev-mailer'),
             'created_at'    => __('Date', 'lcmt-dev-mailer'),
         ];
+
+        if (SubmissionsPage::filtersFromRequest()['trash']) {
+            $columns['trashed_at'] = __('Deletion', 'lcmt-dev-mailer');
+        }
+
+        return $columns;
+    }
+
+    protected function column_trashed_at(array $item): string
+    {
+        return $item['trashed_at'] === null ? '' : SubmissionsPage::deletionLabel($item);
     }
 
     public function prepare_items(): void
@@ -65,11 +76,16 @@ class SubmissionsListTable extends \WP_List_Table
         $current = SubmissionsPage::filtersFromRequest();
 
         $views = [
-            'all'    => [__('All', 'lcmt-dev-mailer'), [], $current['status'] === '' && !$current['failed']],
-            'new'    => [__('Unread', 'lcmt-dev-mailer'), ['status' => 'new'], $current['status'] === 'new'],
+            'all'    => [__('All', 'lcmt-dev-mailer'), [], $current['status'] === '' && !$current['failed'] && !$current['trash']],
+            'new'    => [__('Unread', 'lcmt-dev-mailer'), ['status' => 'new'], $current['status'] === 'new' && !$current['trash']],
             'failed' => [__('Email failed', 'lcmt-dev-mailer'), ['failed' => 1], $current['failed']],
-            'spam'   => [__('Spam', 'lcmt-dev-mailer'), ['status' => 'spam'], $current['status'] === 'spam'],
+            'spam'   => [__('Spam', 'lcmt-dev-mailer'), ['status' => 'spam'], $current['status'] === 'spam' && !$current['trash']],
         ];
+
+        // Like WordPress: only once something is in it, and last.
+        if (Retention::trashEnabled() && SubmissionRepository::countTrashed()) {
+            $views['trash'] = [__('Trash', 'lcmt-dev-mailer'), ['status' => 'trash'], $current['trash']];
+        }
 
         $links = [];
 
@@ -79,7 +95,7 @@ class SubmissionsListTable extends \WP_List_Table
                 esc_url(SubmissionsPage::url($args)),
                 $active ? ' class="current" aria-current="page"' : '',
                 esc_html($label),
-                number_format_i18n(SubmissionRepository::count($args))
+                number_format_i18n($key === 'trash' ? SubmissionRepository::countTrashed() : SubmissionRepository::count($args))
             );
         }
 
@@ -88,11 +104,18 @@ class SubmissionsListTable extends \WP_List_Table
 
     protected function get_bulk_actions(): array
     {
+        if (SubmissionsPage::filtersFromRequest()['trash']) {
+            return [
+                'restore' => __('Restore', 'lcmt-dev-mailer'),
+                'delete'  => __('Delete permanently', 'lcmt-dev-mailer'),
+            ];
+        }
+
         return [
             'read'      => __('Mark as read', 'lcmt-dev-mailer'),
             'processed' => __('Mark as processed', 'lcmt-dev-mailer'),
             'spam'      => __('Mark as spam', 'lcmt-dev-mailer'),
-            'delete'    => __('Delete', 'lcmt-dev-mailer'),
+            Retention::trashEnabled() ? 'trash' : 'delete' => Retention::trashEnabled() ? __('Move to Trash', 'lcmt-dev-mailer') : __('Delete', 'lcmt-dev-mailer'),
         ];
     }
 
@@ -120,6 +143,25 @@ class SubmissionsListTable extends \WP_List_Table
 
         submit_button(__('Filter', 'lcmt-dev-mailer'), '', 'filter_action', false);
 
+        if ($filters['trash']) {
+            submit_button(
+                __('Empty Trash', 'lcmt-dev-mailer'),
+                'apply',
+                'empty_trash',
+                false,
+                ['value' => '1', 'onclick' => 'return confirm(' . wp_json_encode(__('Delete every message in the trash for good?', 'lcmt-dev-mailer')) . ');']
+            );
+
+            // Beside the button rather than in a notice box, which would push the list down.
+            $days = Retention::trashDays();
+
+            echo '<span class="lcmt-trash-info"><span class="dashicons dashicons-clock" aria-hidden="true"></span> ' . esc_html(sprintf(
+                /* translators: %s: number of days */
+                _n('Messages in the trash are deleted automatically after %s day.', 'Messages in the trash are deleted automatically after %s days.', $days, 'lcmt-dev-mailer'),
+                number_format_i18n($days)
+            )) . '</span>';
+        }
+
         echo '</div>';
     }
 
@@ -140,10 +182,27 @@ class SubmissionsListTable extends \WP_List_Table
             $text = '<strong>' . $text . '</strong>';
         }
 
-        $actions = [
-            'view'   => '<a href="' . esc_url(SubmissionsPage::url(['submission' => $item['id']])) . '">' . esc_html__('View', 'lcmt-dev-mailer') . '</a>',
-            'delete' => '<a class="submitdelete" href="' . esc_url(SubmissionsPage::singleActionUrl((int) $item['id'], 'delete')) . '" onclick="return confirm(' . esc_attr(wp_json_encode(__('Delete this message for good?', 'lcmt-dev-mailer'))) . ');">' . esc_html__('Delete', 'lcmt-dev-mailer') . '</a>',
-        ];
+        $view    = '<a href="' . esc_url(SubmissionsPage::url(['submission' => $item['id']])) . '">' . esc_html__('View', 'lcmt-dev-mailer') . '</a>';
+        $confirm = ' onclick="return confirm(' . esc_attr(wp_json_encode(__('Delete this message for good?', 'lcmt-dev-mailer'))) . ');"';
+        $url     = static fn(string $do) => esc_url(SubmissionsPage::singleActionUrl((int) $item['id'], $do));
+
+        if ($item['trashed_at'] !== null) {
+            $actions = [
+                'view'    => $view,
+                'restore' => '<a href="' . $url('restore') . '">' . esc_html__('Restore', 'lcmt-dev-mailer') . '</a>',
+                'delete'  => '<a class="submitdelete" href="' . $url('delete') . '"' . $confirm . '>' . esc_html__('Delete permanently', 'lcmt-dev-mailer') . '</a>',
+            ];
+        } elseif (Retention::trashEnabled()) {
+            $actions = [
+                'view'  => $view,
+                'trash' => '<a class="submitdelete" href="' . $url('trash') . '">' . esc_html__('Trash', 'lcmt-dev-mailer') . '</a>',
+            ];
+        } else {
+            $actions = [
+                'view'   => $view,
+                'delete' => '<a class="submitdelete" href="' . $url('delete') . '"' . $confirm . '>' . esc_html__('Delete', 'lcmt-dev-mailer') . '</a>',
+            ];
+        }
 
         return '<a href="' . esc_url(SubmissionsPage::url(['submission' => $item['id']])) . '">' . $text . '</a>' . $this->row_actions($actions);
     }

@@ -92,7 +92,7 @@ class SubmissionsPage
     }
 
     /**
-     * @return array{form_key: string, status: string, failed: bool, channel: string, search: string}
+     * @return array{form_key: string, status: string, failed: bool, channel: string, search: string, trash: bool}
      */
     public static function filtersFromRequest(): array
     {
@@ -105,6 +105,8 @@ class SubmissionsPage
             'failed'   => !empty($_GET['failed']),
             'channel'  => in_array($channel, ChannelClassifier::CHANNELS, true) ? $channel : '',
             'search'   => sanitize_text_field(wp_unslash($_GET['s'] ?? '')),
+            // The trash is a view like the statuses, as status=trash, and only exists while the trash is on.
+            'trash'    => sanitize_key($_GET['status'] ?? '') === 'trash' && Retention::trashEnabled(),
         ];
     }
 
@@ -119,7 +121,7 @@ class SubmissionsPage
 
         $args = array_filter([
             'form_key' => $filters['form_key'],
-            'status'   => $filters['status'],
+            'status'   => $filters['trash'] ? 'trash' : $filters['status'],
             'channel'  => $filters['channel'],
             'failed'   => $filters['failed'] ? 1 : 0,
             's'        => $filters['search'],
@@ -170,15 +172,48 @@ class SubmissionsPage
 
         $ids = array_map('absint', (array) ($_GET['ids'] ?? []));
 
-        if ($action === '-1' || !$ids) {
+        $emptying = !empty($_GET['empty_trash']);
+
+        if (!$emptying && ($action === '-1' || !$ids)) {
             return;
+        }
+
+        if (!current_user_can(self::capability())) {
+            wp_die(esc_html__('You are not allowed to do this.', 'lcmt-dev-mailer'), 403);
         }
 
         check_admin_referer('bulk-submissions');
 
-        $notice = self::apply($action, $ids);
+        if ($emptying) {
+            $count = SubmissionRepository::emptyTrash();
 
-        wp_safe_redirect(self::url(self::listQueryArgs() + ['notice' => $notice]));
+            self::redirectToList(['notice' => 'emptied', 'n' => $count]);
+        }
+
+        [$notice, $count] = self::applyCounted($action, $ids);
+
+        $args = ['notice' => $notice, 'n' => $count];
+
+        if ($notice === 'trashed' && $count) {
+            $args['ids'] = $ids;
+        }
+
+        self::redirectToList($args);
+    }
+
+    /**
+     * Back to the list being shown, or to the full list when the trash it was
+     * showing is now empty (its view link is gone).
+     */
+    private static function redirectToList(array $args): void
+    {
+        $base = self::listQueryArgs();
+
+        if (($base['status'] ?? '') === 'trash' && !SubmissionRepository::countTrashed()) {
+            unset($base['status'], $base['paged']);
+        }
+
+        wp_safe_redirect(self::url($base + $args));
         exit;
     }
 
@@ -196,10 +231,22 @@ class SubmissionsPage
 
         check_admin_referer('lcmt_submission_' . $id);
 
-        $notice = self::apply($do, [$id]);
+        $row = SubmissionRepository::find($id);
 
-        // Back to the list after "unread" too: reopening the message would mark it read again.
-        $args = in_array($do, ['delete', 'new'], true) ? ['notice' => $notice] : ['submission' => $id, 'notice' => $notice];
+        [$notice, $count] = self::applyCounted($do, [$id]);
+        $args             = ['notice' => $notice, 'n' => $count];
+
+        if ($notice === 'trashed' && $count) {
+            $args['ids'] = [$id];
+        }
+
+        // Back to the list after these: reopening the message would mark it read again (unread) or take it out of the trash (restore).
+        if (!in_array($do, ['delete', 'new', 'trash', 'restore'], true)) {
+            $args['submission'] = $id;
+        } elseif ($row && $row['trashed_at'] !== null && SubmissionRepository::countTrashed()) {
+            // Started from the trash: stay in it while it has other messages.
+            $args['status'] = 'trash';
+        }
 
         wp_safe_redirect(self::url($args));
         exit;
@@ -270,21 +317,45 @@ class SubmissionsPage
      */
     public static function apply(string $do, array $ids): string
     {
+        return self::applyCounted($do, $ids)[0];
+    }
+
+    /**
+     * Like apply(), with the number of messages the action really changed.
+     *
+     * @param list<int> $ids
+     * @return array{0: string, 1: int} Notice code, then rows changed (1 or 0 for a resend).
+     */
+    public static function applyCounted(string $do, array $ids): array
+    {
         if (in_array($do, SubmissionRepository::STATUSES, true)) {
             SubmissionRepository::setStatus($ids, $do);
-            return 'updated';
+            return ['updated', count($ids)];
+        }
+
+        if ($do === 'trash') {
+            // Without a trash, deleting is final, as it was before the trash existed.
+            if (!Retention::trashEnabled()) {
+                return ['deleted', SubmissionRepository::delete($ids)];
+            }
+
+            return ['trashed', SubmissionRepository::trash($ids)];
+        }
+
+        if ($do === 'restore') {
+            return ['restored', SubmissionRepository::restore($ids)];
         }
 
         if ($do === 'delete') {
-            SubmissionRepository::delete($ids);
-            return 'deleted';
+            return ['deleted', SubmissionRepository::delete($ids)];
         }
 
         if ($do === 'resend') {
             $row = SubmissionRepository::find((int) ($ids[0] ?? 0));
 
-            if (!$row || $row['fields'] === null) {
-                return 'resend_failed';
+            // A message in the trash is restored first.
+            if (!$row || $row['fields'] === null || $row['trashed_at'] !== null) {
+                return ['resend_failed', 0];
             }
 
             // The built-in user placeholders would name the admin resending
@@ -296,10 +367,10 @@ class SubmissionsPage
 
             $sent = SubmissionRecorder::send((int) $row['id'], (string) $row['form_key'], $placeholders);
 
-            return $sent ? 'resent' : 'resend_failed';
+            return [$sent ? 'resent' : 'resend_failed', 1];
         }
 
-        return '';
+        return ['', 0];
     }
 
     /**
@@ -343,6 +414,17 @@ class SubmissionsPage
         }
 
         return get_date_from_gmt($created, trim($dateFormat . ' ' . $timeFormat));
+    }
+
+    /**
+     * The link of the "Undo" after moving messages to the trash: the bulk
+     * restore, with its nonce.
+     *
+     * @param list<int> $ids
+     */
+    public static function undoUrl(array $ids): string
+    {
+        return wp_nonce_url(self::url(['action' => 'restore', 'ids' => array_values($ids)]), 'bulk-submissions');
     }
 
     public static function singleActionUrl(int $id, string $do): string
@@ -403,6 +485,57 @@ class SubmissionsPage
         return '<span class="lcmt-badge lcmt-badge--' . esc_attr($status) . '">' . esc_html($labels[$status] ?? $status) . '</span>';
     }
 
+    /**
+     * When a trashed message is due for deletion: whole days left (0 once due,
+     * the next daily run deletes it) and the due time.
+     *
+     * @return array{days: int, timestamp: int}
+     */
+    public static function deletionDue(array $row, ?int $now = null): array
+    {
+        $now ??= time();
+        $due   = (int) strtotime($row['trashed_at'] . ' UTC') + Retention::trashDays() * DAY_IN_SECONDS;
+
+        return ['days' => max(0, (int) ceil(($due - $now) / DAY_IN_SECONDS)), 'timestamp' => $due];
+    }
+
+    /**
+     * "In 3 days" for the trash list, or "in 3 days" inside a sentence.
+     */
+    private static function deletionWords(int $days, bool $inSentence): string
+    {
+        if ($days === 0) {
+            return $inSentence ? __('today', 'lcmt-dev-mailer') : __('Today', 'lcmt-dev-mailer');
+        }
+
+        if ($days === 1) {
+            return $inSentence ? __('tomorrow', 'lcmt-dev-mailer') : __('Tomorrow', 'lcmt-dev-mailer');
+        }
+
+        return sprintf(
+            $inSentence
+                /* translators: %s: number of days */
+                ? _n('in %s day', 'in %s days', $days, 'lcmt-dev-mailer')
+                /* translators: %s: number of days */
+                : _n('In %s day', 'In %s days', $days, 'lcmt-dev-mailer'),
+            number_format_i18n($days)
+        );
+    }
+
+    /**
+     * The scheduled deletion of a trashed message, in red once it is 3 days away or less.
+     */
+    public static function deletionLabel(array $row): string
+    {
+        $due   = self::deletionDue($row);
+        $title = esc_attr(wp_date(get_option('date_format'), $due['timestamp']));
+        $words = esc_html(self::deletionWords($due['days'], false));
+
+        return $due['days'] <= 3
+            ? '<span class="lcmt-badge lcmt-badge--expiring" title="' . $title . '">' . $words . '</span>'
+            : '<span title="' . $title . '">' . $words . '</span>';
+    }
+
     public static function mailBadge(bool $sent): string
     {
         return $sent
@@ -425,26 +558,61 @@ class SubmissionsPage
             .lcmt-badge--spam { background: #fde6cc; color: #7a3a00; }
             .lcmt-badge--sent { background: #d3f0da; color: #0b4f1e; }
             .lcmt-badge--unsent { background: #fbdcdc; color: #8a1a1a; }
+            .lcmt-badge--expiring { background: #fbdcdc; color: #8a1a1a; }
+            .lcmt-trash-info { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; line-height: 30px; color: #50575e; }
+            .lcmt-trash-info .dashicons { font-size: 16px; width: 16px; height: 16px; }
         </style>
         <?php
     }
 
     private static function renderNotice(): void
     {
+        $count = absint($_GET['n'] ?? 1);
+
         $messages = [
             'updated'       => [__('Messages updated.', 'lcmt-dev-mailer'), 'success'],
-            'deleted'       => [__('Messages deleted.', 'lcmt-dev-mailer'), 'success'],
+            'trashed'       => [sprintf(
+                /* translators: %s: number of messages */
+                _n('%s message moved to the Trash.', '%s messages moved to the Trash.', $count, 'lcmt-dev-mailer'),
+                number_format_i18n($count)
+            ), 'success'],
+            'restored'      => [sprintf(
+                /* translators: %s: number of messages */
+                _n('%s message restored from the Trash.', '%s messages restored from the Trash.', $count, 'lcmt-dev-mailer'),
+                number_format_i18n($count)
+            ), 'success'],
+            'deleted'       => [sprintf(
+                /* translators: %s: number of messages */
+                _n('%s message permanently deleted.', '%s messages permanently deleted.', $count, 'lcmt-dev-mailer'),
+                number_format_i18n($count)
+            ), 'success'],
             'resent'        => [__('Email sent.', 'lcmt-dev-mailer'), 'success'],
             'resend_failed' => [__('The email could not be sent again. The reason is shown below.', 'lcmt-dev-mailer'), 'error'],
         ];
 
         $code = sanitize_key($_GET['notice'] ?? '');
 
+        // Emptying the trash reads like a permanent deletion.
+        $messages['emptied'] = $messages['deleted'];
+
+        // Nothing changed (already restored, an empty trash): nothing to report.
+        if (isset($messages[$code]) && $count === 0 && in_array($code, ['trashed', 'restored', 'deleted', 'emptied'], true)) {
+            return;
+        }
+
         if (isset($messages[$code])) {
+            $undo = '';
+            $ids  = array_filter(array_map('absint', (array) ($_GET['ids'] ?? [])));
+
+            if ($code === 'trashed' && $ids) {
+                $undo = ' <a href="' . esc_url(self::undoUrl($ids)) . '">' . esc_html__('Undo', 'lcmt-dev-mailer') . '</a>';
+            }
+
             printf(
-                '<div class="notice notice-%s is-dismissible"><p>%s</p></div>',
+                '<div class="notice notice-%s is-dismissible"><p>%s%s</p></div>',
                 esc_attr($messages[$code][1]),
-                esc_html($messages[$code][0])
+                esc_html($messages[$code][0]),
+                $undo
             );
         }
     }
@@ -483,6 +651,20 @@ class SubmissionsPage
         }
 
         $format = get_option('date_format') . ' ' . get_option('time_format');
+
+        if ($row['trashed_at'] !== null) {
+            $due = self::deletionDue($row);
+
+            echo '<div class="notice notice-warning inline"><p>' . esc_html__('This message is in the trash.', 'lcmt-dev-mailer') . ' ' . esc_html(sprintf(
+                /* translators: 1: "in 3 days", "tomorrow" or "today", 2: date */
+                __('It will be deleted for good %1$s (%2$s).', 'lcmt-dev-mailer'),
+                self::deletionWords($due['days'], true),
+                wp_date(get_option('date_format'), $due['timestamp'])
+            )) . '</p><p>';
+            echo '<a class="button" href="' . esc_url(self::singleActionUrl($id, 'restore')) . '">' . esc_html__('Restore', 'lcmt-dev-mailer') . '</a> ';
+            echo '<a class="button button-link-delete" href="' . esc_url(self::singleActionUrl($id, 'delete')) . '" onclick="return confirm(' . esc_attr(wp_json_encode(__('Delete this message for good?', 'lcmt-dev-mailer'))) . ');">' . esc_html__('Delete permanently', 'lcmt-dev-mailer') . '</a>';
+            echo '</p></div>';
+        }
 
         // ── What the visitor typed ──
         echo '<h2>' . esc_html__('Message', 'lcmt-dev-mailer') . '</h2>';
@@ -529,7 +711,8 @@ class SubmissionsPage
         // ── Actions ──
         $buttons = [];
 
-        if ((int) $row['mail_sent'] !== 1 && $row['fields'] !== null) {
+        // A message in the trash is not sent again: restore it first.
+        if ((int) $row['mail_sent'] !== 1 && $row['fields'] !== null && $row['trashed_at'] === null) {
             $buttons['resend'] = __('Send the email again', 'lcmt-dev-mailer');
         }
 
@@ -553,7 +736,14 @@ class SubmissionsPage
             echo '<a class="button" href="' . esc_url(self::singleActionUrl($id, $do)) . '">' . esc_html($label) . '</a>';
         }
 
-        echo '<a class="button button-link-delete" href="' . esc_url(self::singleActionUrl($id, 'delete')) . '" onclick="return confirm(' . esc_attr(wp_json_encode(__('Delete this message for good?', 'lcmt-dev-mailer'))) . ');">' . esc_html__('Delete', 'lcmt-dev-mailer') . '</a>';
+        if ($row['trashed_at'] === null) {
+            if (Retention::trashEnabled()) {
+                echo '<a class="button button-link-delete" href="' . esc_url(self::singleActionUrl($id, 'trash')) . '">' . esc_html__('Move to Trash', 'lcmt-dev-mailer') . '</a>';
+            } else {
+                echo '<a class="button button-link-delete" href="' . esc_url(self::singleActionUrl($id, 'delete')) . '" onclick="return confirm(' . esc_attr(wp_json_encode(__('Delete this message for good?', 'lcmt-dev-mailer'))) . ');">' . esc_html__('Delete', 'lcmt-dev-mailer') . '</a>';
+            }
+        }
+
         echo '</p>';
     }
 }

@@ -56,7 +56,7 @@ class SubmissionRepository
     }
 
     /**
-     * @param array{form_key?: string, status?: string, failed?: bool, channel?: string, search?: string} $filters
+     * @param array{form_key?: string, status?: string, failed?: bool, channel?: string, search?: string, trash?: bool} $filters
      */
     public static function search(array $filters, int $perPage = 0, int $page = 1): array
     {
@@ -102,15 +102,90 @@ class SubmissionRepository
     }
 
     /**
+     * Move rows to the trash. Their status is left alone, so restoring brings
+     * a message back as it was. A row already in the trash keeps its date, so
+     * it is not given a new period.
+     *
      * @param list<int> $ids
+     * @return int Rows moved.
      */
-    public static function delete(array $ids): void
+    public static function trash(array $ids): int
     {
         global $wpdb;
 
-        if ($ids) {
-            $wpdb->query('DELETE FROM ' . self::table() . ' WHERE id IN (' . self::idList($ids) . ')');
+        if (!$ids) {
+            return 0;
         }
+
+        return (int) $wpdb->query(self::prepare(
+            'UPDATE ' . self::table() . ' SET trashed_at = %s WHERE trashed_at IS NULL AND id IN (' . self::idList($ids) . ')',
+            [current_time('mysql', true)]
+        ));
+    }
+
+    /**
+     * @param list<int> $ids
+     * @return int Rows restored.
+     */
+    public static function restore(array $ids): int
+    {
+        global $wpdb;
+
+        if (!$ids) {
+            return 0;
+        }
+
+        return (int) $wpdb->query(
+            'UPDATE ' . self::table() . ' SET trashed_at = NULL WHERE trashed_at IS NOT NULL AND id IN (' . self::idList($ids) . ')'
+        );
+    }
+
+    /**
+     * Delete every row in the trash.
+     *
+     * @return int Rows deleted.
+     */
+    public static function emptyTrash(): int
+    {
+        global $wpdb;
+
+        return (int) $wpdb->query('DELETE FROM ' . self::table() . ' WHERE trashed_at IS NOT NULL');
+    }
+
+    /**
+     * Delete up to $limit rows trashed before $cutoff.
+     *
+     * @return int Rows deleted.
+     */
+    public static function deleteTrashedBefore(string $cutoff, int $limit): int
+    {
+        global $wpdb;
+
+        return (int) $wpdb->query($wpdb->prepare(
+            'DELETE FROM ' . self::table() . ' WHERE trashed_at IS NOT NULL AND trashed_at < %s LIMIT %d',
+            $cutoff,
+            $limit
+        ));
+    }
+
+    public static function countTrashed(): int
+    {
+        return self::count(['trash' => true]);
+    }
+
+    /**
+     * @param list<int> $ids
+     * @return int Rows deleted.
+     */
+    public static function delete(array $ids): int
+    {
+        global $wpdb;
+
+        if (!$ids) {
+            return 0;
+        }
+
+        return (int) $wpdb->query('DELETE FROM ' . self::table() . ' WHERE id IN (' . self::idList($ids) . ')');
     }
 
     /**
@@ -238,7 +313,7 @@ class SubmissionRepository
 
         $rows = $wpdb->get_results($wpdb->prepare(
             "SELECT {$column} AS label, COUNT(*) AS total FROM " . self::table() . "
-             WHERE created_at >= %s AND status <> 'spam'
+             WHERE created_at >= %s AND status <> 'spam' AND trashed_at IS NULL
              GROUP BY {$column} ORDER BY total DESC LIMIT %d",
             $since,
             $limit
@@ -256,7 +331,7 @@ class SubmissionRepository
 
         $rows = $wpdb->get_results($wpdb->prepare(
             "SELECT DATE_FORMAT(created_at, '%%Y-%%m') AS label, COUNT(*) AS total FROM " . self::table() . "
-             WHERE created_at >= %s AND status <> 'spam'
+             WHERE created_at >= %s AND status <> 'spam' AND trashed_at IS NULL
              GROUP BY label ORDER BY label",
             $since
         ), ARRAY_A) ?: [];
@@ -273,7 +348,7 @@ class SubmissionRepository
 
         $row = $wpdb->get_row($wpdb->prepare(
             "SELECT COUNT(*) AS total, SUM(mail_sent = 0) AS failed, AVG(form_seconds) AS avg_seconds
-             FROM " . self::table() . " WHERE created_at >= %s AND status <> 'spam'",
+             FROM " . self::table() . " WHERE created_at >= %s AND status <> 'spam' AND trashed_at IS NULL",
             $since
         ), ARRAY_A) ?: [];
 
@@ -298,10 +373,13 @@ class SubmissionRepository
 
         $status = (string) ($filters['status'] ?? '');
 
+        // The trash is its own view: everything in it, spam included. Anywhere else it is out of sight.
+        $clauses[] = !empty($filters['trash']) ? 'trashed_at IS NOT NULL' : 'trashed_at IS NULL';
+
         if (in_array($status, self::STATUSES, true)) {
             $clauses[] = 'status = %s';
             $args[]    = $status;
-        } else {
+        } elseif (empty($filters['trash'])) {
             // Spam stays out of sight unless asked for, like comments.
             $clauses[] = "status <> 'spam'";
         }
@@ -367,7 +445,7 @@ class SubmissionRepository
      */
     private static function unresolvedFailure(): string
     {
-        return "mail_sent = 0 AND anonymized_at IS NULL AND status NOT IN ('processed', 'spam') AND created_at > %s AND created_at <= %s";
+        return "mail_sent = 0 AND trashed_at IS NULL AND anonymized_at IS NULL AND status NOT IN ('processed', 'spam') AND created_at > %s AND created_at <= %s";
     }
 
     /**

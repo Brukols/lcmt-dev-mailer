@@ -238,12 +238,17 @@ lcmt_it('SubmissionsPage handleLoad still marks an opened message read', functio
     lcmt_assert_same('read', SubmissionRepository::find($id)['status']);
 });
 
-lcmt_it('SubmissionsPage row action Delete asks for confirmation', function () {
+lcmt_it('SubmissionsPage row action Delete asks for confirmation when the trash is disabled', function () {
     lcmt_sp_admin();
+
+    $disable = static fn() => 0;
+    add_filter('lcmt_mailer_trash_days', $disable);
 
     lcmt_it_insert(['form_key' => 'confirm-form', 'fields' => lcmt_sp_fields(['name' => ['text', 'Ann']])]);
 
     $html = lcmt_sp_render(['form_key' => 'confirm-form']);
+
+    remove_filter('lcmt_mailer_trash_days', $disable);
 
     lcmt_assert_true(strpos($html, 'submitdelete') !== false, 'delete link');
     lcmt_assert_true(strpos($html, 'onclick="return confirm(') !== false, 'confirm');

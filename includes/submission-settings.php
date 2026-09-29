@@ -88,6 +88,7 @@ class SubmissionSettings
         wp_safe_redirect(self::url([
             'anonymized' => $done['anonymized'],
             'deleted'    => $done['deleted'],
+            'trash'      => $done['trash'],
         ]));
         exit;
     }
@@ -132,6 +133,14 @@ class SubmissionSettings
                         absint($_GET['anonymized']),
                         absint($_GET['deleted'] ?? 0)
                     );
+                    if (absint($_GET['trash'] ?? 0)) {
+                        echo ' ';
+                        printf(
+                            /* translators: %d: number of messages deleted from the trash */
+                            esc_html(_n('%d trashed message deleted.', '%d trashed messages deleted.', absint($_GET['trash']), 'lcmt-dev-mailer')),
+                            absint($_GET['trash'])
+                        );
+                    }
                     ?>
                 </p></div>
             <?php endif; ?>

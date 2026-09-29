@@ -94,6 +94,17 @@ add_filter('lcmt_mailer_submission_actions', function (array $buttons, array $su
 
 Used in: `SubmissionsPage::renderDetail()`.
 
+### `lcmt_mailer_trash_days`
+Days a received message stays in the trash before the daily task deletes it for good. Default: WordPress's `EMPTY_TRASH_DAYS` (30 unless `wp-config.php` sets it). `0` (or less) disables the trash: deleting a message deletes it at once and the Trash view is not shown.
+
+```php
+add_filter('lcmt_mailer_trash_days', function () {
+    return 60;
+});
+```
+
+Used in: `Retention::trashDays()` (cron emptying, row and bulk actions, list views, detail).
+
 ## Actions
 
 ### `wp_mail_failed` (core, listened to)
