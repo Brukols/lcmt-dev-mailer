@@ -174,6 +174,18 @@ lcmt_it('Retention deletes old rows in delete mode', function () {
     lcmt_assert_same(0, $done['anonymized']);
 });
 
+lcmt_it('Retention in delete mode also deletes old anonymized statistics, with statistics kept forever', function () {
+    lcmt_rt_options(30, 'delete', 0);
+    $key  = lcmt_it_key();
+    $old  = lcmt_rt_row($key, 40, ['fields' => null, 'mail_error' => null, 'anonymized_at' => gmdate('Y-m-d H:i:s', time() - 35 * 86400)]);
+    $new  = lcmt_rt_row($key, 10, ['fields' => null, 'mail_error' => null, 'anonymized_at' => gmdate('Y-m-d H:i:s', time() - 5 * 86400)]);
+
+    Retention::run();
+
+    lcmt_assert_same(false, lcmt_rt_exists($old), 'old anonymized row deleted');
+    lcmt_assert_true(lcmt_rt_exists($new), 'recent anonymized row kept');
+});
+
 lcmt_it('Retention deletes old anonymized statistics only', function () {
     lcmt_rt_options(30, 'anonymize', 30);
     $key      = lcmt_it_key();
@@ -305,4 +317,16 @@ lcmt_it('Settings page shows the purge counts', function () {
     $html = lcmt_rt_render(['anonymized' => '7', 'deleted' => '3']);
 
     lcmt_assert_true(strpos($html, 'Purge done: 7 messages anonymized, 3 deleted.') !== false, 'notice');
+});
+
+lcmt_it('Settings page warns that delete mode removes old anonymized statistics and confirms the purge', function () {
+    lcmt_rt_options(365, 'anonymize', 0);
+
+    $html = lcmt_rt_render([]);
+
+    lcmt_assert_true(str_contains($html, 'When deleting, anonymized statistics older than this period are deleted too, whatever the setting below.'), 'delete note');
+    lcmt_assert_true(
+        str_contains($html, 'onsubmit="return confirm(' . esc_attr(wp_json_encode('Apply the retention settings now? This cannot be undone.')) . ');"'),
+        'purge confirmation'
+    );
 });

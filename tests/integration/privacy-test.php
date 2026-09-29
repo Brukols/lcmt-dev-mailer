@@ -106,7 +106,7 @@ lcmt_it('privacy: export includes the context of the visit, only when known', fu
         'mail_sent'     => 0,
         'landing_path'  => '/landing/',
         'channel'       => 'google_ads',
-        'referrer_host' => 'https://www.google.com',
+        'referrer_host' => 'www.google.com',
         'utm_source'    => 'google',
         'utm_medium'    => 'cpc',
         'utm_campaign'  => 'spring',
@@ -120,7 +120,7 @@ lcmt_it('privacy: export includes the context of the visit, only when known', fu
 
     lcmt_assert_same('/landing/', $items['Landing page'] ?? null, 'landing');
     lcmt_assert_same('Google Ads', $items['Source'] ?? null, 'source');
-    lcmt_assert_same('https://www.google.com', $items['Referring site'] ?? null, 'referrer');
+    lcmt_assert_same('www.google.com', $items['Referring site'] ?? null, 'referrer');
     lcmt_assert_same('google / cpc / spring', $items['Campaign'] ?? null, 'campaign');
     lcmt_assert_same('gclid', $items['Ad click'] ?? null, 'ad click');
     lcmt_assert_same('mobile', $items['Device'] ?? null, 'device');

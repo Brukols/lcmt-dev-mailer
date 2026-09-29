@@ -139,6 +139,7 @@ class SubmissionSettings
                                 <label><input type="radio" name="<?= esc_attr(self::OPTION_ACTION) ?>" value="delete" <?php checked($action, 'delete'); ?> />
                                     <?php esc_html_e('Delete the whole message', 'lcmt-dev-mailer'); ?></label>
                             </fieldset>
+                            <p class="description"><?php esc_html_e('When deleting, anonymized statistics older than this period are deleted too, whatever the setting below.', 'lcmt-dev-mailer'); ?></p>
                         </td>
                     </tr>
 
@@ -179,7 +180,8 @@ class SubmissionSettings
 
             <h2><?php esc_html_e('Purge now', 'lcmt-dev-mailer'); ?></h2>
             <p><?php esc_html_e('The purge runs once a day, when the site gets visits. Run it now to apply new settings at once.', 'lcmt-dev-mailer'); ?></p>
-            <form method="post" action="<?= esc_url(admin_url('admin-post.php')) ?>">
+            <form method="post" action="<?= esc_url(admin_url('admin-post.php')) ?>"
+                  onsubmit="return confirm(<?= esc_attr(wp_json_encode(__('Apply the retention settings now? This cannot be undone.', 'lcmt-dev-mailer'))) ?>);">
                 <input type="hidden" name="action" value="<?= esc_attr(self::PURGE_ACTION) ?>" />
                 <?php wp_nonce_field(self::PURGE_ACTION); ?>
                 <?php submit_button(__('Purge now', 'lcmt-dev-mailer'), 'secondary', 'submit', false); ?>
