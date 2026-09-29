@@ -7,11 +7,10 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Email templates → Data retention: how long received messages are kept.
+ * Received messages → Data retention tab: how long received messages are kept.
  */
 class SubmissionSettings
 {
-    public const PAGE_SLUG = 'lcmt-mailer-retention';
     public const GROUP = 'lcmt_mailer_retention';
     public const OPTION_DAYS = 'lcmt_mailer_retention_days';
     public const OPTION_ACTION = 'lcmt_mailer_retention_action';
@@ -31,18 +30,6 @@ class SubmissionSettings
     public static function statsRetentionDays(): int
     {
         return Retention::clampDays(get_option(self::OPTION_STATS_DAYS, 0), 0, 0);
-    }
-
-    public static function addSubmenu(): void
-    {
-        add_submenu_page(
-            'edit.php?post_type=' . PostType::SLUG,
-            __('Data retention', 'lcmt-dev-mailer'),
-            __('Data retention', 'lcmt-dev-mailer'),
-            'manage_options',
-            self::PAGE_SLUG,
-            [self::class, 'renderPage']
-        );
     }
 
     public static function registerSettings(): void
@@ -89,24 +76,24 @@ class SubmissionSettings
 
         $done = Retention::run();
 
-        wp_safe_redirect(add_query_arg([
-            'post_type'  => PostType::SLUG,
-            'page'       => self::PAGE_SLUG,
+        wp_safe_redirect(SubmissionsPage::url([
+            'tab'        => SubmissionsPage::TAB_RETENTION,
             'anonymized' => $done['anonymized'],
             'deleted'    => $done['deleted'],
-        ], admin_url('edit.php')));
+        ]));
         exit;
     }
 
-    public static function renderPage(): void
+    /**
+     * The content of the Data retention tab (SubmissionsPage prints the heading and tabs).
+     */
+    public static function render(): void
     {
         $days      = self::retentionDays();
         $action    = self::retentionAction();
         $statsDays = self::statsRetentionDays();
         ?>
-        <div class="wrap">
-            <h1><?php esc_html_e('Data retention', 'lcmt-dev-mailer'); ?></h1>
-
+        <div class="lcmt-retention">
             <?php if (isset($_GET['anonymized'])): ?>
                 <div class="notice notice-success is-dismissible"><p>
                     <?php
@@ -121,7 +108,14 @@ class SubmissionSettings
             <?php endif; ?>
 
             <form method="post" action="options.php">
-                <?php settings_fields(self::GROUP); ?>
+                <?php
+                // What settings_fields() prints, but with a referer that is this tab: options.php
+                // sends the user back to it after saving.
+                ?>
+                <input type="hidden" name="option_page" value="<?= esc_attr(self::GROUP) ?>" />
+                <input type="hidden" name="action" value="update" />
+                <?php wp_nonce_field(self::GROUP . '-options', '_wpnonce', false); ?>
+                <input type="hidden" name="_wp_http_referer" value="<?= esc_attr(SubmissionsPage::url(['tab' => SubmissionsPage::TAB_RETENTION])) ?>" />
 
                 <table class="form-table">
                     <tr>

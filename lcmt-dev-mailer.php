@@ -90,7 +90,6 @@ add_action('save_post', ['LcmtDevMailer\\MetaFields', 'save']);
 
 // ── Admin UI ──
 add_action('admin_menu', ['LcmtDevMailer\\SubmissionsPage', 'addSubmenu']);
-add_action('admin_menu', ['LcmtDevMailer\\StatsPage', 'addSubmenu']);
 add_action('admin_post_' . LcmtDevMailer\SubmissionsPage::ACTION, ['LcmtDevMailer\\SubmissionsPage', 'handleSingle']);
 add_action('admin_post_' . LcmtDevMailer\SubmissionsPage::EXPORT_ACTION, ['LcmtDevMailer\\SubmissionsPage', 'handleExport']);
 add_action('admin_notices', ['LcmtDevMailer\\FailureNotice', 'banner']);
@@ -100,7 +99,6 @@ add_action('admin_menu', ['LcmtDevMailer\\Settings', 'addSubmenu']);
 add_action('admin_init', ['LcmtDevMailer\\Settings', 'registerSettings']);
 add_action('admin_menu', ['LcmtDevMailer\\CaptchaSettings', 'addSubmenu']);
 add_action('admin_init', ['LcmtDevMailer\\CaptchaSettings', 'registerSettings']);
-add_action('admin_menu', ['LcmtDevMailer\\SubmissionSettings', 'addSubmenu']);
 add_action('admin_init', ['LcmtDevMailer\\SubmissionSettings', 'registerSettings']);
 add_action('admin_post_' . LcmtDevMailer\SubmissionSettings::PURGE_ACTION, ['LcmtDevMailer\\SubmissionSettings', 'handlePurgeNow']);
 add_action('admin_enqueue_scripts', ['LcmtDevMailer\\Uninstaller', 'enqueue']);

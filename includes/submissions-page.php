@@ -7,13 +7,18 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Email templates → Received messages: the list, one message, and its actions.
+ * Email templates → Received messages: one screen with three tabs (messages,
+ * statistics, data retention). Owns the list, one message and its actions, and
+ * dispatches the other two tabs to StatsPage and SubmissionSettings.
  */
 class SubmissionsPage
 {
     public const PAGE_SLUG = 'lcmt-mailer-submissions';
     public const ACTION = 'lcmt_mailer_submission';
     public const EXPORT_ACTION = 'lcmt_mailer_export';
+    public const TAB_MESSAGES = 'messages';
+    public const TAB_STATS = 'stats';
+    public const TAB_RETENTION = 'retention';
 
     public static function capability(): string
     {
@@ -28,6 +33,36 @@ class SubmissionsPage
         );
     }
 
+    /**
+     * The tabs the current user may open, tab => label. Data retention is
+     * settings: it needs manage_options, whatever the messages capability is.
+     *
+     * @return array<string, string>
+     */
+    public static function tabs(): array
+    {
+        $tabs = [
+            self::TAB_MESSAGES => __('Messages', 'lcmt-dev-mailer'),
+            self::TAB_STATS    => __('Statistics', 'lcmt-dev-mailer'),
+        ];
+
+        if (current_user_can('manage_options')) {
+            $tabs[self::TAB_RETENTION] = __('Data retention', 'lcmt-dev-mailer');
+        }
+
+        return $tabs;
+    }
+
+    /**
+     * The tab being shown: an unknown or forbidden one falls back to the messages.
+     */
+    public static function currentTab(): string
+    {
+        $tab = sanitize_key($_GET['tab'] ?? '');
+
+        return isset(self::tabs()[$tab]) ? $tab : self::TAB_MESSAGES;
+    }
+
     public static function addSubmenu(): void
     {
         // Before the count below, so the page that opens a message already shows the new total.
@@ -35,14 +70,12 @@ class SubmissionsPage
 
         $unread = SubmissionRepository::countUnread();
         $title  = __('Received messages', 'lcmt-dev-mailer');
-        $menu   = $unread
-            ? $title . ' <span class="awaiting-mod">' . number_format_i18n($unread) . '</span>'
-            : $title;
+        $bubble = $unread ? ' <span class="awaiting-mod">' . number_format_i18n($unread) . '</span>' : '';
 
         $hook = add_submenu_page(
             'edit.php?post_type=' . PostType::SLUG,
             $title,
-            $menu,
+            $title . $bubble,
             self::capability(),
             self::PAGE_SLUG,
             [self::class, 'render']
@@ -50,6 +83,25 @@ class SubmissionsPage
 
         if ($hook) {
             add_action('load-' . $hook, [self::class, 'handleLoad']);
+        }
+
+        if ($bubble !== '' && current_user_can(self::capability())) {
+            self::addTopLevelBubble($bubble);
+        }
+    }
+
+    /**
+     * The same unread bubble on the Email templates entry of the admin menu.
+     */
+    private static function addTopLevelBubble(string $bubble): void
+    {
+        global $menu;
+
+        foreach ((array) $menu as $position => $item) {
+            if (($item[2] ?? '') === 'edit.php?post_type=' . PostType::SLUG) {
+                $menu[$position][0] .= $bubble;
+                return;
+            }
         }
     }
 
@@ -98,7 +150,12 @@ class SubmissionsPage
     {
         $id = absint($_GET['submission'] ?? 0);
 
-        if (!$id || sanitize_key($_GET['page'] ?? '') !== self::PAGE_SLUG || !current_user_can(self::capability())) {
+        if (
+            !$id
+            || sanitize_key($_GET['page'] ?? '') !== self::PAGE_SLUG
+            || !current_user_can(self::capability())
+            || self::currentTab() !== self::TAB_MESSAGES
+        ) {
             return;
         }
 
@@ -114,6 +171,10 @@ class SubmissionsPage
      */
     public static function handleLoad(): void
     {
+        if (self::currentTab() !== self::TAB_MESSAGES) {
+            return;
+        }
+
         if (absint($_GET['submission'] ?? 0)) {
             self::markOpenedAsRead();
 
@@ -310,19 +371,104 @@ class SubmissionsPage
 
     public static function render(): void
     {
+        $tab = self::currentTab();
+        $id  = $tab === self::TAB_MESSAGES ? absint($_GET['submission'] ?? 0) : 0;
+        $row = $id ? SubmissionRepository::find($id) : null;
+
+        self::printStyles();
+
         echo '<div class="wrap">';
 
-        self::renderNotice();
+        echo '<h1 class="wp-heading-inline">';
+        echo esc_html($id ? __('Received message', 'lcmt-dev-mailer') : __('Received messages', 'lcmt-dev-mailer'));
 
-        $id = absint($_GET['submission'] ?? 0);
+        if ($row) {
+            echo ' <span class="lcmt-badges">' . self::statusBadge((string) $row['status']) . ' ' . self::mailBadge((int) $row['mail_sent'] === 1) . '</span>';
+        }
 
-        if ($id) {
-            self::renderDetail($id);
+        echo '</h1>';
+
+        if ($tab === self::TAB_MESSAGES && !$id) {
+            echo ' <a href="' . esc_url(self::exportUrl()) . '" class="page-title-action">' . esc_html__('Export CSV', 'lcmt-dev-mailer') . '</a>';
+        }
+
+        echo '<hr class="wp-header-end">';
+
+        self::renderTabs($tab);
+
+        if ($tab === self::TAB_STATS) {
+            StatsPage::render();
+        } elseif ($tab === self::TAB_RETENTION) {
+            SubmissionSettings::render();
         } else {
-            self::renderList();
+            self::renderNotice();
+
+            if ($id) {
+                self::renderDetail($id, $row);
+            } else {
+                self::renderList();
+            }
         }
 
         echo '</div>';
+    }
+
+    private static function renderTabs(string $current): void
+    {
+        echo '<nav class="nav-tab-wrapper" aria-label="' . esc_attr__('Received messages sections', 'lcmt-dev-mailer') . '">';
+
+        foreach (self::tabs() as $tab => $label) {
+            printf(
+                '<a href="%s" class="nav-tab%s"%s>%s</a>',
+                esc_url(self::url($tab === self::TAB_MESSAGES ? [] : ['tab' => $tab])),
+                $tab === $current ? ' nav-tab-active' : '',
+                $tab === $current ? ' aria-current="page"' : '',
+                esc_html($label)
+            );
+        }
+
+        echo '</nav>';
+    }
+
+    /**
+     * A message status as a colored badge. Unknown statuses are shown as they are.
+     */
+    public static function statusBadge(string $status): string
+    {
+        $labels = [
+            'new'       => __('New', 'lcmt-dev-mailer'),
+            'read'      => __('Read', 'lcmt-dev-mailer'),
+            'processed' => __('Processed', 'lcmt-dev-mailer'),
+            'spam'      => __('Spam', 'lcmt-dev-mailer'),
+        ];
+
+        return '<span class="lcmt-badge lcmt-badge--' . esc_attr($status) . '">' . esc_html($labels[$status] ?? $status) . '</span>';
+    }
+
+    public static function mailBadge(bool $sent): string
+    {
+        return $sent
+            ? '<span class="lcmt-badge lcmt-badge--sent">&#10003; ' . esc_html__('Sent', 'lcmt-dev-mailer') . '</span>'
+            : '<span class="lcmt-badge lcmt-badge--unsent">&#10007; ' . esc_html__('Not sent', 'lcmt-dev-mailer') . '</span>';
+    }
+
+    /**
+     * The badge styles, printed with the screen. Every pair is at least 4.5:1.
+     */
+    private static function printStyles(): void
+    {
+        ?>
+        <style>
+            .lcmt-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; line-height: 1.6; white-space: nowrap; vertical-align: middle; }
+            .lcmt-badges { margin-left: 8px; }
+            .lcmt-badge--new { background: #dcebfa; color: #0a4480; }
+            .lcmt-badge--read { background: #e8eaed; color: #3c434a; }
+            .lcmt-badge--processed { background: #d3f0da; color: #0b4f1e; }
+            .lcmt-badge--spam { background: #fde6cc; color: #7a3a00; }
+            .lcmt-badge--sent { background: #d3f0da; color: #0b4f1e; }
+            .lcmt-badge--unsent { background: #fbdcdc; color: #8a1a1a; }
+        </style>
+        <?php
     }
 
     private static function renderNotice(): void
@@ -352,10 +498,6 @@ class SubmissionsPage
         $table = new SubmissionsListTable();
         $table->prepare_items();
 
-        echo '<h1 class="wp-heading-inline">' . esc_html__('Received messages', 'lcmt-dev-mailer') . '</h1>';
-        echo ' <a href="' . esc_url(self::exportUrl()) . '" class="page-title-action">' . esc_html__('Export CSV', 'lcmt-dev-mailer') . '</a>';
-        echo '<hr class="wp-header-end">';
-
         $table->views();
 
         echo '<form method="get">';
@@ -373,11 +515,8 @@ class SubmissionsPage
         echo '</form>';
     }
 
-    private static function renderDetail(int $id): void
+    private static function renderDetail(int $id, ?array $row): void
     {
-        $row = SubmissionRepository::find($id);
-
-        echo '<h1>' . esc_html__('Received message', 'lcmt-dev-mailer') . '</h1>';
         echo '<p><a href="' . esc_url(self::url()) . '">&larr; ' . esc_html__('Back to the messages', 'lcmt-dev-mailer') . '</a></p>';
 
         if (!$row) {
@@ -413,12 +552,9 @@ class SubmissionsPage
         }
 
         // ── Email ──
-        echo '<h2>' . esc_html__('Email', 'lcmt-dev-mailer') . '</h2>';
-
-        if ((int) $row['mail_sent'] === 1) {
-            echo '<p style="color: #008a20;">&#10003; ' . esc_html__('Sent', 'lcmt-dev-mailer') . '</p>';
-        } else {
-            echo '<p style="color: #d63638;">&#10007; ' . esc_html__('Not sent', 'lcmt-dev-mailer') . '</p>';
+        if ((int) $row['mail_sent'] !== 1) {
+            echo '<h2>' . esc_html__('Email', 'lcmt-dev-mailer') . '</h2>';
+            echo '<p>' . self::mailBadge(false) . '</p>';
             echo '<p><code>' . esc_html($row['mail_error'] ?: __('The request stopped before the email was sent.', 'lcmt-dev-mailer')) . '</code></p>';
         }
 

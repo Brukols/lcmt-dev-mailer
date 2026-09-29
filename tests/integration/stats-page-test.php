@@ -26,7 +26,7 @@ function lcmt_stats_days_ago(int $days): string
 function lcmt_stats_render(array $get = []): string
 {
     lcmt_sp_admin();
-    set_current_screen('mail_page_' . StatsPage::PAGE_SLUG);
+    set_current_screen('mail_page_' . SubmissionsPage::PAGE_SLUG);
     $_SERVER['HTTP_HOST'] ??= (string) wp_parse_url(home_url(), PHP_URL_HOST);
 
     return lcmt_sp_with_get($get, function () {
@@ -60,27 +60,6 @@ function lcmt_stats_seed(): void
     }
 }
 
-lcmt_it('StatsPage registers its submenu under the mail post type with the screen capability', function () {
-    global $submenu;
-
-    lcmt_sp_admin();
-    $saved = $submenu;
-    $submenu = [];
-
-    try {
-        StatsPage::addSubmenu();
-        $items = $submenu['edit.php?post_type=mail'] ?? [];
-    } finally {
-        $submenu = $saved;
-    }
-
-    lcmt_assert_same('lcmt-mailer-stats', StatsPage::PAGE_SLUG);
-    lcmt_assert_count(1, $items);
-    lcmt_assert_same('Statistics', $items[0][0]);
-    lcmt_assert_same(SubmissionsPage::capability(), $items[0][1]);
-    lcmt_assert_same('lcmt-mailer-stats', $items[0][2]);
-});
-
 lcmt_it('StatsPage render defaults to 90 days and falls back to it for an unknown period', function () {
     lcmt_stats_seed();
 
@@ -89,6 +68,21 @@ lcmt_it('StatsPage render defaults to 90 days and falls back to it for an unknow
 
         lcmt_assert_same(1, substr_count($html, 'class="current"'), 'one current link');
         lcmt_assert_same(1, preg_match('/<a [^>]*period=90[^>]*class="current"/', $html), '90 is current');
+    }
+});
+
+lcmt_it('StatsPage period links stay on the Statistics tab', function () {
+    lcmt_stats_seed();
+
+    $html = lcmt_stats_render(['tab' => 'stats', 'period' => '30']);
+
+    preg_match_all('/<li><a href="([^"]+)"/', $html, $m);
+    lcmt_assert_count(4, $m[1], 'four period links');
+
+    foreach ($m[1] as $href) {
+        parse_str((string) wp_parse_url(html_entity_decode($href), PHP_URL_QUERY), $query);
+        lcmt_assert_same('stats', $query['tab'] ?? null, $href);
+        lcmt_assert_same(SubmissionsPage::PAGE_SLUG, $query['page'] ?? null, $href);
     }
 });
 

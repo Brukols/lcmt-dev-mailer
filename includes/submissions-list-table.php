@@ -31,6 +31,7 @@ class SubmissionsListTable extends \WP_List_Table
         return [
             'cb'         => '<input type="checkbox" />',
             'summary'    => __('Sender', 'lcmt-dev-mailer'),
+            'status'     => __('Status', 'lcmt-dev-mailer'),
             'form_key'   => __('Form', 'lcmt-dev-mailer'),
             'page_path'  => __('Sent from', 'lcmt-dev-mailer'),
             'channel'    => __('Source', 'lcmt-dev-mailer'),
@@ -157,11 +158,14 @@ class SubmissionsListTable extends \WP_List_Table
         return $html;
     }
 
+    protected function column_status(array $item): string
+    {
+        return SubmissionsPage::statusBadge((string) $item['status']);
+    }
+
     protected function column_mail(array $item): string
     {
-        return (int) $item['mail_sent'] === 1
-            ? '<span style="color: #008a20;">&#10003; ' . esc_html__('Sent', 'lcmt-dev-mailer') . '</span>'
-            : '<span style="color: #d63638;">&#10007; ' . esc_html__('Not sent', 'lcmt-dev-mailer') . '</span>';
+        return SubmissionsPage::mailBadge((int) $item['mail_sent'] === 1);
     }
 
     protected function column_created_at(array $item): string

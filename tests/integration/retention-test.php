@@ -277,19 +277,8 @@ lcmt_it('Retention unschedule clears the event', function () {
 function lcmt_rt_render(array $get): string
 {
     lcmt_sp_admin();
-    set_current_screen('mail_page_' . SubmissionSettings::PAGE_SLUG);
 
-    return lcmt_sp_with_get($get, function () {
-        ob_start();
-
-        try {
-            SubmissionSettings::renderPage();
-        } finally {
-            $html = ob_get_clean();
-        }
-
-        return $html;
-    });
+    return lcmt_sp_render(['tab' => 'retention'] + $get);
 }
 
 lcmt_it('Settings page shows the fields, the advanced details and the purge form', function () {

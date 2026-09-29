@@ -7,30 +7,19 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Email templates → Statistics: where the received messages come from.
+ * Received messages → Statistics tab: where the received messages come from.
  * Counts include anonymized messages and leave spam out.
  */
 class StatsPage
 {
-    public const PAGE_SLUG = 'lcmt-mailer-stats';
-
     /**
      * Period key => days (0 = everything).
      */
     private const PERIODS = ['30' => 30, '90' => 90, '365' => 365, 'all' => 0];
 
-    public static function addSubmenu(): void
-    {
-        add_submenu_page(
-            'edit.php?post_type=' . PostType::SLUG,
-            __('Statistics', 'lcmt-dev-mailer'),
-            __('Statistics', 'lcmt-dev-mailer'),
-            SubmissionsPage::capability(),
-            self::PAGE_SLUG,
-            [self::class, 'render']
-        );
-    }
-
+    /**
+     * The content of the Statistics tab (SubmissionsPage prints the heading and tabs).
+     */
     public static function render(): void
     {
         $period = sanitize_key($_GET['period'] ?? '90');
@@ -45,13 +34,12 @@ class StatsPage
             'all' => __('Everything', 'lcmt-dev-mailer'),
         ];
 
-        echo '<div class="wrap lcmt-stats">';
-        echo '<h1>' . esc_html__('Statistics', 'lcmt-dev-mailer') . '</h1>';
+        echo '<div class="lcmt-stats">';
 
         echo '<ul class="subsubsub">';
         $links = [];
         foreach ($labels as $key => $label) {
-            $url     = add_query_arg(['post_type' => PostType::SLUG, 'page' => self::PAGE_SLUG, 'period' => $key], admin_url('edit.php'));
+            $url     = SubmissionsPage::url(['tab' => SubmissionsPage::TAB_STATS, 'period' => $key]);
             $links[] = '<li><a href="' . esc_url($url) . '"' . ((string) $key === $period ? ' class="current" aria-current="page"' : '') . '>' . esc_html($label) . '</a>';
         }
         echo implode(' | </li>', $links) . '</li></ul><br class="clear">';
