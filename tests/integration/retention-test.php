@@ -123,10 +123,14 @@ lcmt_it('Retention anonymizes an old row, keeps its context and leaves recent ro
     lcmt_assert_null($after['mail_error'], 'mail_error');
     lcmt_assert_true($after['anonymized_at'] !== null, 'anonymized_at set');
 
-    foreach (['form_key', 'created_at', 'page_path', 'landing_path', 'referrer_host', 'channel', 'utm_source', 'utm_medium',
-        'utm_campaign', 'click_id_type', 'device', 'locale', 'form_seconds', 'status', 'mail_sent', 'mail_post_id', 'page_id'] as $column) {
+    foreach (['form_key', 'page_path', 'landing_path', 'referrer_host', 'channel', 'utm_source', 'utm_medium',
+        'utm_campaign', 'click_id_type', 'device', 'locale', 'status', 'mail_sent', 'mail_post_id', 'page_id'] as $column) {
         lcmt_assert_same($before[$column], $after[$column], $column);
     }
+
+    // Only the day stays, and no exact duration, so the row cannot be matched back to a visit.
+    lcmt_assert_same(substr($before['created_at'], 0, 10) . ' 00:00:00', $after['created_at'], 'created_at truncated to the day');
+    lcmt_assert_null($after['form_seconds'], 'form_seconds dropped');
 
     $recent = lcmt_rt_row_data($new);
     lcmt_assert_true($recent['fields'] !== null, 'recent fields kept');

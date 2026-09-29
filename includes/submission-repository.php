@@ -115,7 +115,7 @@ class SubmissionRepository
 
         if ($ids) {
             $wpdb->query(self::prepare(
-                'UPDATE ' . self::table() . ' SET ' . self::clearPersonal() . ', anonymized_at = %s WHERE id IN (' . self::idList($ids) . ')',
+                'UPDATE ' . self::table() . ' SET ' . self::anonymizeSet() . ' WHERE id IN (' . self::idList($ids) . ')',
                 [current_time('mysql', true)]
             ));
         }
@@ -131,7 +131,7 @@ class SubmissionRepository
         global $wpdb;
 
         return (int) $wpdb->query($wpdb->prepare(
-            'UPDATE ' . self::table() . ' SET ' . self::clearPersonal() . ', anonymized_at = %s
+            'UPDATE ' . self::table() . ' SET ' . self::anonymizeSet() . '
              WHERE anonymized_at IS NULL AND created_at < %s LIMIT %d',
             current_time('mysql', true),
             $cutoff,
@@ -337,9 +337,19 @@ class SubmissionRepository
         return implode(',', array_map('absint', $ids));
     }
 
-    private static function clearPersonal(): string
+    /**
+     * The SET clause of both anonymizations. Takes one %s: the anonymization
+     * date. Besides the personal columns, the exact time of the message and
+     * the time spent on the form go too: together with the page and the
+     * source, they could match a row back to one visit in an analytics or
+     * server log. Only the day stays, so retention cutoffs only ever see the
+     * row as older than it was, never younger.
+     */
+    private static function anonymizeSet(): string
     {
-        return implode(', ', array_map(static fn(string $column) => "{$column} = NULL", SubmissionData::PERSONAL_COLUMNS));
+        $clear = array_map(static fn(string $column) => "{$column} = NULL", SubmissionData::PERSONAL_COLUMNS);
+
+        return implode(', ', $clear) . ', created_at = DATE(created_at), form_seconds = NULL, anonymized_at = %s';
     }
 
     /**

@@ -166,7 +166,7 @@ class SubmissionsListTable extends \WP_List_Table
 
     protected function column_created_at(array $item): string
     {
-        return esc_html(get_date_from_gmt((string) $item['created_at'], get_option('date_format') . ' ' . get_option('time_format')));
+        return esc_html(SubmissionsPage::formatDate($item, get_option('date_format'), get_option('time_format')));
     }
 
     protected function column_default($item, $column_name): string

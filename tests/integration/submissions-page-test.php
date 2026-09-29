@@ -133,12 +133,29 @@ lcmt_it('SubmissionsPage renders the fallback error when a failed row has no mes
 lcmt_it('SubmissionsPage renders an anonymized message', function () {
     lcmt_sp_admin();
 
-    $id = lcmt_it_insert();
+    $id = lcmt_it_insert(['created_at' => '2001-02-03 04:05:06']);
     SubmissionRepository::anonymize([$id]);
 
     $html = lcmt_sp_render(['submission' => (string) $id]);
 
     lcmt_assert_true(strpos($html, 'Personal data anonymized on') !== false);
+
+    // Only the day is kept: the date shows without a time.
+    preg_match('#<th[^>]*>Date</th><td>([^<]*)</td>#', $html, $cell);
+    lcmt_assert_same(esc_html(mysql2date(get_option('date_format'), '2001-02-03 00:00:00')), $cell[1] ?? null, 'date only');
+});
+
+lcmt_it('SubmissionsPage lists an anonymized message with its day only', function () {
+    lcmt_sp_admin();
+
+    $key = lcmt_it_key();
+    $id  = lcmt_it_insert(['form_key' => $key, 'created_at' => '2001-02-03 04:05:06']);
+    SubmissionRepository::anonymize([$id]);
+
+    $html = lcmt_sp_render(['form_key' => $key]);
+
+    preg_match('#<td class=\'created_at[^>]*>(.*?)</td>#s', $html, $cell);
+    lcmt_assert_same(esc_html(mysql2date(get_option('date_format'), '2001-02-03 00:00:00')), trim(strip_tags($cell[1] ?? '')), 'date only');
 });
 
 lcmt_it('SubmissionsPage renders a missing message', function () {

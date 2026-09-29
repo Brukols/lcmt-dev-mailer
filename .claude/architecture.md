@@ -142,14 +142,16 @@ Table `{prefix}lcmt_mailer_submissions`, created with `dbDelta`. `maybeUpgrade()
 
 | Column | Content | Cleared by anonymization |
 |--------|---------|--------------------------|
-| `id`, `form_key`, `mail_post_id`, `created_at` (UTC), `status` (`new`, `read`, `processed`, `spam`), `mail_sent` | Identity and state | no |
+| `id`, `form_key`, `mail_post_id`, `status` (`new`, `read`, `processed`, `spam`), `mail_sent` | Identity and state | no |
+| `created_at` (UTC) | Date and time sent | truncated to the day (`DATE(created_at)`, midnight UTC) |
 | `fields` | JSON snapshot of `{name, type, value}` | yes |
 | `mail_error` | wp_mail error text (may quote an address) | yes |
-| `page_path`, `page_id`, `landing_path`, `referrer_host`, `channel`, `utm_source`, `utm_medium`, `utm_campaign`, `click_id_type`, `device`, `locale`, `form_seconds` | Context, for statistics | no |
+| `page_path`, `page_id`, `landing_path`, `referrer_host`, `channel`, `utm_source`, `utm_medium`, `utm_campaign`, `click_id_type`, `device`, `locale` | Context, for statistics | no |
+| `form_seconds` | Time spent on the form | yes (set to NULL) |
 | `anonymized_at` | Set when anonymized | (set) |
 
 ### SubmissionRepository
-All SQL on the table: `insert`, `update`, `find`, `search`/`count` (filters: form, status, failed, channel, search), `setStatus`, `delete`, `anonymize`, `anonymizeBefore`, `deleteBefore`, `deleteAnonymizedBefore`, `findContaining` (privacy tools), `countUnread`, `unresolvedFailures`/`countUnresolvedFailures`, and the stats queries `countBy`, `countByMonth`, `totals`. Use it instead of touching `$wpdb` elsewhere.
+All SQL on the table: `insert`, `update`, `find`, `search`/`count` (filters: form, status, failed, channel, search), `setStatus`, `delete`, `anonymize`, `anonymizeBefore`, `deleteBefore`, `deleteAnonymizedBefore`, `findContaining` (privacy tools), `countUnread`, `unresolvedFailures`/`countUnresolvedFailures`, and the stats queries `countBy`, `countByMonth`, `totals`. Use it instead of touching `$wpdb` elsewhere. `anonymize()` and `anonymizeBefore()` share one SET clause (`anonymizeSet()`): the personal columns become NULL, `created_at` keeps only its day and `form_seconds` is dropped, so an anonymized row cannot be matched back to a visit in another log. Retention cutoffs are unaffected: truncation only makes a row look older. The admin shows an anonymized message's date without a time (`SubmissionsPage::formatDate()`).
 
 ### SubmissionRecorder
 - `record()` saves a submission when the mail template stores submissions (`MetaFields::storesSubmissions()`, on by default) and returns its id, or 0.

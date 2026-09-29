@@ -135,7 +135,7 @@ class SubmissionSettings
                         <td>
                             <fieldset>
                                 <label><input type="radio" name="<?= esc_attr(self::OPTION_ACTION) ?>" value="anonymize" <?php checked($action, 'anonymize'); ?> />
-                                    <?php esc_html_e('Anonymize: erase what the visitor typed, keep the date, form, page and source for statistics', 'lcmt-dev-mailer'); ?></label><br>
+                                    <?php esc_html_e('Anonymize: erase what the visitor typed, keep the day, form, page and source for statistics', 'lcmt-dev-mailer'); ?></label><br>
                                 <label><input type="radio" name="<?= esc_attr(self::OPTION_ACTION) ?>" value="delete" <?php checked($action, 'delete'); ?> />
                                     <?php esc_html_e('Delete the whole message', 'lcmt-dev-mailer'); ?></label>
                             </fieldset>

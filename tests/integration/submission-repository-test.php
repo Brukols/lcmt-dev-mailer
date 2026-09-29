@@ -113,9 +113,9 @@ lcmt_it('anonymize clears personal columns and keeps the context', function () {
     $id = lcmt_it_insert([
         'mail_error' => 'boom', 'page_path' => '/contact', 'channel' => 'google_ads',
         'utm_source' => 'google', 'utm_medium' => 'cpc', 'utm_campaign' => 'spring',
-        'created_at' => '2001-02-03 04:05:06',
+        'created_at' => '2001-02-03 04:05:06', 'form_seconds' => 42,
     ]);
-    $other = lcmt_it_insert();
+    $other = lcmt_it_insert(['created_at' => '2001-02-03 04:05:06', 'form_seconds' => 42]);
 
     SubmissionRepository::anonymize([$id]);
     SubmissionRepository::anonymize([]);
@@ -129,12 +129,15 @@ lcmt_it('anonymize clears personal columns and keeps the context', function () {
     lcmt_assert_same('google', $row['utm_source']);
     lcmt_assert_same('cpc', $row['utm_medium']);
     lcmt_assert_same('spring', $row['utm_campaign']);
-    lcmt_assert_same('2001-02-03 04:05:06', $row['created_at']);
+    lcmt_assert_same('2001-02-03 00:00:00', $row['created_at'], 'only the day is kept');
+    lcmt_assert_null($row['form_seconds'], 'time on the form dropped');
     lcmt_assert_null(SubmissionRepository::find($other)['anonymized_at']);
+    lcmt_assert_same('2001-02-03 04:05:06', SubmissionRepository::find($other)['created_at'], 'other row untouched');
+    lcmt_assert_same('42', (string) SubmissionRepository::find($other)['form_seconds'], 'other row keeps its time');
 });
 
 lcmt_it('anonymizeBefore only touches older, not yet anonymized rows', function () {
-    $old      = lcmt_it_insert(['created_at' => '2001-01-01 00:00:00']);
+    $old      = lcmt_it_insert(['created_at' => '2001-01-01 10:20:30', 'form_seconds' => 42]);
     $done     = lcmt_it_insert(['created_at' => '2001-01-02 00:00:00', 'fields' => null, 'anonymized_at' => '2001-06-01 00:00:00']);
     $recent   = lcmt_it_insert(['created_at' => '2001-09-01 00:00:00']);
     $cutoff   = '2001-06-01 00:00:00';
@@ -143,6 +146,8 @@ lcmt_it('anonymizeBefore only touches older, not yet anonymized rows', function 
 
     lcmt_assert_null(SubmissionRepository::find($old)['fields']);
     lcmt_assert_true(SubmissionRepository::find($old)['anonymized_at'] !== null);
+    lcmt_assert_same('2001-01-01 00:00:00', SubmissionRepository::find($old)['created_at'], 'only the day is kept');
+    lcmt_assert_null(SubmissionRepository::find($old)['form_seconds'], 'time on the form dropped');
     lcmt_assert_same('2001-06-01 00:00:00', SubmissionRepository::find($done)['anonymized_at'], 'already anonymized untouched');
     lcmt_assert_true(SubmissionRepository::find($recent)['fields'] !== null, 'recent row kept');
 });

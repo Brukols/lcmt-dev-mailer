@@ -18,6 +18,8 @@ function lcmt_pv_row(string $email, array $overrides = []): int
 {
     return lcmt_it_insert($overrides + [
         'form_key'  => 'it-privacy',
+        'created_at' => '2001-02-03 04:05:06',
+        'form_seconds' => 42,
         'page_path' => '/contact/',
         'mail_error' => 'SMTP failed for ' . $email,
         'fields'    => wp_json_encode([
@@ -125,6 +127,8 @@ lcmt_it('privacy: erase anonymizes exactly the matching rows', function () {
         lcmt_assert_true($row['anonymized_at'] !== null, 'anonymized_at set');
         lcmt_assert_same('it-privacy', $row['form_key']);
         lcmt_assert_same('/contact/', $row['page_path']);
+        lcmt_assert_same('00:00:00', substr($row['created_at'], 11), 'only the day is kept');
+        lcmt_assert_null($row['form_seconds'], 'form_seconds dropped');
     }
 
     foreach ([$other, $substring] as $id) {

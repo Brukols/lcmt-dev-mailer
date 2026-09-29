@@ -197,7 +197,7 @@ class SubmissionsPage
     public static function writeCsv($stream, array $rows): void
     {
         foreach ($rows as &$row) {
-            $row['created_at'] = get_date_from_gmt((string) $row['created_at'], 'Y-m-d H:i:s');
+            $row['created_at'] = self::formatDate($row, 'Y-m-d', 'H:i:s');
         }
         unset($row);
 
@@ -258,6 +258,21 @@ class SubmissionsPage
         }
 
         return '';
+    }
+
+    /**
+     * The local date and time a message was sent. An anonymized message only
+     * keeps its day (in UTC), shown without a time or timezone shift.
+     */
+    public static function formatDate(array $row, string $dateFormat, string $timeFormat): string
+    {
+        $created = (string) $row['created_at'];
+
+        if (!empty($row['anonymized_at'])) {
+            return (string) mysql2date($dateFormat, $created);
+        }
+
+        return get_date_from_gmt($created, trim($dateFormat . ' ' . $timeFormat));
     }
 
     public static function singleActionUrl(int $id, string $do): string
@@ -384,7 +399,7 @@ class SubmissionsPage
 
         // ── Context ──
         $context = [
-            __('Date', 'lcmt-dev-mailer')             => get_date_from_gmt((string) $row['created_at'], $format),
+            __('Date', 'lcmt-dev-mailer')             => self::formatDate($row, get_option('date_format'), get_option('time_format')),
             __('Form', 'lcmt-dev-mailer')             => $row['form_key'],
             __('Sent from', 'lcmt-dev-mailer')        => $row['page_path'],
             __('Landing page', 'lcmt-dev-mailer')     => $row['landing_path'],
