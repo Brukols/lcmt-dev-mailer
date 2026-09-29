@@ -261,6 +261,31 @@ class SubmissionsPage
     }
 
     /**
+     * Where and how a message was sent, by label, leaving out what is unknown.
+     * Shared by the detail screen and the personal data export.
+     *
+     * @return array<string, string>
+     */
+    public static function contextItems(array $row): array
+    {
+        $items = [
+            __('Date', 'lcmt-dev-mailer')             => self::formatDate($row, get_option('date_format'), get_option('time_format')),
+            __('Form', 'lcmt-dev-mailer')             => $row['form_key'],
+            __('Sent from', 'lcmt-dev-mailer')        => $row['page_path'],
+            __('Landing page', 'lcmt-dev-mailer')     => $row['landing_path'],
+            __('Source', 'lcmt-dev-mailer')           => ChannelClassifier::label((string) $row['channel']),
+            __('Referring site', 'lcmt-dev-mailer')   => $row['referrer_host'],
+            __('Campaign', 'lcmt-dev-mailer')         => trim($row['utm_source'] . ' / ' . $row['utm_medium'] . ' / ' . $row['utm_campaign'], ' /'),
+            __('Ad click', 'lcmt-dev-mailer')         => $row['click_id_type'],
+            __('Device', 'lcmt-dev-mailer')           => $row['device'],
+            __('Browser language', 'lcmt-dev-mailer') => $row['locale'],
+            __('Time on the form', 'lcmt-dev-mailer') => $row['form_seconds'] === null ? '' : human_time_diff(0, (int) $row['form_seconds']),
+        ];
+
+        return array_filter(array_map('strval', $items), static fn(string $value) => $value !== '');
+    }
+
+    /**
      * The local date and time a message was sent. An anonymized message only
      * keeps its day (in UTC), shown without a time or timezone shift.
      */
@@ -398,29 +423,11 @@ class SubmissionsPage
         }
 
         // ── Context ──
-        $context = [
-            __('Date', 'lcmt-dev-mailer')             => self::formatDate($row, get_option('date_format'), get_option('time_format')),
-            __('Form', 'lcmt-dev-mailer')             => $row['form_key'],
-            __('Sent from', 'lcmt-dev-mailer')        => $row['page_path'],
-            __('Landing page', 'lcmt-dev-mailer')     => $row['landing_path'],
-            __('Source', 'lcmt-dev-mailer')           => ChannelClassifier::label((string) $row['channel']),
-            __('Referring site', 'lcmt-dev-mailer')   => $row['referrer_host'],
-            __('Campaign', 'lcmt-dev-mailer')         => trim($row['utm_source'] . ' / ' . $row['utm_medium'] . ' / ' . $row['utm_campaign'], ' /'),
-            __('Ad click', 'lcmt-dev-mailer')         => $row['click_id_type'],
-            __('Device', 'lcmt-dev-mailer')           => $row['device'],
-            __('Browser language', 'lcmt-dev-mailer') => $row['locale'],
-            __('Time on the form', 'lcmt-dev-mailer') => $row['form_seconds'] === null ? '' : human_time_diff(0, (int) $row['form_seconds']),
-        ];
-
         echo '<h2>' . esc_html__('Context', 'lcmt-dev-mailer') . '</h2>';
         echo '<table class="widefat striped" style="max-width: 900px;"><tbody>';
 
-        foreach ($context as $label => $value) {
-            if ((string) $value === '') {
-                continue;
-            }
-
-            echo '<tr><th style="width: 200px;">' . esc_html($label) . '</th><td>' . esc_html((string) $value) . '</td></tr>';
+        foreach (self::contextItems($row) as $label => $value) {
+            echo '<tr><th style="width: 200px;">' . esc_html($label) . '</th><td>' . esc_html($value) . '</td></tr>';
         }
 
         echo '</tbody></table>';

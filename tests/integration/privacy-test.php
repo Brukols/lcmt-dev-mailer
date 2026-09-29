@@ -93,10 +93,46 @@ lcmt_it('privacy: export returns exact matches only, case-insensitively', functi
     $item = $result['data'][0];
     lcmt_assert_same('lcmt-dev-mailer', $item['group_id']);
     lcmt_assert_same('Received messages', $item['group_label']);
-    lcmt_assert_same(['Date', 'Form', 'Sent from', 'firstname', 'email', 'message'], array_column($item['data'], 'name'));
+    lcmt_assert_same(['Date', 'Form', 'Sent from', 'Source', 'Time on the form', 'Email', 'Email error', 'firstname', 'email', 'message'], array_column($item['data'], 'name'));
     lcmt_assert_same('it-privacy', $item['data'][1]['value']);
     lcmt_assert_same('/contact/', $item['data'][2]['value']);
-    lcmt_assert_same($email, $item['data'][4]['value']);
+    lcmt_assert_same($email, $item['data'][8]['value']);
+});
+
+lcmt_it('privacy: export includes the context of the visit, only when known', function () {
+    $email = lcmt_pv_email();
+    $id    = lcmt_pv_row($email, [
+        'mail_sent'     => 0,
+        'landing_path'  => '/landing/',
+        'channel'       => 'google_ads',
+        'referrer_host' => 'https://www.google.com',
+        'utm_source'    => 'google',
+        'utm_medium'    => 'cpc',
+        'utm_campaign'  => 'spring',
+        'click_id_type' => 'gclid',
+        'device'        => 'mobile',
+        'locale'        => 'fr-FR',
+        'form_seconds'  => 42,
+    ]);
+
+    $items = array_column(Privacy::export($email)['data'][0]['data'], 'value', 'name');
+
+    lcmt_assert_same('/landing/', $items['Landing page'] ?? null, 'landing');
+    lcmt_assert_same('Google Ads', $items['Source'] ?? null, 'source');
+    lcmt_assert_same('https://www.google.com', $items['Referring site'] ?? null, 'referrer');
+    lcmt_assert_same('google / cpc / spring', $items['Campaign'] ?? null, 'campaign');
+    lcmt_assert_same('gclid', $items['Ad click'] ?? null, 'ad click');
+    lcmt_assert_same('mobile', $items['Device'] ?? null, 'device');
+    lcmt_assert_same('fr-FR', $items['Browser language'] ?? null, 'locale');
+    lcmt_assert_same(human_time_diff(0, 42), $items['Time on the form'] ?? null, 'time on form');
+    lcmt_assert_same('Not sent', $items['Email'] ?? null, 'email status');
+    lcmt_assert_same('SMTP failed for ' . $email, $items['Email error'] ?? null, 'mail error');
+
+    $sentEmail = lcmt_pv_email();
+    lcmt_pv_row($sentEmail, ['mail_error' => null, 'form_seconds' => null]);
+    $names = array_column(Privacy::export($sentEmail)['data'][0]['data'], 'name');
+
+    lcmt_assert_same(['Date', 'Form', 'Sent from', 'Source', 'Email', 'firstname', 'email', 'message'], $names, 'empty values left out');
 });
 
 lcmt_it('privacy: export with an empty email returns nothing', function () {

@@ -42,11 +42,20 @@ class Privacy
         $data = [];
 
         foreach (self::matching($email) as $row) {
-            $items = [
-                ['name' => __('Date', 'lcmt-dev-mailer'), 'value' => get_date_from_gmt((string) $row['created_at'])],
-                ['name' => __('Form', 'lcmt-dev-mailer'), 'value' => $row['form_key']],
-                ['name' => __('Sent from', 'lcmt-dev-mailer'), 'value' => $row['page_path']],
+            $items = [];
+
+            foreach (SubmissionsPage::contextItems($row) as $name => $value) {
+                $items[] = ['name' => $name, 'value' => $value];
+            }
+
+            $items[] = [
+                'name'  => __('Email', 'lcmt-dev-mailer'),
+                'value' => (int) $row['mail_sent'] === 1 ? __('Sent', 'lcmt-dev-mailer') : __('Not sent', 'lcmt-dev-mailer'),
             ];
+
+            if ((string) $row['mail_error'] !== '') {
+                $items[] = ['name' => __('Email error', 'lcmt-dev-mailer'), 'value' => (string) $row['mail_error']];
+            }
 
             foreach ($row['fields'] as $field) {
                 $items[] = ['name' => $field['name'], 'value' => $field['value']];
