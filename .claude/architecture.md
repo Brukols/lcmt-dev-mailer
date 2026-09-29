@@ -235,7 +235,7 @@ Every capability of the `mail` post type maps to `manage_options`, and the admin
     → SubmissionRecorder::send()        Mailer::sendByKey(), then updates mail_sent / mail_error
     → do_action('lcmt_mailer_after_send') (only when sent)
     A failed email leaves the message saved and shown in the failure banner, and the visitor
-    gets the normal 200 success answer; a 500 is only returned when nothing was saved.
+    still gets a 500 telling them it failed: the site owner may never open the admin.
 
 2c. Direct PHP call (no form):
     Mailer::sendByKey('contact', ['firstname' => 'John', ...])

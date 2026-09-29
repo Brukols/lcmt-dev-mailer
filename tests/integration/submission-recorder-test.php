@@ -173,17 +173,22 @@ lcmt_it('the REST route saves the submission and answers 200', function () {
     remove_all_filters('pre_wp_mail');
 });
 
-lcmt_it('a failing send of a saved message answers 200 and keeps the message', function () {
+lcmt_it('a failing send of a saved message tells the visitor and keeps the message', function () {
     lcmt_it_mail_fail();
     [$post, $key] = lcmt_it_template();
 
     $afterSend = did_action('lcmt_mailer_after_send');
     $response  = lcmt_it_post($key, lcmt_it_values());
 
-    // The message is saved and the admin is warned: the visitor must not send it twice.
-    lcmt_assert_same(200, $response->get_status());
-    lcmt_assert_true($response->get_data()['success'], 'success');
-    lcmt_assert_same(LcmtDevMailer\Settings::getSuccessMessage(), $response->get_data()['message'], 'normal success message');
+    // The site owner may never open the admin: the visitor must know the
+    // message did not go through, so they can reach out another way.
+    lcmt_assert_same(500, $response->get_status());
+    lcmt_assert_true(!$response->get_data()['success'], 'failure');
+    lcmt_assert_same(
+        'Your message could not be sent. Please try again later or contact us by email.',
+        $response->get_data()['message'],
+        'failure message'
+    );
     lcmt_assert_same($afterSend, did_action('lcmt_mailer_after_send'), 'after_send only fires on a sent email');
 
     $rows = lcmt_it_rows($key);

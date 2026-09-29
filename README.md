@@ -104,13 +104,13 @@ Content-Type: application/json
 
 **Responses:**
 
-- `200` — Email sent successfully, or the message was saved in Received messages although its email failed (the admin sees the failure in a banner and can send it again; telling the visitor it failed would only get it sent twice)
+- `200` — Email sent successfully
 - `403` — Spam protection check failed
 - `422` — Validation failed (missing required field, or a value that does not match its type)
 
 A `tel` value holds 6 to 20 digits, an optional leading `+`, and any spaces, dots, dashes, slashes or brackets: `+33 6 12 34 56 78`, `06.12.34.56.78` and `+33 (0)6 12 34 56 78` all pass.
 - `404` — Unknown form key
-- `500` — Email sending failed and the message was not saved (template with "Save received messages" off, or the insert failed)
+- `500` — Email sending failed. The visitor is told so, to try again later or write by email, since the site owner may never open the admin. When the form saves its messages, the message is still in Received messages, with the failure banner and **Send the email again**.
 
 ### Direct PHP call (without form)
 

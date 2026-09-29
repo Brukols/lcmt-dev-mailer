@@ -3,7 +3,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: LCMT Mailer 2.3.0\n"
+"Project-Id-Version: LCMT Mailer 2.3.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/lcmt-dev-mailer\n"
 "POT-Creation-Date: 2026-09-29T15:54:06+00:00\n"
 "PO-Revision-Date: 2026-09-29 00:00+0000\n"
@@ -397,8 +397,8 @@ msgstr ""
 "Certains champs sont invalides ou manquants. Veuillez vérifier et réessayer."
 
 #: includes/form-endpoint.php:108
-msgid "Failed to send email."
-msgstr "Échec de l'envoi de l'email."
+msgid "Your message could not be sent. Please try again later or contact us by email."
+msgstr "Votre message n'a pas pu être envoyé. Merci de réessayer plus tard ou de nous contacter par e-mail."
 
 #: includes/form-renderer.php:111
 msgid "Please fill in all required fields."
