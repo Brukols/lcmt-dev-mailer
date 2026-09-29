@@ -29,14 +29,15 @@ class SubmissionsListTable extends \WP_List_Table
     public function get_columns(): array
     {
         return [
-            'cb'         => '<input type="checkbox" />',
-            'summary'    => __('Sender', 'lcmt-dev-mailer'),
-            'status'     => __('Status', 'lcmt-dev-mailer'),
-            'form_key'   => __('Form', 'lcmt-dev-mailer'),
-            'page_path'  => __('Sent from', 'lcmt-dev-mailer'),
-            'channel'    => __('Source', 'lcmt-dev-mailer'),
-            'mail'       => __('Email', 'lcmt-dev-mailer'),
-            'created_at' => __('Date', 'lcmt-dev-mailer'),
+            'cb'            => '<input type="checkbox" />',
+            'summary'       => __('Sender', 'lcmt-dev-mailer'),
+            'status'        => __('Status', 'lcmt-dev-mailer'),
+            'form_key'      => __('Form', 'lcmt-dev-mailer'),
+            'page_path'     => __('Sent from', 'lcmt-dev-mailer'),
+            'channel'       => __('Source', 'lcmt-dev-mailer'),
+            'referrer_host' => __('Referring site', 'lcmt-dev-mailer'),
+            'mail'          => __('Email', 'lcmt-dev-mailer'),
+            'created_at'    => __('Date', 'lcmt-dev-mailer'),
         ];
     }
 
@@ -156,6 +157,14 @@ class SubmissionsListTable extends \WP_List_Table
         }
 
         return $html;
+    }
+
+    // Empty for a direct visit, or when the browser hid where it came from.
+    protected function column_referrer_host(array $item): string
+    {
+        $host = (string) ($item['referrer_host'] ?? '');
+
+        return $host === '' ? '<span aria-hidden="true">&mdash;</span>' : esc_html($host);
     }
 
     protected function column_status(array $item): string

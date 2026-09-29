@@ -335,6 +335,21 @@ lcmt_it('The Email column shows sent and not sent badges', function () {
     lcmt_assert_same(false, str_contains($html, 'style="color: #'), 'no colored text');
 });
 
+lcmt_it('The Referring site column comes right after the source and shows the host', function () {
+    lcmt_sp_admin();
+
+    $key = lcmt_it_key();
+    lcmt_it_insert(['form_key' => $key, 'channel' => 'ai_assistant', 'referrer_host' => 'claude.ai<b>']);
+    lcmt_it_insert(['form_key' => $key, 'channel' => 'direct', 'referrer_host' => '']);
+
+    $html = lcmt_sp_render(['form_key' => $key]);
+
+    lcmt_assert_true(str_contains($html, '>Referring site</th>'), 'column heading');
+    lcmt_assert_same(1, preg_match('#column-channel.*column-referrer_host.*column-mail#s', $html), 'order');
+    lcmt_assert_true(str_contains($html, 'claude.ai&lt;b&gt;'), 'escaped host');
+    lcmt_assert_same(1, preg_match('#column-referrer_host[^>]*>\s*<span aria-hidden="true">&mdash;</span>#', $html), 'dash when empty');
+});
+
 lcmt_it('Unread rows stay bold', function () {
     lcmt_sp_admin();
 
