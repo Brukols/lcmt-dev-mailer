@@ -13,6 +13,7 @@ class MetaFields
     public const FIELD_REPLY_TO = '_lcmt_mail_reply_to';
     public const FIELD_SUBJECT = '_lcmt_mail_subject';
     public const FIELD_CONTENT = '_lcmt_mail_content';
+    public const FIELD_STORE_SUBMISSIONS = '_lcmt_mail_store_submissions';
 
     public static function addMetaBox(): void
     {
@@ -76,6 +77,14 @@ class MetaFields
         echo '</td>';
         echo '</tr>';
 
+        echo '<tr>';
+        echo '<th>' . esc_html__('Received messages', 'lcmt-dev-mailer') . '</th>';
+        echo '<td>';
+        echo '<label><input type="checkbox" name="lcmt_mail_store_submissions" value="1" ' . checked(self::storesSubmissions($post->ID), true, false) . ' /> ';
+        echo esc_html__('Save the messages sent through this form', 'lcmt-dev-mailer') . '</label>';
+        echo '<p class="description">' . esc_html__('They appear under Email templates → Received messages, and are anonymized or deleted after the retention period set there.', 'lcmt-dev-mailer') . '</p>';
+        echo '</td>';
+        echo '</tr>';
         echo '</table>';
 
         // ── Placeholder syntax reference ──
@@ -123,6 +132,17 @@ class MetaFields
         if (isset($_POST['lcmt_mail_content'])) {
             update_post_meta($postId, self::FIELD_CONTENT, wp_kses_post($_POST['lcmt_mail_content']));
         }
+
+        update_post_meta($postId, self::FIELD_STORE_SUBMISSIONS, isset($_POST['lcmt_mail_store_submissions']) ? '1' : '0');
+    }
+
+    /**
+     * Whether submissions of this form are saved. On unless turned off, so
+     * templates created before the option existed save theirs too.
+     */
+    public static function storesSubmissions(int $postId): bool
+    {
+        return get_post_meta($postId, self::FIELD_STORE_SUBMISSIONS, true) !== '0';
     }
 
     private static function renderSyntaxReference(): void

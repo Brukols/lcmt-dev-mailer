@@ -49,6 +49,7 @@ require_once LCMT_MAILER_PATH . 'includes/submission-context.php';
 require_once LCMT_MAILER_PATH . 'includes/channel-classifier.php';
 require_once LCMT_MAILER_PATH . 'includes/submission-schema.php';
 require_once LCMT_MAILER_PATH . 'includes/submission-repository.php';
+require_once LCMT_MAILER_PATH . 'includes/submission-recorder.php';
 
 // ── Updates from the GitHub releases ──
 LcmtDevMailer\Updater::register(__FILE__);
@@ -60,6 +61,7 @@ add_action('init', function () {
 
 // ── Received messages ──
 add_action('plugins_loaded', ['LcmtDevMailer\\SubmissionSchema', 'maybeUpgrade']);
+add_action('wp_mail_failed', ['LcmtDevMailer\\SubmissionRecorder', 'captureMailError']);
 
 // ── Post type & fields ──
 add_action('init', ['LcmtDevMailer\\PostType', 'register']);

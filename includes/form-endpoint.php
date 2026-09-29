@@ -54,6 +54,7 @@ class FormEndpoint
         // Collect and validate submitted data
         $errors = [];
         $placeholders = [];
+        $values = [];
 
         foreach ($fields as $field) {
             $value = FieldValidator::sanitize($body[$field['name']] ?? '', $field['type']);
@@ -77,6 +78,7 @@ class FormEndpoint
 
             $placeholders['[' . $field['name'] . ']']  = $value;
             $placeholders['[' . $field['name'] . '*]'] = $value;
+            $values[$field['name']] = $value;
         }
 
         if (!empty($errors)) {
@@ -87,6 +89,8 @@ class FormEndpoint
             ], 422);
         }
 
+        $submissionId = SubmissionRecorder::record($post, $key, $fields, $values, $body['_context'] ?? null);
+
         /**
          * Action fired before sending the form email.
          *
@@ -96,7 +100,7 @@ class FormEndpoint
          */
         do_action('lcmt_mailer_before_send', $key, $placeholders, $post);
 
-        $sent = Mailer::sendByKey($key, $placeholders);
+        $sent = SubmissionRecorder::send($submissionId, $key, $placeholders);
 
         if (!$sent) {
             return new \WP_REST_Response([
