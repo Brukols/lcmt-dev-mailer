@@ -102,6 +102,7 @@ Core email sending engine.
 - Loads `{theme}/forms/{key}.php`
 - Wraps with `<form>` + `data-lcmt-endpoint` + `data-lcmt-nonce` (or injects into existing `<form>` tag)
 - Enqueues `form-handler.js` on first render
+- The options a public page reads (`Attribution::OPTION_WITHOUT_CONSENT`, `Captcha::OPTION`, `Altcha::OPTION_KEY`) are not autoloaded, so `lcmt-dev-mailer.php` fetches them in one query with `wp_prime_option_caches()` at `wp_enqueue_scripts` priority 0 (WP 6.4+, skipped below). Add any new option read on public pages to that list.
 
 ### FormEndpoint
 - Registers `POST /wp-json/lcmt-mailer/v1/forms/{key}`
