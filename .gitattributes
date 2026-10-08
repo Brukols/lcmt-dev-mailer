@@ -9,5 +9,6 @@
 /assets/src       export-ignore
 /package.json     export-ignore
 /phpunit.xml.dist export-ignore
+/release-notes    export-ignore
 /tests            export-ignore
 /yarn.lock        export-ignore

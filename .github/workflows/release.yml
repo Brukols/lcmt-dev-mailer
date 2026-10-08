@@ -50,7 +50,16 @@ jobs:
       - name: Build the zip
         run: git archive --format=zip --prefix=lcmt-dev-mailer/ -o lcmt-dev-mailer.zip HEAD
 
+      # Notes: release-notes/X.Y.Z.md (in English) when it exists, else notes
+      # generated from the commits.
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" lcmt-dev-mailer.zip --title "$GITHUB_REF_NAME" --generate-notes
+        run: |
+          notes="release-notes/${GITHUB_REF_NAME#v}.md"
+
+          if [ -f "$notes" ]; then
+            gh release create "$GITHUB_REF_NAME" lcmt-dev-mailer.zip --title "$GITHUB_REF_NAME" --notes-file "$notes"
+          else
+            gh release create "$GITHUB_REF_NAME" lcmt-dev-mailer.zip --title "$GITHUB_REF_NAME" --generate-notes
+          fi

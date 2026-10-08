@@ -34,3 +34,4 @@ See the `.claude/` folder for topic-specific docs:
 - Always rebuild JS after editing `assets/src/`: `yarn build`
 - The plugin must remain self-contained and reusable across projects
 - Theme-specific logic goes through filters (`lcmt_mailer_*`), never hardcoded in the plugin
+- **Releases carry English notes** (owner's instruction, 2026-10-08): each version gets `release-notes/X.Y.Z.md`, in English, describing what changed for the people running the plugin; the release workflow publishes it as the GitHub release body (see [Build](.claude/build.md#releasing)).
