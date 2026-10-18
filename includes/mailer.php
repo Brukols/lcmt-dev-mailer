@@ -72,6 +72,10 @@ class Mailer
             'meta_key'       => MetaFields::FIELD_KEY,
             'meta_value'     => $key,
             'lang'           => $forcedLanguage ?? $defaultLanguage,
+            // When languages are ignored (WPML, Polylang deactivated), the
+            // oldest post, the source mail, wins over its translations.
+            'orderby'        => 'ID',
+            'order'          => 'ASC',
         ];
 
         $posts = get_posts($args);
