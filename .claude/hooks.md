@@ -40,7 +40,7 @@ add_filter('lcmt_mailer_headers', function (array $headers, array $form) {
 Used in: `Mailer::sendWithBaseTemplate()`.
 
 ### `lcmt_mailer_user_language`
-The language a mail is sent in, with Polylang. Default: the submission language (`RequestLanguage::current()`: `pll_current_language()`, which Polylang 3.8+ sets from the `lang` parameter the form script adds to the REST URL), `null` without Polylang. Return a language slug, or `null` to send the default-language mail. The translation of the mail post in that language is used only when it is published and its placeholder names equal the source's (`MailLanguage::pick()`); otherwise the source mail is sent, and a placeholder mismatch is logged with `error_log` (post IDs only).
+The language a mail is sent in, with Polylang. Default: the submission language (`RequestLanguage::current()`: `pll_current_language()`, which Polylang 3.8+ sets from the `lang` parameter the form script adds to the REST URL), `null` without Polylang. Return a language slug, or `null` to send the default-language mail. The translation of the mail post in that language is used only when it is published and its placeholders (names and types) equal the source's (`MailLanguage::pick()`); otherwise the source mail is sent, and a placeholder mismatch is logged with `error_log` (post IDs only).
 
 ```php
 add_filter('lcmt_mailer_user_language', function ($language, $email) {

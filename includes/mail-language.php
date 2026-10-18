@@ -14,9 +14,10 @@ class MailLanguage
 {
     /**
      * A translation is used only when it is published, not empty, and has
-     * the same placeholder names as the source (server-filled built-ins aside): one that lost or renamed a
-     * placeholder would send a mail missing the visitor's data. An empty
-     * translated subject or content keeps the source one.
+     * the same placeholders (names and types) as the source, server-filled
+     * built-ins aside: one that lost, renamed or retyped a placeholder would
+     * send a mail missing the visitor's data. An empty translated subject or
+     * content keeps the source one.
      *
      * @param array{subject: string, content: string, published: bool}|null $translation
      * @return array{subject: string, content: string, translated: bool}
@@ -50,16 +51,22 @@ class MailLanguage
     }
 
     /**
-     * The names of the fields a visitor fills: server-filled built-ins such
-     * as [submissionLanguage] may be added or left out by a translation.
+     * The fields a visitor fills, by name, with their type: the mail replaces
+     * a placeholder written with the type of the source mail only, so a
+     * translation writing [phone tel] for [phone] would leave it literal.
+     * Server-filled built-ins such as [submissionLanguage] may be added or
+     * left out by a translation.
      *
-     * @return list<string> Sorted placeholder names.
+     * @return array<string, string> Name => type, sorted by name.
      */
     private static function placeholderNames(string ...$sources): array
     {
-        $names = array_keys(FieldParser::formFields(FieldParser::parse(...$sources)));
-        sort($names);
+        $types = array_map(
+            static fn(array $field) => $field['type'],
+            FieldParser::formFields(FieldParser::parse(...$sources))
+        );
+        ksort($types);
 
-        return $names;
+        return $types;
     }
 }

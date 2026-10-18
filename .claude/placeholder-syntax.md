@@ -53,7 +53,7 @@ These are always injected by the Mailer and don't need to appear in the content:
 
 `[submissionLanguage]` is in `FieldParser::SERVER_FILLED`: `FieldParser::formFields()` leaves it out of the fields a visitor fills (REST endpoint, generated form template, TypeScript interface, test mail), so it is never asked for nor taken from the request.
 
-A translated mail post must keep the same placeholder names as the source mail: `MailLanguage::pick()` falls back to the source otherwise.
+A translated mail post must keep the same placeholder names and types as the source mail (the mail only replaces a placeholder written with the source's type): `MailLanguage::pick()` falls back to the source otherwise.
 
 ## Regex
 

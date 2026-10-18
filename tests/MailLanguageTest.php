@@ -94,4 +94,18 @@ class MailLanguageTest extends TestCase
 
         $this->assertTrue($picked['translated']);
     }
+
+    public function test_translation_with_another_placeholder_type_falls_back_to_the_source(): void
+    {
+        $picked = MailLanguage::pick('Demande', 'Téléphone : [phone]', $this->translation('Request', 'Phone: [phone tel]'));
+
+        $this->assertSame(['subject' => 'Demande', 'content' => 'Téléphone : [phone]', 'translated' => false], $picked);
+    }
+
+    public function test_translation_with_the_same_types_is_used(): void
+    {
+        $picked = MailLanguage::pick('Demande', 'Téléphone : [phone* tel]', $this->translation('Request', 'Phone: [phone* tel]'));
+
+        $this->assertTrue($picked['translated']);
+    }
 }
