@@ -171,7 +171,7 @@ Table `{prefix}lcmt_mailer_submissions`, created with `dbDelta`. `maybeUpgrade()
 | `mail_error` | wp_mail error text (may quote an address) | yes |
 | `user_agent` | Raw User-Agent header, `varchar(500)` NULL (personal: it can single out a device) | yes (set to NULL) |
 | `page_path`, `page_id`, `landing_path`, `referrer_host`, `channel`, `utm_source`, `utm_medium`, `utm_campaign`, `click_id_type`, `device`, `locale`, `browser`, `os` (families of the user agent, `varchar(30)`, no version) | Context, for statistics | no |
-| `language` (`varchar(10)`) | Submission language slug (Polylang), `''` on a single-language site; shown as "Language" (list column and detail) only on a multilingual site | no |
+| `language` (`varchar(10)`) | Submission language slug (Polylang), `''` without Polylang; shown as "Language" (list column and detail) only on a multilingual site | no |
 | `form_seconds` | Time spent on the form | yes (set to NULL) |
 | `anonymized_at` | Set when anonymized | (set) |
 | `trashed_at` (UTC, indexed), NULL unless in the trash | When the message was moved to the trash; the status is left as it was so a restore brings the message back unchanged | no (a trashed row is still anonymized and exported) |

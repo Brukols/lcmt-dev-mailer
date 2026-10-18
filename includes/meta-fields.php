@@ -206,7 +206,7 @@ Message:
                     <?php esc_html_e('Built-in placeholders (always available): [currentUserLink], [currentUserEmail], [submissionLanguage]', 'lcmt-dev-mailer'); ?>
                 </p>
                 <p style="margin: 4px 0 0; font-size: 11px; color: #666;">
-                    <code>[submissionLanguage]</code> <?php esc_html_e('the language of the page the form was sent from, e.g. English; empty on a single-language site.', 'lcmt-dev-mailer'); ?>
+                    <code>[submissionLanguage]</code> <?php esc_html_e('the language of the page the form was sent from, e.g. English; empty without Polylang.', 'lcmt-dev-mailer'); ?>
                 </p>
             </div>
         </div>

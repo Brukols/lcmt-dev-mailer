@@ -69,7 +69,7 @@ These are always available and don't need to be in the content:
 |----------------------|------------------------------------------|
 | `[currentUserLink]`  | Admin link to the current logged-in user |
 | `[currentUserEmail]` | Email of the current logged-in user      |
-| `[submissionLanguage]` | Name of the language of the page the form was sent from (e.g. `English`); empty on a single-language site |
+| `[submissionLanguage]` | Name of the language of the page the form was sent from (e.g. `English`); empty without Polylang |
 
 A value passed under the same name to `Mailer::sendByKey()` wins. "Send the email again" on a received message passes the user placeholders empty (the admin resending it is not the visitor) and sends it in the language it was first sent in. `[submissionLanguage]` is never a form field: visitors cannot fill it.
 
@@ -239,7 +239,7 @@ The messages sent through our forms are kept for [lcmt-retention-period], then [
 
 ## Multilingual sites
 
-Works with Polylang (3.8 or later); without a multilingual plugin nothing changes.
+Works with Polylang (3.8 or later); without a multilingual plugin nothing changes. **WPML only gets the declarations** of `wpml-config.xml` (what is translatable): answering and sending in the page language, `[submissionLanguage]` and the Language column need Polylang. With WPML (or Polylang deactivated), the oldest mail post of a key, the source, is sent.
 
 - **What is translatable** is declared in `wpml-config.xml`, read by Polylang and WPML: the `mail` post type is translatable, its subject and content are translated, its key, To, Reply-To and "save the messages" setting are copied to new translations, and the success message (Settings) is a translatable option.
 - **Forms answer in the page language**: the form script sends the page language with each submission (`lang`), and the validation and error messages come back in that language.
@@ -289,7 +289,7 @@ add_filter('lcmt_mailer_headers', function (array $headers, array $form) {
 
 ### `lcmt_mailer_user_language`
 
-The language a mail is sent in (Polylang). Defaults to the submission language (the language of the page the form was sent from), or `null` on a single-language site. The mail post's translation in that language is used when it is published and has the same placeholders as the source mail; otherwise the default-language mail is sent. Return another slug to override it, or `null` to always send the default-language mail.
+The language a mail is sent in (Polylang). Defaults to the submission language (the language of the page the form was sent from), or `null` without Polylang. The mail post's translation in that language is used when it is published and has the same placeholders as the source mail; otherwise the default-language mail is sent. Return another slug to override it, or `null` to always send the default-language mail.
 
 ```php
 add_filter('lcmt_mailer_user_language', function ($language, $email) {
