@@ -107,6 +107,8 @@ class FormRenderer
         wp_localize_script('lcmt-form-handler', 'lcmtMailerFront', [
             'colors' => Settings::getAlertColors(),
             'textColors' => Settings::getAlertTextColors(),
+            // The page language, sent back as `lang` so the answer and the mail use it.
+            'lang' => function_exists('pll_current_language') ? (string) pll_current_language() : '',
             'i18n' => [
                 'requiredFields' => __('Please fill in all required fields.', 'lcmt-dev-mailer'),
                 'genericError'   => __('An error occurred.', 'lcmt-dev-mailer'),

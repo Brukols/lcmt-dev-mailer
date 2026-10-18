@@ -69,8 +69,9 @@ These are always available and don't need to be in the content:
 |----------------------|------------------------------------------|
 | `[currentUserLink]`  | Admin link to the current logged-in user |
 | `[currentUserEmail]` | Email of the current logged-in user      |
+| `[submissionLanguage]` | Name of the language of the page the form was sent from (e.g. `English`); empty on a single-language site |
 
-A value passed under the same name to `Mailer::sendByKey()` wins. "Send the email again" on a received message passes them empty: the admin resending it is not the visitor.
+A value passed under the same name to `Mailer::sendByKey()` wins. "Send the email again" on a received message passes the user placeholders empty (the admin resending it is not the visitor) and sends it in the language it was first sent in. `[submissionLanguage]` is never a form field: visitors cannot fill it.
 
 ---
 
@@ -236,6 +237,21 @@ To write your own wording, combine the small ones:
 The messages sent through our forms are kept for [lcmt-retention-period], then [lcmt-retention-action].
 ```
 
+## Multilingual sites
+
+Works with Polylang (3.8 or later); without a multilingual plugin nothing changes.
+
+- **What is translatable** is declared in `wpml-config.xml`, read by Polylang and WPML: the `mail` post type is translatable, its subject and content are translated, its key, To, Reply-To and "save the messages" setting are copied to new translations, and the success message (Settings) is a translatable option.
+- **Forms answer in the page language**: the form script sends the page language with each submission (`lang`), and the validation and error messages come back in that language.
+- **Mails are sent in the page language** when the mail post has a **published** translation in it whose placeholders are the same as the source mail's. Otherwise (no translation, a draft, or a translation that lost or renamed a placeholder) the mail of the default language is sent, and a placeholder mismatch is logged with `error_log`.
+- **Translate mail posts like any post**, by hand or with a translation plugin. Keep the placeholders identical (`[fullname*]` stays `[fullname*]`, only the text around it changes): the form, its validation and the received messages always follow the default-language mail.
+- **Translate the success message** in Languages → Translations (Polylang) or String Translation (WPML).
+- **Form templates** (`{theme}/forms/{key}.php`) are theme files: translate their labels with the theme's text domain.
+- Keep Polylang's Languages → Settings → Synchronisation → "Custom fields" off, or Polylang would copy the subject and content of one language over the others.
+- Received messages record the language they were sent in, shown in a "Language" column and in the message detail when the site has more than one language.
+
+---
+
 ## Filters
 
 ### `lcmt_mailer_default_language`
@@ -271,12 +287,12 @@ add_filter('lcmt_mailer_headers', function (array $headers, array $form) {
 
 ### `lcmt_mailer_user_language`
 
-Resolve a recipient's preferred language for Polylang translation.
+The language a mail is sent in (Polylang). Defaults to the submission language (the language of the page the form was sent from), or `null` on a single-language site. The mail post's translation in that language is used when it is published and has the same placeholders as the source mail; otherwise the default-language mail is sent. Return another slug to override it, or `null` to always send the default-language mail.
 
 ```php
 add_filter('lcmt_mailer_user_language', function ($language, $email) {
     // Return a language slug like 'en', 'fr', or null to skip
-    return get_user_preferred_language($email);
+    return get_user_preferred_language($email) ?: $language;
 }, 10, 2);
 ```
 

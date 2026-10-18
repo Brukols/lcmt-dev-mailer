@@ -14,10 +14,32 @@ class FormEndpoint
             'methods'             => 'POST',
             'callback'            => [self::class, 'handle'],
             'permission_callback' => '__return_true',
+            'args'                => [
+                // The page language, sent by the front-end script on a multilingual site.
+                'lang' => [
+                    'type'              => 'string',
+                    'required'          => false,
+                    'sanitize_callback' => 'sanitize_key',
+                ],
+            ],
         ]);
     }
 
     public static function handle(\WP_REST_Request $request): \WP_REST_Response
+    {
+        // Answer in the language of the page the form was sent from.
+        $switched = RequestLanguage::switchFor($request);
+
+        try {
+            return self::respond($request);
+        } finally {
+            if ($switched) {
+                restore_current_locale();
+            }
+        }
+    }
+
+    private static function respond(\WP_REST_Request $request): \WP_REST_Response
     {
         $key  = $request->get_param('key');
         $post = Mailer::getPostByKey($key);
@@ -35,7 +57,7 @@ class FormEndpoint
         $content = MetaFields::get($post->ID, 'content');
 
         // Parse fields schema from all mail fields
-        $fields = FieldParser::parse($to, $replyTo, $subject, $content);
+        $fields = FieldParser::formFields(FieldParser::parse($to, $replyTo, $subject, $content));
 
         // A field that fills a recipient header must hold one valid address,
         // whatever type its placeholder declares.

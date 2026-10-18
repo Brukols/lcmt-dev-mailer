@@ -48,7 +48,7 @@ Vanilla JS (no dependencies), auto-loaded when a form is rendered. Located at `a
    - Collects all `[name]` inputs
    - Validates `required` inputs and `type="email"` inputs client-side
    - Makes sure the ALTCHA proof is still valid: when it is missing or expires within 30 s (the widget's own refresh timer stops while the computer sleeps), the widget solves a new challenge before sending
-   - Sends `fetch POST` with JSON body to the endpoint
+   - Sends `fetch POST` with JSON body to the endpoint; on a multilingual site (`lcmtMailerFront.lang` set from `pll_current_language()`), `lib/request-url.js` adds `?lang=<slug>` so the answer and the mail use the page language
    - Handles success/error states
    - Resets the ALTCHA widget after every answer: the server spends a proof as soon as it reads it, even when it then refuses a field, so a corrected form needs a new one
 

@@ -100,8 +100,9 @@ class Mailer
         $user = wp_get_current_user();
 
         foreach ([
-            'currentUserLink'  => admin_url('user-edit.php?user_id=' . $user->ID),
-            'currentUserEmail' => $user->user_email,
+            'currentUserLink'    => admin_url('user-edit.php?user_id=' . $user->ID),
+            'currentUserEmail'   => $user->user_email,
+            'submissionLanguage' => RequestLanguage::name(RequestLanguage::current()),
         ] as $name => $value) {
             if (!isset($passed[$name])) {
                 $placeholders['[' . $name . ']'] = $value;
@@ -223,6 +224,12 @@ class Mailer
         return $name . ' <' . Settings::getFromEmail() . '>';
     }
 
+    /**
+     * The subject and content in the submission language when the mail post
+     * has a published translation in it with the same placeholders, else the
+     * source ones. The language is the submission language (Polylang) unless
+     * the lcmt_mailer_user_language filter returns another one.
+     */
     private static function maybeTranslateForRecipient(string $to, int $postId, ?string $forcedLanguage, string $subject, string $content): array
     {
         $result = ['to' => $to, 'subject' => $subject, 'content' => $content];
@@ -235,25 +242,36 @@ class Mailer
             return $result;
         }
 
-        $userLanguage = apply_filters('lcmt_mailer_user_language', null, $to);
+        $userLanguage = apply_filters('lcmt_mailer_user_language', RequestLanguage::current(), $to);
 
-        if (empty($userLanguage)) {
+        if (empty($userLanguage) || !is_string($userLanguage)) {
             return $result;
         }
 
-        $translatedPostId = pll_get_post($postId, $userLanguage);
+        $translatedPostId = (int) pll_get_post($postId, $userLanguage);
 
-        if ($translatedPostId && $translatedPostId !== $postId) {
-            $translatedSubject = MetaFields::get($translatedPostId, 'subject');
-            $translatedContent = MetaFields::get($translatedPostId, 'content');
-
-            if ($translatedSubject) {
-                $result['subject'] = $translatedSubject;
-            }
-            if ($translatedContent) {
-                $result['content'] = $translatedContent;
-            }
+        if (!$translatedPostId || $translatedPostId === $postId) {
+            return $result;
         }
+
+        $translation = [
+            'subject'   => MetaFields::get($translatedPostId, 'subject'),
+            'content'   => MetaFields::get($translatedPostId, 'content'),
+            'published' => get_post_status($translatedPostId) === 'publish',
+        ];
+
+        $picked = MailLanguage::pick($subject, $content, $translation);
+
+        if (!$picked['translated'] && $translation['published'] && ($translation['subject'] !== '' || $translation['content'] !== '')) {
+            error_log(sprintf(
+                'LCMT Mailer: translation %d of mail %d not used, its placeholders differ from the source mail.',
+                $translatedPostId,
+                $postId
+            ));
+        }
+
+        $result['subject'] = $picked['subject'];
+        $result['content'] = $picked['content'];
 
         return $result;
     }

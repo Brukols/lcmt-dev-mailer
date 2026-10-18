@@ -24,9 +24,10 @@ class SubmissionContext
     /**
      * @param mixed  $raw      The `_context` value from the JSON body.
      * @param string $siteHost The host of home_url(), to spot internal referrers.
-     * @return array{page_path: string, landing_path: string, referrer_host: string, utm_source: string, utm_medium: string, utm_campaign: string, click_id_type: string, device: string, locale: string, form_seconds: ?int}
+     * @param string $language The submission language slug, from the server (RequestLanguage::current()).
+     * @return array{page_path: string, landing_path: string, referrer_host: string, utm_source: string, utm_medium: string, utm_campaign: string, click_id_type: string, device: string, locale: string, form_seconds: ?int, language: string}
      */
-    public static function fromRequest($raw, string $siteHost): array
+    public static function fromRequest($raw, string $siteHost, string $language = ''): array
     {
         $raw     = is_array($raw) ? $raw : [];
         $landing = isset($raw['landing']) && is_array($raw['landing']) ? $raw['landing'] : [];
@@ -42,6 +43,7 @@ class SubmissionContext
             'device'        => self::oneOf($raw['device'] ?? '', self::DEVICES),
             'locale'        => self::locale($raw['locale'] ?? ''),
             'form_seconds'  => self::seconds($raw['seconds'] ?? null),
+            'language'      => self::language($language),
         ];
     }
 
@@ -126,6 +128,14 @@ class SubmissionContext
     private static function locale($value): string
     {
         return is_string($value) && preg_match('/^[a-z]{2,3}(-[A-Za-z]{2})?$/', $value) ? $value : '';
+    }
+
+    /**
+     * A language slug ("en", "pt-br"), cut to its column size.
+     */
+    private static function language(string $value): string
+    {
+        return preg_match('/^[a-z]{2,3}(-[a-z0-9]{2,4})?$/', $value) ? $value : '';
     }
 
     /**

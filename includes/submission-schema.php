@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
  */
 class SubmissionSchema
 {
-    public const VERSION = '3';
+    public const VERSION = '4';
     public const OPTION_VERSION = 'lcmt_mailer_db_version';
 
     /**
@@ -24,7 +24,7 @@ class SubmissionSchema
         'id', 'form_key', 'mail_post_id', 'created_at', 'status', 'mail_sent', 'mail_error', 'fields',
         'page_path', 'page_id', 'landing_path', 'referrer_host', 'channel', 'utm_source', 'utm_medium',
         'utm_campaign', 'click_id_type', 'device', 'locale', 'form_seconds', 'user_agent', 'browser', 'os',
-        'anonymized_at', 'trashed_at',
+        'anonymized_at', 'trashed_at', 'language',
     ];
 
     public static function maybeUpgrade(): void
@@ -72,6 +72,7 @@ class SubmissionSchema
             os varchar(30) NOT NULL DEFAULT '',
             anonymized_at datetime NULL,
             trashed_at datetime NULL,
+            language varchar(10) NOT NULL DEFAULT '',
             PRIMARY KEY  (id),
             KEY created_at (created_at),
             KEY form_key (form_key),

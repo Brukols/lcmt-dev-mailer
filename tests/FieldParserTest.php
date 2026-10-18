@@ -35,4 +35,11 @@ class FieldParserTest extends TestCase
     {
         $this->assertSame([], FieldParser::parse('Price [10 €] and [ spaced ] and [-dash]'));
     }
+
+    public function testFormFieldsLeaveOutTheSubmissionLanguage(): void
+    {
+        $fields = FieldParser::formFields(FieldParser::parse('[email* email] sent in [submissionLanguage]'));
+
+        $this->assertSame(['email'], array_keys($fields));
+    }
 }

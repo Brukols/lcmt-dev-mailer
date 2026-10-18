@@ -37,7 +37,7 @@ add_filter('lcmt_mailer_headers', function (array $headers, array $form) {
 Used in: `Mailer::sendWithBaseTemplate()`.
 
 ### `lcmt_mailer_user_language`
-Resolve a recipient's preferred language for Polylang translation. Return a language slug or `null` to skip.
+The language a mail is sent in, with Polylang. Default: the submission language (`RequestLanguage::current()`: `pll_current_language()`, which Polylang 3.8+ sets from the `lang` parameter the form script adds to the REST URL), `null` without Polylang. Return a language slug, or `null` to send the default-language mail. The translation of the mail post in that language is used only when it is published and its placeholder names equal the source's (`MailLanguage::pick()`); otherwise the source mail is sent, and a placeholder mismatch is logged with `error_log` (post IDs only).
 
 ```php
 add_filter('lcmt_mailer_user_language', function ($language, $email) {
@@ -46,7 +46,7 @@ add_filter('lcmt_mailer_user_language', function ($language, $email) {
 }, 10, 2);
 ```
 
-Used in: `Mailer::maybeTranslateForRecipient()` — if a translated mail post exists in Polylang, subject and content are swapped.
+Used in: `Mailer::maybeTranslateForRecipient()` — subject and content come from the translation picked by `MailLanguage::pick()`. A resend from the admin runs inside `RequestLanguage::using()` with the stored language of the message.
 
 ### `lcmt_mailer_captcha_providers`
 Register a spam protection. Keys are provider ids, values are classes implementing `LcmtDevMailer\CaptchaProvider`.

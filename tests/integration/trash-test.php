@@ -107,8 +107,8 @@ function lcmt_tr_single(int $id, string $do): array
 
 // ── Schema and repository ──
 
-lcmt_it('The schema is version 3 and knows the trashed_at column', function () {
-    lcmt_assert_same('3', SubmissionSchema::VERSION);
+lcmt_it('The schema is version 3 or later and knows the trashed_at column', function () {
+    lcmt_assert_true(version_compare(SubmissionSchema::VERSION, '3', '>='), 'version');
     lcmt_assert_true(in_array('trashed_at', SubmissionSchema::COLUMNS, true), 'listed');
     lcmt_assert_true(SubmissionSchema::hasColumns(['trashed_at']), 'exists in the table');
 });

@@ -55,6 +55,8 @@ function set_transient($name, $value, $expiration = 0)
 
 require_once dirname(__DIR__) . '/includes/field-parser.php';
 require_once dirname(__DIR__) . '/includes/meta-fields.php';
+require_once dirname(__DIR__) . '/includes/request-language.php';
+require_once dirname(__DIR__) . '/includes/mail-language.php';
 require_once dirname(__DIR__) . '/includes/field-validator.php';
 require_once dirname(__DIR__) . '/includes/submission-data.php';
 require_once dirname(__DIR__) . '/includes/submission-context.php';

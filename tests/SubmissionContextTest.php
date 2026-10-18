@@ -25,6 +25,7 @@ class SubmissionContextTest extends TestCase
             'device'        => 'mobile',
             'locale'        => 'fr-FR',
             'form_seconds'  => 42,
+            'language'      => '',
         ], $this->context([
             'page'    => '/contact/?email=jeanne@example.com#top',
             'landing' => [
@@ -49,7 +50,7 @@ class SubmissionContextTest extends TestCase
             $this->assertSame('', $context['page_path']);
             $this->assertSame('', $context['referrer_host']);
             $this->assertNull($context['form_seconds']);
-            $this->assertCount(10, $context);
+            $this->assertCount(11, $context);
         }
     }
 
@@ -122,5 +123,16 @@ class SubmissionContextTest extends TestCase
         $this->assertNull($this->context(['seconds' => -5])['form_seconds']);
         $this->assertNull($this->context(['seconds' => 999999])['form_seconds']);
         $this->assertNull($this->context(['seconds' => 'soon'])['form_seconds']);
+    }
+
+    public function test_records_the_submission_language(): void
+    {
+        $this->assertSame('en', SubmissionContext::fromRequest([], self::SITE, 'en')['language']);
+        $this->assertSame('pt-br', SubmissionContext::fromRequest([], self::SITE, 'pt-br')['language']);
+        $this->assertSame('', SubmissionContext::fromRequest([], self::SITE)['language']);
+
+        foreach (['en"><', 'EN', str_repeat('a', 11), ''] as $language) {
+            $this->assertSame('', SubmissionContext::fromRequest([], self::SITE, $language)['language'], $language);
+        }
     }
 }

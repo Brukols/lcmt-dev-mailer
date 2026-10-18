@@ -11,6 +11,8 @@ lcmt-dev-mailer/
 │   ├── field-parser.php         # FieldParser — parses [field* type] placeholders from content
 │   ├── field-validator.php      # FieldValidator — sanitizes submitted values and checks them by type
 │   ├── template-loader.php      # TemplateLoader — loads mail-base.php with theme override support
+│   ├── request-language.php     # RequestLanguage — submission language (Polylang), locale switch of the REST request
+│   ├── mail-language.php        # MailLanguage — picks the translated subject/content or the source mail
 │   ├── mailer.php               # Mailer — core email engine (lookup by key, placeholder replacement, wp_mail)
 │   ├── form-renderer.php        # FormRenderer — renders forms via shortcode or PHP, enqueues frontend JS
 │   ├── form-endpoint.php        # FormEndpoint — REST API endpoint with auto-validation and sending
@@ -38,6 +40,7 @@ lcmt-dev-mailer/
 │   ├── stats-page.php           # StatsPage — Statistics page: charts and Chart | Table toggle
 │   ├── uninstaller.php          # Uninstaller — what deleting the plugin removes, and the dialog that asks
 │   └── updater.php              # Updater — Plugin Update Checker wired to the GitHub releases
+├── wpml-config.xml              # What Polylang/WPML translate: `mail` posts, subject/content, copied fields, success message
 ├── uninstall.php                # Unschedules the purge; drops the table and options only if asked (Uninstaller)
 ├── tests/                       # unit/ JS / integration tests (see Build)
 ├── lib/
@@ -56,7 +59,8 @@ lcmt-dev-mailer/
 │   │   ├── lib/attribution.js   # Shared module (not built on its own)
 │   │   ├── lib/uninstall-prompt.js  # Deactivate-link flow (hold back, ask, store, follow once), tested under node
 │   │   ├── lib/deactivate-dialog.js # The <dialog>: checkbox, help line, Cancel/Deactivate, busy state, tested under node
-│   │   └── lib/stats-view.js    # Chart | Table state and localStorage persistence, tested under node
+│   │   ├── lib/stats-view.js    # Chart | Table state and localStorage persistence, tested under node
+│   │   └── lib/request-url.js   # REST URL of a form, with the page language as `lang`, tested under node
 │   └── dist/                    # Minified output (esbuild)
 └── package.json                 # Build config (esbuild)
 ```
@@ -143,14 +147,19 @@ Pure helpers around the stored `fields` JSON: `snapshot()` freezes each submitte
 ### UserAgent
 Pure class. `clean($raw)` is what is stored of the `User-Agent` header: control characters stripped, at most 500 characters, empty when it is not valid UTF-8. `parse($ua)` returns `['browser' => …, 'os' => …]`, families only, never a version: browser is `Edge`, `Opera`, `Samsung Internet`, `Firefox` (incl. FxiOS), `Chrome` (incl. CriOS), `Safari`, `Bot` (crawlers, monitors, curl…) or `Other`; OS is `iOS`, `iPadOS`, `Android`, `Windows`, `macOS`, `ChromeOS`, `Linux` or `Other`; an empty header gives `''` for both. Order matters (Edge and Opera also say Chrome, Android also says Linux): see the precedence tests in `tests/UserAgentTest.php`. The raw string can single out a device, so it is **personal** (cleared by anonymization, exported by the privacy tools); the two families are statistics and stay.
 
+### RequestLanguage and MailLanguage
+The submission language. The form script adds the page language (`lcmtMailerFront.lang`, from `pll_current_language()`) to the REST URL as `lang`; Polylang 3.8+ sets its current language from it (an unknown slug gives the default language) but **not the locale**, so `FormEndpoint::handle()` calls `RequestLanguage::switchFor()`, which switches to the locale of that site language (only a language of the site, never an arbitrary locale) and restores it in a `finally`. `RequestLanguage::current()` is the slug (`null` without Polylang); `using($slug, $callback)` overrides it for a callback (resend from the admin). `name()` gives the language name for `[submissionLanguage]`, `isMultilingual()` gates the "Language" column.
+
+`MailLanguage::pick()` (pure) returns the translation's subject and content when it is published, not empty and has the same placeholder names as the source mail, else the source; an empty translated subject or content keeps the source one. `Mailer::maybeTranslateForRecipient()` feeds it the Polylang translation (`pll_get_post()`) in the language from `lcmt_mailer_user_language` (default `RequestLanguage::current()`).
+
 ### SubmissionContext
-`fromRequest($raw, $siteHost)` turns the untrusted `_context` object into column values. Every value is checked against its expected shape and cut to its column size, anything else becomes empty. Only paths and hosts are kept, never query strings; the referrer is reduced to its host (without `www.`), and empty when it is the site itself. Click ids are kept by name (`gclid`, `fbclid`…), never their value.
+`fromRequest($raw, $siteHost, $language = '')` turns the untrusted `_context` object into column values. `$language` is the submission language slug from the server (`RequestLanguage::current()`), kept only when it looks like a slug. Every value is checked against its expected shape and cut to its column size, anything else becomes empty. Only paths and hosts are kept, never query strings; the referrer is reduced to its host (without `www.`), and empty when it is the site itself. Click ids are kept by name (`gclid`, `fbclid`…), never their value.
 
 ### ChannelClassifier
 `classify($context)` returns one of `CHANNELS`: `google_ads`, `paid_social`, `paid_other`, `email`, `ai_assistant`, `social`, `organic_search`, `campaign`, `referral`, `direct`. Paid signals (click id, paid medium) win, then explicit mediums, then AI assistants (referrer hosts such as claude.ai, chatgpt.com, perplexity.ai, gemini.google.com, copilot.microsoft.com, chat.mistral.ai, deepseek.com, grok.com, or utm_source `chatgpt`, `claude`, `perplexity`, `gemini`, `copilot`, `mistral`, `deepseek`…; checked before social and search so gemini.google.com is not organic search; dotted names match the host or its subdomains only, so `box.ai` is not `x.ai`), then the referrer host. `label()` gives the translated name. The result goes through the `lcmt_mailer_submission_channel` filter.
 
 ### SubmissionSchema
-Table `{prefix}lcmt_mailer_submissions`, created with `dbDelta`. `maybeUpgrade()` runs on `plugins_loaded` and compares the `lcmt_mailer_db_version` option with `VERSION`, because updates from GitHub never run the activation hook. `install()` only records the version once `SHOW TABLES LIKE` finds the table, so a failed `dbDelta` is retried on the next load; the version is also only saved when `hasColumns(COLUMNS)` finds every column of the schema, so a failed `ALTER` is retried too instead of leaving inserts failing on an unknown column. Bump `VERSION` and edit the `CREATE TABLE` to change the schema (`VERSION` is `'3'` since the `trashed_at` column, `'2'` before it for `user_agent`, `browser` and `os`).
+Table `{prefix}lcmt_mailer_submissions`, created with `dbDelta`. `maybeUpgrade()` runs on `plugins_loaded` and compares the `lcmt_mailer_db_version` option with `VERSION`, because updates from GitHub never run the activation hook. `install()` only records the version once `SHOW TABLES LIKE` finds the table, so a failed `dbDelta` is retried on the next load; the version is also only saved when `hasColumns(COLUMNS)` finds every column of the schema, so a failed `ALTER` is retried too instead of leaving inserts failing on an unknown column. Bump `VERSION` and edit the `CREATE TABLE` to change the schema (`VERSION` is `'4'` since the `language` column, `'3'` since the `trashed_at` column, `'2'` before it for `user_agent`, `browser` and `os`).
 
 | Column | Content | Cleared by anonymization |
 |--------|---------|--------------------------|
@@ -160,6 +169,7 @@ Table `{prefix}lcmt_mailer_submissions`, created with `dbDelta`. `maybeUpgrade()
 | `mail_error` | wp_mail error text (may quote an address) | yes |
 | `user_agent` | Raw User-Agent header, `varchar(500)` NULL (personal: it can single out a device) | yes (set to NULL) |
 | `page_path`, `page_id`, `landing_path`, `referrer_host`, `channel`, `utm_source`, `utm_medium`, `utm_campaign`, `click_id_type`, `device`, `locale`, `browser`, `os` (families of the user agent, `varchar(30)`, no version) | Context, for statistics | no |
+| `language` (`varchar(10)`) | Submission language slug (Polylang), `''` on a single-language site; shown as "Language" (list column and detail) only on a multilingual site | no |
 | `form_seconds` | Time spent on the form | yes (set to NULL) |
 | `anonymized_at` | Set when anonymized | (set) |
 | `trashed_at` (UTC, indexed), NULL unless in the trash | When the message was moved to the trash; the status is left as it was so a restore brings the message back unchanged | no (a trashed row is still anonymized and exported) |

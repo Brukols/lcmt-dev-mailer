@@ -365,7 +365,11 @@ class SubmissionsPage
                 '[currentUserEmail]' => '',
             ];
 
-            $sent = SubmissionRecorder::send((int) $row['id'], (string) $row['form_key'], $placeholders);
+            // Sent again in the language it was sent in, not the admin's.
+            $sent = RequestLanguage::using(
+                (string) ($row['language'] ?? ''),
+                static fn() => SubmissionRecorder::send((int) $row['id'], (string) $row['form_key'], $placeholders)
+            );
 
             return [$sent ? 'resent' : 'resend_failed', 1];
         }
@@ -385,6 +389,7 @@ class SubmissionsPage
             __('Date', 'lcmt-dev-mailer')             => self::formatDate($row, get_option('date_format'), get_option('time_format')),
             __('Form', 'lcmt-dev-mailer')             => $row['form_key'],
             __('Sent from', 'lcmt-dev-mailer')        => $row['page_path'],
+            __('Language', 'lcmt-dev-mailer')         => RequestLanguage::isMultilingual() ? self::languageName((string) ($row['language'] ?? '')) : '',
             __('Landing page', 'lcmt-dev-mailer')     => $row['landing_path'],
             __('Source', 'lcmt-dev-mailer')           => ChannelClassifier::label((string) $row['channel']),
             __('Referring site', 'lcmt-dev-mailer')   => $row['referrer_host'],
@@ -399,6 +404,15 @@ class SubmissionsPage
         ];
 
         return array_filter(array_map('strval', $items), static fn(string $value) => $value !== '');
+    }
+
+    /**
+     * The name of the language a message was sent in ("English"), or its
+     * slug when the site no longer has that language.
+     */
+    public static function languageName(string $slug): string
+    {
+        return RequestLanguage::name($slug) ?: $slug;
     }
 
     /**

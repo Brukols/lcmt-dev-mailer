@@ -16,6 +16,7 @@ import 'node-snackbar/dist/snackbar.min.css';
 import './form-handler.css';
 import 'altcha';
 import { formContext } from './lib/attribution';
+import { requestUrl } from './lib/request-url';
 
 (function () {
   'use strict';
@@ -290,7 +291,7 @@ import { formContext } from './lib/attribution';
           if (payload) data['altcha'] = payload;
           data['_context'] = formContext(startedAt);
 
-          return fetch(endpoint, {
+          return fetch(requestUrl(endpoint, window.lcmtMailerFront), {
             method: 'POST',
             credentials: 'same-origin',
             headers: {

@@ -37,7 +37,7 @@ class AdminMailSender
         echo '<div id="lcmt-mail-sender-container">';
 
         if ($key) {
-            $fields   = FieldParser::parse($to, $subject, $content);
+            $fields   = FieldParser::formFields(FieldParser::parse($to, $subject, $content));
             $formFile = get_stylesheet_directory() . '/forms/' . $key . '.php';
             $formExists = file_exists($formFile);
 
@@ -219,7 +219,7 @@ class AdminMailSender
         $content = MetaFields::get($postId, 'content');
         $to      = MetaFields::get($postId, 'to');
         $subject = MetaFields::get($postId, 'subject');
-        $fields  = FieldParser::parse($to, $subject, $content);
+        $fields  = FieldParser::formFields(FieldParser::parse($to, $subject, $content));
 
         $defaultPlaceholders = [];
         foreach ($fields as $field) {
@@ -286,7 +286,7 @@ class AdminMailSender
         $content = MetaFields::get($postId, 'content');
         $to      = MetaFields::get($postId, 'to');
         $subject = MetaFields::get($postId, 'subject');
-        $fields  = FieldParser::parse($to, $subject, $content);
+        $fields  = FieldParser::formFields(FieldParser::parse($to, $subject, $content));
 
         if (empty($fields)) {
             wp_send_json_error(__('No fields found in the mail content. Add placeholders like [firstname*] first.', 'lcmt-dev-mailer'));

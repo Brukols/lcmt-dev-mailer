@@ -47,8 +47,13 @@ These are always injected by the Mailer and don't need to appear in the content:
 |----------------------|------------------------------------------|
 | `[currentUserLink]`  | Admin URL to edit the current user       |
 | `[currentUserEmail]` | Email of the current logged-in user      |
+| `[submissionLanguage]` | Name of the submission language (`English`), from Polylang; `''` on a single-language site |
 
-`buildForm()` only fills them when the caller did not pass the same name (bare or bracketed, with or without `*`). The resend of a received message passes both as `''`, so they never name the admin who resends it.
+`buildForm()` only fills them when the caller did not pass the same name (bare or bracketed, with or without `*`). The resend of a received message passes the two user placeholders as `''`, so they never name the admin who resends it, and runs in the stored language of the message (`RequestLanguage::using()`).
+
+`[submissionLanguage]` is in `FieldParser::SERVER_FILLED`: `FieldParser::formFields()` leaves it out of the fields a visitor fills (REST endpoint, generated form template, TypeScript interface, test mail), so it is never asked for nor taken from the request.
+
+A translated mail post must keep the same placeholder names as the source mail: `MailLanguage::pick()` falls back to the source otherwise.
 
 ## Regex
 

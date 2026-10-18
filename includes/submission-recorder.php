@@ -30,7 +30,7 @@ class SubmissionRecorder
         }
 
         $home    = home_url();
-        $context = SubmissionContext::fromRequest($rawContext, (string) parse_url($home, PHP_URL_HOST));
+        $context = SubmissionContext::fromRequest($rawContext, (string) parse_url($home, PHP_URL_HOST), (string) RequestLanguage::current());
 
         /**
          * Filter the channel a submission is counted under.

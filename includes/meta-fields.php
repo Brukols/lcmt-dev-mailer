@@ -203,7 +203,10 @@ Message:
 [message* textarea]</pre>
 
                 <p style="margin: 8px 0 0; font-size: 11px; color: #666;">
-                    <?php esc_html_e('Built-in placeholders (always available): [currentUserLink], [currentUserEmail]', 'lcmt-dev-mailer'); ?>
+                    <?php esc_html_e('Built-in placeholders (always available): [currentUserLink], [currentUserEmail], [submissionLanguage]', 'lcmt-dev-mailer'); ?>
+                </p>
+                <p style="margin: 4px 0 0; font-size: 11px; color: #666;">
+                    <code>[submissionLanguage]</code> <?php esc_html_e('the language of the page the form was sent from, e.g. English; empty on a single-language site.', 'lcmt-dev-mailer'); ?>
                 </p>
             </div>
         </div>

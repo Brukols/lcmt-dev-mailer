@@ -40,6 +40,13 @@ class SubmissionsListTable extends \WP_List_Table
             'created_at'    => __('Date', 'lcmt-dev-mailer'),
         ];
 
+        // The language of the page each message was sent from, on a multilingual site only.
+        if (RequestLanguage::isMultilingual()) {
+            $columns = array_slice($columns, 0, 5, true)
+                + ['language' => __('Language', 'lcmt-dev-mailer')]
+                + array_slice($columns, 5, null, true);
+        }
+
         if (SubmissionsPage::filtersFromRequest()['trash']) {
             $columns['trashed_at'] = __('Deletion', 'lcmt-dev-mailer');
         }
@@ -216,6 +223,14 @@ class SubmissionsListTable extends \WP_List_Table
         }
 
         return $html;
+    }
+
+    // Empty for messages saved before languages were recorded.
+    protected function column_language(array $item): string
+    {
+        $name = SubmissionsPage::languageName((string) ($item['language'] ?? ''));
+
+        return $name === '' ? '<span aria-hidden="true">&mdash;</span>' : esc_html($name);
     }
 
     // Empty for a direct visit, or when the browser hid where it came from.

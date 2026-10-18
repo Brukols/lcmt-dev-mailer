@@ -73,6 +73,22 @@ class FieldParser
     }
 
     /**
+     * Built-in placeholders the server fills, never asked to the visitor.
+     */
+    public const SERVER_FILLED = ['submissionLanguage'];
+
+    /**
+     * The parsed fields a visitor fills: all but the server-filled ones.
+     *
+     * @param array<string, array{name: string, required: bool, type: string}> $fields
+     * @return array<string, array{name: string, required: bool, type: string}>
+     */
+    public static function formFields(array $fields): array
+    {
+        return array_diff_key($fields, array_flip(self::SERVER_FILLED));
+    }
+
+    /**
      * Generate a TypeScript interface from parsed fields.
      */
     public static function toTypeScript(string $key, array $fields): string
