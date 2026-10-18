@@ -57,7 +57,7 @@ A translated mail post must keep the same placeholder names as the source mail: 
 
 ## Regex
 
-The parser uses this pattern:
+The parser uses this pattern, public as `FieldParser::PATTERN` (also given to translation plugins through `lcmt_pat/protected_patterns`, for mail posts only, so they never translate placeholders):
 ```
 /\[([a-zA-Z_][a-zA-Z0-9_]*)(\*)?(?:\s+([a-zA-Z]+))?\]/
 ```

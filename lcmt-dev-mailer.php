@@ -138,3 +138,6 @@ add_action('wp_enqueue_scripts', ['LcmtDevMailer\\FormRenderer', 'registerAssets
 add_shortcode('lcmt-form', ['LcmtDevMailer\\FormRenderer', 'shortcode']);
 add_action('rest_api_init', ['LcmtDevMailer\\FormEndpoint', 'register']);
 add_action('rest_api_init', ['LcmtDevMailer\\Captcha', 'registerRoutes']);
+
+// ── Multilingual: keep placeholders untouched when a translation plugin translates mail posts ──
+add_filter('lcmt_pat/protected_patterns', ['LcmtDevMailer\\FieldParser', 'protectedPatterns'], 10, 3);

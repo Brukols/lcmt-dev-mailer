@@ -14,7 +14,7 @@ class MailLanguage
 {
     /**
      * A translation is used only when it is published, not empty, and has
-     * the same placeholder names as the source: one that lost or renamed a
+     * the same placeholder names as the source (server-filled built-ins aside): one that lost or renamed a
      * placeholder would send a mail missing the visitor's data. An empty
      * translated subject or content keeps the source one.
      *
@@ -50,11 +50,14 @@ class MailLanguage
     }
 
     /**
+     * The names of the fields a visitor fills: server-filled built-ins such
+     * as [submissionLanguage] may be added or left out by a translation.
+     *
      * @return list<string> Sorted placeholder names.
      */
     private static function placeholderNames(string ...$sources): array
     {
-        $names = array_keys(FieldParser::parse(...$sources));
+        $names = array_keys(FieldParser::formFields(FieldParser::parse(...$sources)));
         sort($names);
 
         return $names;

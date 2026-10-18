@@ -42,4 +42,21 @@ class FieldParserTest extends TestCase
 
         $this->assertSame(['email'], array_keys($fields));
     }
+
+    public function testThePatternMatchesEveryPlaceholderForm(): void
+    {
+        foreach (['[name]', '[name*]', '[email email]', '[email* email]', '[submissionLanguage]'] as $placeholder) {
+            $this->assertSame(1, preg_match(FieldParser::PATTERN, $placeholder), $placeholder);
+        }
+
+        $this->assertSame(0, preg_match(FieldParser::PATTERN, '[ spaced ]'));
+    }
+
+    public function testProtectsPlaceholdersOfMailPostsOnly(): void
+    {
+        $this->assertSame(['/x/', FieldParser::PATTERN], FieldParser::protectedPatterns(['/x/'], 'post', 'mail'));
+        $this->assertSame(['/x/'], FieldParser::protectedPatterns(['/x/'], 'post', 'page'));
+        $this->assertSame(['/x/'], FieldParser::protectedPatterns(['/x/'], 'term', 'mail'));
+        $this->assertSame([], FieldParser::protectedPatterns([], 'options', 'mail'));
+    }
 }

@@ -183,3 +183,32 @@ lcmt_it('The REST route never takes [submissionLanguage] from the visitor', func
     lcmt_assert_true(str_contains($GLOBALS['lcmt_lang_mail']['message'], 'lang='), 'placeholder replaced');
     lcmt_assert_same(false, str_contains($GLOBALS['lcmt_lang_mail']['message'], 'Forged'), 'visitor value ignored');
 });
+
+lcmt_it('A mail post without a language is still found once mail posts are translatable (Polylang)', function () {
+    [$post, $key] = lcmt_it_template();
+
+    // Mail posts saved before mail became translatable have no language
+    // (Polylang gives one to new posts on save).
+    if (taxonomy_exists('language')) {
+        wp_set_object_terms($post->ID, [], 'language');
+        clean_object_term_cache($post->ID, 'mail');
+        lcmt_assert_same(false, (bool) pll_get_post_language($post->ID), 'no language');
+    }
+
+    lcmt_assert_same($post->ID, Mailer::getPostByKey($key)->ID ?? null);
+});
+
+lcmt_it('The mail post of the default language is found, not its translation (Polylang)', function () {
+    if (!($pair = lcmt_lang_pair())) {
+        return;
+    }
+
+    [$source, $key, $translationId] = lcmt_lang_mail_with_translation($pair[0], $pair[1], 'publish', '[firstname*] [email* email]');
+
+    lcmt_assert_same($source->ID, Mailer::getPostByKey($key)->ID ?? null, 'default language');
+    lcmt_assert_same($translationId, Mailer::getPostByKey($key, $pair[1])->ID ?? null, 'forced language');
+
+    add_filter('lcmt_mailer_default_language', $other = static fn() => $pair[1]);
+    lcmt_assert_same($translationId, Mailer::getPostByKey($key)->ID ?? null, 'the filter still wins');
+    remove_filter('lcmt_mailer_default_language', $other);
+});

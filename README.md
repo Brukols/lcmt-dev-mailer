@@ -248,6 +248,8 @@ Works with Polylang (3.8 or later); without a multilingual plugin nothing change
 - **Translate the success message** in Languages → Translations (Polylang) or String Translation (WPML).
 - **Form templates** (`{theme}/forms/{key}.php`) are theme files: translate their labels with the theme's text domain.
 - Keep Polylang's Languages → Settings → Synchronisation → "Custom fields" off, or Polylang would copy the subject and content of one language over the others.
+- Mail posts saved before the update have no language yet: they keep working (a mail post without a language is used when none exists in the default language), but set their language once in Polylang (Languages → "set the default language" for content without one, or edit each mail) before adding translations.
+- Translation plugins: with Polylang AI Translate, placeholders of mail posts are declared as protected tokens (`lcmt_pat/protected_patterns`), so they are never translated.
 - Received messages record the language they were sent in, shown in a "Language" column and in the message detail when the site has more than one language.
 
 ---
@@ -256,7 +258,7 @@ Works with Polylang (3.8 or later); without a multilingual plugin nothing change
 
 ### `lcmt_mailer_default_language`
 
-Default language for querying mail posts (default: `fr`).
+Default language for querying mail posts (default: Polylang's default language, else `fr`).
 
 ```php
 add_filter('lcmt_mailer_default_language', function () {

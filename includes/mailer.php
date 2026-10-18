@@ -57,11 +57,13 @@ class Mailer
     }
 
     /**
-     * Find the mail post by its key.
+     * Find the mail post by its key, in the default language (Polylang's,
+     * else "fr") unless a language is forced.
      */
     public static function getPostByKey(string $key, ?string $forcedLanguage = null): ?\WP_Post
     {
-        $defaultLanguage = apply_filters('lcmt_mailer_default_language', 'fr');
+        $polylangDefault = function_exists('pll_default_language') ? (string) pll_default_language() : '';
+        $defaultLanguage = apply_filters('lcmt_mailer_default_language', $polylangDefault !== '' ? $polylangDefault : 'fr');
 
         $args = [
             'post_type'      => PostType::SLUG,
@@ -74,7 +76,29 @@ class Mailer
 
         $posts = get_posts($args);
 
+        if (!$posts && function_exists('pll_get_post_language')) {
+            return self::postWithoutLanguage($args);
+        }
+
         return $posts[0] ?? null;
+    }
+
+    /**
+     * A mail post saved before mail posts were translatable has no language
+     * until one is set in Languages, and Polylang leaves it out of a query
+     * by language: such a post is still used, so forms keep working.
+     */
+    private static function postWithoutLanguage(array $args): ?\WP_Post
+    {
+        $posts = get_posts(['lang' => '', 'posts_per_page' => 20] + $args);
+
+        foreach ($posts as $post) {
+            if (!pll_get_post_language($post->ID)) {
+                return $post;
+            }
+        }
+
+        return null;
     }
 
     /**

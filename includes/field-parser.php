@@ -37,7 +37,7 @@ class FieldParser
 
         // Match: [name], [name*], [name type], [name* type]
         preg_match_all(
-            '/\[([a-zA-Z_][a-zA-Z0-9_]*)(\*)?(?:\s+([a-zA-Z]+))?\]/',
+            self::PATTERN,
             $combined,
             $matches,
             PREG_SET_ORDER
@@ -73,6 +73,12 @@ class FieldParser
     }
 
     /**
+     * A placeholder: [name], [name*], [name type], [name* type].
+     * Group 1: name, group 2: "*", group 3: type.
+     */
+    public const PATTERN = '/\[([a-zA-Z_][a-zA-Z0-9_]*)(\*)?(?:\s+([a-zA-Z]+))?\]/';
+
+    /**
      * Built-in placeholders the server fills, never asked to the visitor.
      */
     public const SERVER_FILLED = ['submissionLanguage'];
@@ -86,6 +92,24 @@ class FieldParser
     public static function formFields(array $fields): array
     {
         return array_diff_key($fields, array_flip(self::SERVER_FILLED));
+    }
+
+    /**
+     * Callback of the lcmt_pat/protected_patterns filter of a translation
+     * plugin (Polylang AI Translate): placeholders of mail posts are kept
+     * untouched when they are translated. Other content keeps its brackets
+     * translatable ("[Voir plus]" on a page).
+     *
+     * @param array<int, string> $patterns
+     * @return array<int, string>
+     */
+    public static function protectedPatterns(array $patterns, string $objectType = '', string $subtype = ''): array
+    {
+        if ($objectType === 'post' && $subtype === PostType::SLUG) {
+            $patterns[] = self::PATTERN;
+        }
+
+        return $patterns;
     }
 
     /**

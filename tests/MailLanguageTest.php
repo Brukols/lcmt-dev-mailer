@@ -84,4 +84,14 @@ class MailLanguageTest extends TestCase
 
         $this->assertSame(['subject' => self::SUBJECT, 'content' => self::CONTENT, 'translated' => false], $picked);
     }
+
+    public function test_translation_may_add_the_submission_language(): void
+    {
+        $picked = MailLanguage::pick(self::SUBJECT, self::CONTENT, $this->translation(
+            'New request from [email]',
+            "Name: [fullname*]\nMessage: [message textarea]\nLanguage: [submissionLanguage]"
+        ));
+
+        $this->assertTrue($picked['translated']);
+    }
 }

@@ -3,7 +3,7 @@
 ## Filters
 
 ### `lcmt_mailer_default_language`
-Default language slug for querying mail posts. Default: `'fr'`.
+Default language slug for querying mail posts. Default: Polylang's default language (`pll_default_language()`), else `'fr'`.
 
 ```php
 add_filter('lcmt_mailer_default_language', function () {
@@ -11,7 +11,10 @@ add_filter('lcmt_mailer_default_language', function () {
 });
 ```
 
-Used in: `Mailer::getPostByKey()` — passed as `lang` parameter to `get_posts()`.
+Used in: `Mailer::getPostByKey()` — passed as `lang` parameter to `get_posts()`. When nothing is found and Polylang is active, a published mail post with that key and **no language** is used (posts saved before `mail` became translatable), so forms keep working until languages are set.
+
+### `lcmt_pat/protected_patterns` (filter of Polylang AI Translate, listened to)
+`FieldParser::protectedPatterns($patterns, $objectType, $subtype)` adds `FieldParser::PATTERN` only for `post` / `mail`, so placeholders of mail posts stay untouched when that plugin translates them; other content is left alone. Does nothing when that plugin is absent.
 
 ### `lcmt_mailer_from_email`
 Override the "from" email address. Default: empty (uses WordPress default).
