@@ -1,0 +1,17 @@
+<wpml-config>
+    <!-- Read by Polylang and WPML: what a multilingual site translates. -->
+    <custom-types>
+        <custom-type translate="1">mail</custom-type>
+    </custom-types>
+    <custom-fields>
+        <custom-field action="translate">_lcmt_mail_subject</custom-field>
+        <custom-field action="translate">_lcmt_mail_content</custom-field>
+        <custom-field action="copy">_lcmt_mail_key</custom-field>
+        <custom-field action="copy">_lcmt_mail_to</custom-field>
+        <custom-field action="copy">_lcmt_mail_reply_to</custom-field>
+        <custom-field action="copy">_lcmt_mail_store_submissions</custom-field>
+    </custom-fields>
+    <admin-texts>
+        <key name="lcmt_mailer_success_message" />
+    </admin-texts>
+</wpml-config>
