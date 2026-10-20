@@ -33,5 +33,6 @@ See the `.claude/` folder for topic-specific docs:
 - PHP classes in PascalCase, namespace `LcmtDevMailer`
 - Always rebuild JS after editing `assets/src/`: `yarn build`
 - The plugin must remain self-contained and reusable across projects
+- **Works without any language plugin** (owner's instruction, 2026-10-20): every `pll_*` call is guarded by `function_exists`, and before each release the send path is exercised on a site with Polylang skipped (`wp --skip-plugins=polylang eval-file …` calling `Mailer::getPostByKey()` / `buildForm()` / `sendByKey()`, with `pre_wp_mail` returning true so nothing is sent; delete any rows a mail-logging plugin recorded).
 - Theme-specific logic goes through filters (`lcmt_mailer_*`), never hardcoded in the plugin
 - **Releases carry English notes** (owner's instruction, 2026-10-08): each version gets `release-notes/X.Y.Z.md`, in English, describing what changed for the people running the plugin; the release workflow publishes it as the GitHub release body (see [Build](.claude/build.md#releasing)).
