@@ -34,7 +34,7 @@ yarn install
 | `src/form-handler.js`           | `dist/form-handler.js`           | Frontend | Auto form submit, validation, fetch|
 | `src/attribution.js`            | `dist/attribution.js`            | Frontend | Remembers the landing page of the visit |
 
-`src/lib/` holds shared modules (`lib/attribution.js`, `lib/uninstall-prompt.js`, `lib/deactivate-dialog.js`, `lib/stats-view.js`): imported by entry points, not emitted on their own since the build only globs `src/*.js`.
+`src/lib/` holds shared modules (`lib/attribution.js`, `lib/uninstall-prompt.js`, `lib/deactivate-dialog.js`, `lib/stats-view.js`, `lib/request-url.js`, `lib/form-success.js`): imported by entry points, not emitted on their own since the build only globs `src/*.js`.
 
 ## Rules
 
@@ -64,13 +64,13 @@ yarn install
 
 Three suites.
 
-**PHP unit tests** (`tests/*.php`) run without WordPress: `tests/bootstrap.php` stubs the few functions the tested classes call. They cover `FieldParser`, `FieldValidator`, `RequestLanguage`, `MailLanguage`, `wpml-config.xml` (`WpmlConfigTest`: entries and meta names equal to `MetaFields` constants), `Altcha`, `SubmissionData`, `SubmissionContext`, `UserAgent` (real user agent strings and precedence cases), `ChannelClassifier`, `SubmissionCsv` and `Retention` (pure logic, including `periodParts()`). Needs PHPUnit 11 (`brew install phpunit`).
+**PHP unit tests** (`tests/*.php`) run without WordPress: `tests/bootstrap.php` stubs the few functions the tested classes call. They cover `FieldParser`, `FieldValidator`, `RequestLanguage`, `MailLanguage`, `ConfirmationPage` (`normalizeId()`, `pick()`), `wpml-config.xml` (`WpmlConfigTest`: entries and meta names equal to `MetaFields` constants), `Altcha`, `SubmissionData`, `SubmissionContext`, `UserAgent` (real user agent strings and precedence cases), `ChannelClassifier`, `SubmissionCsv` and `Retention` (pure logic, including `periodParts()`). Needs PHPUnit 11 (`brew install phpunit`).
 
 ```bash
 phpunit
 ```
 
-**JS tests** (`tests/js/`) use the Node test runner, bundled with esbuild (no extra dependency): `attribution.test.js` (the shared module), `attribution-entry.test.js` (the entry point, with a stubbed browser from `env.js`) `uninstall-prompt.test.js` (open dialog → request → link followed once flow of the Deactivate link: cancel, checkbox value sent, double submit, failed request, with fake links, prompt and `fetch`), `deactivate-dialog.test.js` (the `<dialog>`: pre-checked state, help line, Cancel, backdrop, Escape, busy state, with fake elements) `copy-button.test.js` (Clipboard API, fallback, "Copied" label and its reset) `stats-view.test.js` (Chart | Table state and `localStorage` persistence, storage that throws) and `form-handler-lang.test.js` (the REST URL with the page language as `lang`).
+**JS tests** (`tests/js/`) use the Node test runner, bundled with esbuild (no extra dependency): `attribution.test.js` (the shared module), `attribution-entry.test.js` (the entry point, with a stubbed browser from `env.js`) `uninstall-prompt.test.js` (open dialog → request → link followed once flow of the Deactivate link: cancel, checkbox value sent, double submit, failed request, with fake links, prompt and `fetch`), `deactivate-dialog.test.js` (the `<dialog>`: pre-checked state, help line, Cancel, backdrop, Escape, busy state, with fake elements) `copy-button.test.js` (Clipboard API, fallback, "Copied" label and its reset) `stats-view.test.js` (Chart | Table state and `localStorage` persistence, storage that throws) `form-handler-lang.test.js` (the REST URL with the page language as `lang`) and `form-success.test.js` (the `lcmt:success` event, then redirect or message; unsafe `redirect` values ignored).
 
 ```bash
 yarn test:js

@@ -14,6 +14,7 @@ class MetaFields
     public const FIELD_SUBJECT = '_lcmt_mail_subject';
     public const FIELD_CONTENT = '_lcmt_mail_content';
     public const FIELD_STORE_SUBMISSIONS = '_lcmt_mail_store_submissions';
+    public const FIELD_CONFIRMATION_PAGE = '_lcmt_mail_confirmation_page';
 
     public static function addMetaBox(): void
     {
@@ -85,6 +86,9 @@ class MetaFields
         echo '<p class="description">' . esc_html__('They appear under Email templates → Received messages, and are anonymized or deleted after the retention period set there.', 'lcmt-dev-mailer') . '</p>';
         echo '</td>';
         echo '</tr>';
+
+        self::renderConfirmationPage($post);
+
         echo '</table>';
 
         // ── Placeholder syntax reference ──
@@ -134,6 +138,60 @@ class MetaFields
         }
 
         update_post_meta($postId, self::FIELD_STORE_SUBMISSIONS, isset($_POST['lcmt_mail_store_submissions']) ? '1' : '0');
+
+        if (isset($_POST['lcmt_mail_confirmation_page'])) {
+            $pageId = ConfirmationPage::normalizeId(wp_unslash($_POST['lcmt_mail_confirmation_page']));
+
+            if ($pageId && get_post_type($pageId) === 'page') {
+                update_post_meta($postId, self::FIELD_CONFIRMATION_PAGE, (string) $pageId);
+            } else {
+                delete_post_meta($postId, self::FIELD_CONFIRMATION_PAGE);
+            }
+        }
+    }
+
+    /**
+     * The "Confirmation page" row: a select of the published pages, "None"
+     * by default. A stored page that is no longer published is not in the
+     * list, so it is flagged: saving the form clears it.
+     */
+    private static function renderConfirmationPage(\WP_Post $post): void
+    {
+        $selected = ConfirmationPage::pageId($post->ID);
+
+        $select = wp_dropdown_pages([
+            'name'              => 'lcmt_mail_confirmation_page',
+            'id'                => 'lcmt_mail_confirmation_page',
+            'selected'          => $selected,
+            'show_option_none'  => __('None', 'lcmt-dev-mailer'),
+            'option_none_value' => '0',
+            'post_status'       => 'publish',
+            'echo'              => 0,
+        ]);
+
+        echo '<tr>';
+        echo '<th><label for="lcmt_mail_confirmation_page">' . esc_html__('Confirmation page', 'lcmt-dev-mailer') . '</label></th>';
+        echo '<td>';
+
+        if ($select) {
+            // Built and escaped by wp_dropdown_pages().
+            echo $select; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        } else {
+            echo '<input type="hidden" name="lcmt_mail_confirmation_page" value="0" />';
+            echo '<em>' . esc_html__('No published page yet.', 'lcmt-dev-mailer') . '</em>';
+        }
+
+        if ($selected && get_post_status($selected) !== 'publish') {
+            echo '<p class="description" style="color: #b32d2e;">' . esc_html(sprintf(
+                /* translators: %d: page ID */
+                __('The page selected before (#%d) is no longer published: visitors see the success message, and saving this form clears it.', 'lcmt-dev-mailer'),
+                $selected
+            )) . '</p>';
+        }
+
+        echo '<p class="description">' . esc_html__('Optional. After a successful submission, visitors are taken to this page instead of seeing the success message. On a multilingual site, its translation in the visitor\'s language is used when there is one.', 'lcmt-dev-mailer') . '</p>';
+        echo '</td>';
+        echo '</tr>';
     }
 
     /**

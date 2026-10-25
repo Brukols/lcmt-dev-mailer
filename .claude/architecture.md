@@ -7,12 +7,13 @@ lcmt-dev-mailer/
 ├── lcmt-dev-mailer.php          # Bootstrap: defines constants, requires files, registers hooks
 ├── includes/
 │   ├── post-type.php            # PostType — registers the `mail` CPT
-│   ├── meta-fields.php          # MetaFields — native WP meta box (key, to, subject, content) + syntax reference panel
+│   ├── meta-fields.php          # MetaFields — native WP meta box (key, to, subject, content, confirmation page) + syntax reference panel
 │   ├── field-parser.php         # FieldParser — parses [field* type] placeholders from content
 │   ├── field-validator.php      # FieldValidator — sanitizes submitted values and checks them by type
 │   ├── template-loader.php      # TemplateLoader — loads mail-base.php with theme override support
 │   ├── request-language.php     # RequestLanguage — submission language (Polylang), locale switch of the REST request
 │   ├── mail-language.php        # MailLanguage — picks the translated subject/content or the source mail
+│   ├── confirmation-page.php    # ConfirmationPage — URL a visitor is sent to after a successful submission
 │   ├── mailer.php               # Mailer — core email engine (lookup by key, placeholder replacement, wp_mail)
 │   ├── form-renderer.php        # FormRenderer — renders forms via shortcode or PHP, enqueues frontend JS
 │   ├── form-endpoint.php        # FormEndpoint — REST API endpoint with auto-validation and sending
@@ -60,7 +61,8 @@ lcmt-dev-mailer/
 │   │   ├── lib/uninstall-prompt.js  # Deactivate-link flow (hold back, ask, store, follow once), tested under node
 │   │   ├── lib/deactivate-dialog.js # The <dialog>: checkbox, help line, Cancel/Deactivate, busy state, tested under node
 │   │   ├── lib/stats-view.js    # Chart | Table state and localStorage persistence, tested under node
-│   │   └── lib/request-url.js   # REST URL of a form, with the page language as `lang`, tested under node
+│   │   ├── lib/request-url.js   # REST URL of a form, with the page language as `lang`, tested under node
+│   │   └── lib/form-success.js  # `lcmt:success` event, then confirmation page or success message, tested under node
 │   └── dist/                    # Minified output (esbuild)
 └── package.json                 # Build config (esbuild)
 ```
@@ -71,11 +73,14 @@ lcmt-dev-mailer/
 Registers the `mail` custom post type. Slug stored as `PostType::SLUG`.
 
 ### MetaFields
-Native WordPress meta box with 4 fields:
+Native WordPress meta box with these fields:
 - `_lcmt_mail_key` — unique kebab-case identifier
 - `_lcmt_mail_to` — recipient(s), supports placeholders
+- `_lcmt_mail_reply_to` — optional Reply-To, supports placeholders
 - `_lcmt_mail_subject` — email subject, supports placeholders
 - `_lcmt_mail_content` — email body (WYSIWYG), supports placeholders with type syntax
+- `_lcmt_mail_store_submissions` — `'1'` / `'0'`, whether received messages are saved (on when absent)
+- `_lcmt_mail_confirmation_page` (`FIELD_CONFIRMATION_PAGE`) — ID of the page a visitor is sent to after a successful submission; a select of published pages (`wp_dropdown_pages()`, "None" = `0`). Saved only when the ID is a `page`, deleted otherwise. A stored page that is no longer published is flagged under the select, and saving clears it.
 
 Falls back to old ACF meta keys (`to`, `subject`, `content`) for backwards compatibility.
 
@@ -113,6 +118,13 @@ Core email sending engine.
 - Auto-validates required fields from parsed content, and values by type through `FieldValidator`
 - Sends email via `Mailer::sendByKey()`
 - Fires `lcmt_mailer_before_send` and `lcmt_mailer_after_send` actions
+- On success, adds `redirect` to the answer when `ConfirmationPage::url()` returns a URL
+
+### ConfirmationPage
+The page a visitor is sent to after a successful submission, set per form (`MetaFields::FIELD_CONFIRMATION_PAGE`).
+- `normalizeId($raw)` (pure) — a stored or posted value as a page ID, `0` for none or anything but a plain positive integer
+- `pick($pageId, $translationId, $isPublished)` (pure) — the translation when published, else the page when published, else `0`
+- `url($post, $key)` — the page in the submission language (`pll_get_post()` with `RequestLanguage::current()`, guarded by `function_exists`), its `get_permalink()`, then the `lcmt_mailer_confirmation_url` filter, then `wp_sanitize_redirect()` + `wp_validate_redirect(…, '')`: anything outside the site (and `allowed_redirect_hosts`) becomes `''`, so the endpoint is never an open redirect, whatever a filter returns. `''` means "show the success message". The mail post is the default-language one (`Mailer::getPostByKey()`), so its meta is the source; the meta is declared `copy` in `wpml-config.xml`.
 
 ### FieldValidator
 Sanitizes a submitted value (`sanitize_text_field`, or `sanitize_textarea_field` for textareas) and checks it by type:
@@ -250,6 +262,7 @@ Every capability of the `mail` post type maps to `manage_options`, and the admin
     → do_action('lcmt_mailer_before_send')
     → SubmissionRecorder::send()        Mailer::sendByKey(), then updates mail_sent / mail_error
     → do_action('lcmt_mailer_after_send') (only when sent)
+    → ConfirmationPage::url()            `redirect` in the 200 answer when the form has a confirmation page
     A failed email leaves the message saved and shown in the failure banner, and the visitor
     still gets a 500 telling them it failed: the site owner may never open the admin.
 

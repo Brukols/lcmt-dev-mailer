@@ -49,7 +49,7 @@ class WpmlConfigTest extends TestCase
     {
         $copied = $this->fields('copy');
 
-        foreach (['_lcmt_mail_key', '_lcmt_mail_to', '_lcmt_mail_reply_to', '_lcmt_mail_store_submissions'] as $name) {
+        foreach (['_lcmt_mail_key', '_lcmt_mail_to', '_lcmt_mail_reply_to', '_lcmt_mail_store_submissions', '_lcmt_mail_confirmation_page'] as $name) {
             $this->assertContains($name, $copied);
         }
     }
@@ -67,6 +67,6 @@ class WpmlConfigTest extends TestCase
             $this->assertContains($name, $constants, $name . ' is not a MetaFields constant');
         }
 
-        $this->assertCount(6, array_merge($this->fields('translate'), $this->fields('copy')));
+        $this->assertCount(7, array_merge($this->fields('translate'), $this->fields('copy')));
     }
 }

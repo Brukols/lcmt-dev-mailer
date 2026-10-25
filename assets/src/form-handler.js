@@ -8,6 +8,8 @@
  *   - Plugin loader overlay (.lcmt-loader)
  *   - Snackbar alerts for success/error
  *   - aria-invalid on inputs and labels for error styling
+ *   - A bubbling `lcmt:success` event on the form, then the form's
+ *     confirmation page when it has one (see lib/form-success.js)
  *
  * The developer writes zero JS — just HTML inputs inside forms/{key}.php.
  */
@@ -17,6 +19,7 @@ import './form-handler.css';
 import 'altcha';
 import { formContext } from './lib/attribution';
 import { requestUrl } from './lib/request-url';
+import { handleSuccess } from './lib/form-success';
 
 (function () {
   'use strict';
@@ -282,6 +285,10 @@ import { requestUrl } from './lib/request-url';
 
       var captchaFailed = false;
 
+      // Set while the browser leaves for the confirmation page: the form
+      // stays busy so it is not sent a second time on the way.
+      var redirecting = false;
+
       captchaPayload(form)
         .catch(function (err) {
           captchaFailed = true;
@@ -306,8 +313,18 @@ import { requestUrl } from './lib/request-url';
           resetCaptcha(form);
 
           if (res.success) {
-            showAlert(res.message, 'success');
-            form.reset();
+            // lcmt:success listeners still see the values the visitor sent.
+            handleSuccess(form, res, {
+              redirect: function (url) {
+                redirecting = true;
+                form.reset();
+                window.location.assign(url);
+              },
+              showMessage: function () {
+                showAlert(res.message, 'success');
+                form.reset();
+              },
+            });
             startedAt = null;
           } else {
             showAlert(res.message || 'An error occurred.', 'error');
@@ -333,9 +350,20 @@ import { requestUrl } from './lib/request-url';
             : i18n.genericError || 'An error occurred.', 'error');
         })
         .finally(function () {
+          if (redirecting) return;
+
           form.classList.remove(SUBMITTING_CLASS);
           hideLoader(form);
         });
+    });
+
+    // Back from the confirmation page, the browser may restore this page as
+    // it was left (back/forward cache), still busy: free the form.
+    window.addEventListener('pageshow', function (e) {
+      if (!e.persisted) return;
+
+      form.classList.remove(SUBMITTING_CLASS);
+      hideLoader(form);
     });
   }
 

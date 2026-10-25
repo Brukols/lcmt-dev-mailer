@@ -105,13 +105,32 @@ Content-Type: application/json
 
 **Responses:**
 
-- `200` — Email sent successfully
+- `200` — Email sent successfully: `{ "success": true, "message": "…" }`, plus `"redirect": "https://…"` when the form has a [confirmation page](#confirmation-page)
 - `403` — Spam protection check failed
 - `422` — Validation failed (missing required field, or a value that does not match its type)
 
 A `tel` value holds 6 to 20 digits, an optional leading `+`, and any spaces, dots, dashes, slashes or brackets: `+33 6 12 34 56 78`, `06.12.34.56.78` and `+33 (0)6 12 34 56 78` all pass.
 - `404` — Unknown form key
 - `500` — Email sending failed. The visitor is told so, to try again later or write by email, since the site owner may never open the admin. When the form saves its messages, the message is still in Received messages, with the failure banner and **Send the email again**.
+
+### Confirmation page
+
+Each mail post has an optional **Confirmation page** (a select of the published pages, **None** by default, stored in the `_lcmt_mail_confirmation_page` meta). When one is set, a successful submission takes the visitor to that page instead of showing the success message:
+
+- The REST answer carries the page URL as `redirect`, resolved on the server with `get_permalink()`. With Polylang, the page's published translation in the submission language is used when there is one, else the page itself. A page that is no longer published gives no redirect (the success message is shown).
+- Only URLs of the site are ever sent (`wp_validate_redirect()`), so the endpoint cannot be used as an open redirect, even through the filter below.
+- The form script goes there with `window.location.assign()`. Without a confirmation page, nothing changes.
+- Themes can change or add the URL with the [`lcmt_mailer_confirmation_url`](#lcmt_mailer_confirmation_url) filter, and react in JS with the `lcmt:success` event below.
+
+### `lcmt:success` event
+
+On every successful submission, before going to the confirmation page or showing the message, the form script dispatches a bubbling, cancelable `lcmt:success` `CustomEvent` on the `<form>`, with the REST answer as `detail`. Calling `preventDefault()` keeps the visitor on the page (message and reset, as without a confirmation page).
+
+```js
+document.addEventListener('lcmt:success', function (e) {
+  // e.target: the form; e.detail: { success, message, redirect? }
+});
+```
 
 ### Direct PHP call (without form)
 
@@ -241,7 +260,7 @@ The messages sent through our forms are kept for [lcmt-retention-period], then [
 
 Works with Polylang (3.8 or later); without a multilingual plugin nothing changes. **WPML only gets the declarations** of `wpml-config.xml` (what is translatable): answering and sending in the page language, `[submissionLanguage]` and the Language column need Polylang. With WPML (or Polylang deactivated), the oldest mail post of a key, the source, is sent.
 
-- **What is translatable** is declared in `wpml-config.xml`, read by Polylang and WPML: the `mail` post type is translatable, its subject and content are translated, its key, To, Reply-To and "save the messages" setting are copied to new translations, and the success message (Settings) is a translatable option.
+- **What is translatable** is declared in `wpml-config.xml`, read by Polylang and WPML: the `mail` post type is translatable, its subject and content are translated, its key, To, Reply-To, "save the messages" setting and confirmation page are copied to new translations, and the success message (Settings) is a translatable option.
 - **Forms answer in the page language**: the form script sends the page language with each submission (`lang`), and the validation and error messages come back in that language.
 - **Mails are sent in the page language** when the mail post has a **published** translation in it whose placeholders are the same as the source mail's. Otherwise (no translation, a draft, or a translation that lost, renamed or retyped a placeholder) the mail of the default language is sent, and a placeholder mismatch is logged with `error_log`.
 - **Translate mail posts like any post**, by hand or with a translation plugin. Keep the placeholders identical, names and types (`[fullname*]` stays `[fullname*]`, `[phone]` does not become `[phone tel]`), only the text around it changes): the form, its validation and the received messages always follow the default-language mail.
@@ -250,6 +269,7 @@ Works with Polylang (3.8 or later); without a multilingual plugin nothing change
 - Keep Polylang's Languages → Settings → Synchronisation → "Custom fields" off, or Polylang would copy the subject and content of one language over the others.
 - Mail posts saved before the update have no language yet: they keep working (a mail post without a language is used when none exists in the default language), but set their language once in Polylang (Languages → "set the default language" for content without one, or edit each mail) before adding translations.
 - Translation plugins: with Polylang AI Translate, placeholders of mail posts are declared as protected tokens (`lcmt_pat/protected_patterns`), so they are never translated.
+- **Confirmation page**: set it on the default-language mail post; visitors are sent to its published translation in their language when there is one.
 - Received messages record the language they were sent in, shown in a "Language" column and in the message detail when the site has more than one language.
 
 ---
@@ -296,6 +316,16 @@ add_filter('lcmt_mailer_user_language', function ($language, $email) {
     // Return a language slug like 'en', 'fr', or null to skip
     return get_user_preferred_language($email) ?: $language;
 }, 10, 2);
+```
+
+### `lcmt_mailer_confirmation_url`
+
+The URL a visitor is sent to after a successful submission (the `redirect` key of the REST answer). Defaults to the permalink of the form's confirmation page (its translation in the submission language with Polylang), or `''` for none. Return `''` to show the success message. The result must be a URL of the site (or a host allowed by core's `allowed_redirect_hosts` filter); anything else is dropped.
+
+```php
+add_filter('lcmt_mailer_confirmation_url', function (string $url, string $key, \WP_Post $post, int $pageId) {
+    return $url ? add_query_arg('form', $key, $url) : $url;
+}, 10, 4);
 ```
 
 ---

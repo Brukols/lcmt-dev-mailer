@@ -49,8 +49,26 @@ Vanilla JS (no dependencies), auto-loaded when a form is rendered. Located at `a
    - Validates `required` inputs and `type="email"` inputs client-side
    - Makes sure the ALTCHA proof is still valid: when it is missing or expires within 30 s (the widget's own refresh timer stops while the computer sleeps), the widget solves a new challenge before sending
    - Sends `fetch POST` with JSON body to the endpoint; on a multilingual site (`lcmtMailerFront.lang` set from `pll_current_language()`), `lib/request-url.js` adds `?lang=<slug>` so the answer and the mail use the page language
-   - Handles success/error states
+   - Handles success/error states: on success, fires `lcmt:success` on the form, then goes to the form's confirmation page when the answer has a `redirect` URL, else shows the success message and resets the form (see below)
    - Resets the ALTCHA widget after every answer: the server spends a proof as soon as it reads it, even when it then refuses a field, so a corrected form needs a new one
+
+### Success event and confirmation page
+
+On a successful answer, `lib/form-success.js` (`handleSuccess()`, unit-tested) first dispatches a **`lcmt:success`** `CustomEvent` on the `<form>`: it bubbles, is cancelable, and its `detail` is the JSON answer (`{ success, message, redirect? }`). It fires before the form is reset, so listeners can still read the fields.
+
+Then:
+- **With a `redirect` URL** (the form has a Confirmation page, or the `lcmt_mailer_confirmation_url` filter set one): the form is reset and the browser goes there with `window.location.assign()`; no success message. The form stays busy (`lcmt-form--submitting`, loader) while the page changes, and is freed on `pageshow` if the browser restores the page from its back/forward cache. Only `http(s)://…` URLs and site paths (`/…`, not `//…`) are followed; the server already allows only URLs of the site.
+- **Without one**, or when a listener called `preventDefault()`: the success message and form reset, exactly as before.
+
+```js
+document.addEventListener('lcmt:success', function (e) {
+  // e.target is the form, e.detail the answer of the endpoint.
+  window.dataLayer && window.dataLayer.push({ event: 'form_sent', form: e.target.id });
+
+  // Stay on the page (message + reset) instead of going to the confirmation page:
+  // e.preventDefault();
+});
+```
 
 ### CSS classes on `<form>`
 
@@ -154,6 +172,11 @@ Headers:
 **200 — Success:**
 ```json
 { "success": true, "message": "Email sent successfully." }
+```
+
+When the form has a confirmation page (or `lcmt_mailer_confirmation_url` returns a URL), the answer also carries its URL, already checked to be on the site:
+```json
+{ "success": true, "message": "Email sent successfully.", "redirect": "https://example.com/thank-you/" }
 ```
 
 **403 — Spam protection failed:** the selected captcha rejected the proof (missing, invalid, expired or already used).

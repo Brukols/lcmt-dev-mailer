@@ -51,6 +51,19 @@ add_filter('lcmt_mailer_user_language', function ($language, $email) {
 
 Used in: `Mailer::maybeTranslateForRecipient()` — subject and content come from the translation picked by `MailLanguage::pick()`. A resend from the admin runs inside `RequestLanguage::using()` with the stored language of the message.
 
+### `lcmt_mailer_confirmation_url`
+The URL a visitor is sent to after a successful submission through the REST endpoint. Default: the permalink of the form's **Confirmation page** (`_lcmt_mail_confirmation_page`), in the submission language when Polylang has a published translation of it, else `''`. Return `''` to show the success message instead. The filter runs on every successful submission, so it can also add a redirect to a form that has no confirmation page.
+
+The returned URL then goes through `wp_validate_redirect()`: a URL of another site (unless allowed with core's `allowed_redirect_hosts` filter) or a non-http(s) scheme is dropped and the success message is shown, so the endpoint can never redirect elsewhere.
+
+```php
+add_filter('lcmt_mailer_confirmation_url', function (string $url, string $key, \WP_Post $post, int $pageId) {
+    return $url ? add_query_arg('form', $key, $url) : $url;
+}, 10, 4);
+```
+
+Used in: `ConfirmationPage::url()`, called by `FormEndpoint::handle()`; the result is the `redirect` key of the 200 answer. On the page, `form-handler.js` fires `lcmt:success` before leaving (see [Frontend](frontend.md#success-event-and-confirmation-page)).
+
 ### `lcmt_mailer_captcha_providers`
 Register a spam protection. Keys are provider ids, values are classes implementing `LcmtDevMailer\CaptchaProvider`.
 

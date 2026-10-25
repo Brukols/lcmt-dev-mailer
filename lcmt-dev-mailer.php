@@ -4,7 +4,7 @@
  * Plugin Name: LCMT Mailer
  * Plugin URI: https://github.com/Brukols/lcmt-dev-mailer
  * Description: Developer-oriented mail engine. Create mail templates in WP admin, auto-generates REST endpoints, form rendering, validation and TypeScript types.
- * Version: 2.5.0
+ * Version: 2.6.0
  * Author: Amaury Lecomte
  * Author URI:
  * Text Domain: lcmt-dev-mailer
@@ -36,6 +36,7 @@ require_once LCMT_MAILER_PATH . 'includes/field-validator.php';
 require_once LCMT_MAILER_PATH . 'includes/template-loader.php';
 require_once LCMT_MAILER_PATH . 'includes/request-language.php';
 require_once LCMT_MAILER_PATH . 'includes/mail-language.php';
+require_once LCMT_MAILER_PATH . 'includes/confirmation-page.php';
 require_once LCMT_MAILER_PATH . 'includes/mailer.php';
 require_once LCMT_MAILER_PATH . 'includes/form-renderer.php';
 require_once LCMT_MAILER_PATH . 'includes/form-endpoint.php';

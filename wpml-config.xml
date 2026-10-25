@@ -10,6 +10,7 @@
         <custom-field action="copy">_lcmt_mail_to</custom-field>
         <custom-field action="copy">_lcmt_mail_reply_to</custom-field>
         <custom-field action="copy">_lcmt_mail_store_submissions</custom-field>
+        <custom-field action="copy">_lcmt_mail_confirmation_page</custom-field>
     </custom-fields>
     <admin-texts>
         <key name="lcmt_mailer_success_message" />

@@ -143,9 +143,19 @@ class FormEndpoint
          */
         do_action('lcmt_mailer_after_send', $key, $placeholders, $post);
 
-        return new \WP_REST_Response([
+        $response = [
             'success' => true,
             'message' => Settings::getSuccessMessage(),
-        ], 200);
+        ];
+
+        // The form's confirmation page, in the submission language: the
+        // front script sends the visitor there instead of showing the message.
+        $redirect = ConfirmationPage::url($post, $key);
+
+        if ($redirect !== '') {
+            $response['redirect'] = $redirect;
+        }
+
+        return new \WP_REST_Response($response, 200);
     }
 }
