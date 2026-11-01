@@ -32,7 +32,7 @@ yarn install
 | `src/admin-stats.js`            | `dist/admin-stats.js`            | Admin    | Statistics page: Chart \| Table toggle of each box |
 | `src/admin-privacy-docs.js`     | `dist/admin-privacy-docs.js`     | Admin    | Data retention page: Copy buttons of the Privacy policy section |
 | `src/form-handler.js`           | `dist/form-handler.js`           | Frontend | Auto form submit, validation, fetch, goes through the adapter registry |
-| `src/captcha-altcha.js`         | `dist/captcha-altcha.js`         | Frontend | ALTCHA adapter (bundles `altcha`), only on pages with a form it protects |
+| `src/captcha-altcha.js`         | `dist/captcha-altcha.js`         | Frontend | ALTCHA adapter (bundles `altcha` 3.5, about 125 KB with its inlined workers), only on pages with a form it protects |
 | `src/captcha-turnstile.js`      | `dist/captcha-turnstile.js`      | Frontend | Turnstile adapter, loads Cloudflare's `api.js` on the first focus in the form (an `always` widget: when it scrolls into view) |
 | `src/attribution.js`            | `dist/attribution.js`            | Frontend | Remembers the landing page of the visit |
 
