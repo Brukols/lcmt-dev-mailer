@@ -118,6 +118,56 @@ function delete_post_meta($postId, $key)
     return true;
 }
 
+define('MINUTE_IN_SECONDS', 60);
+define('DAY_IN_SECONDS', 86400);
+
+class WP_Error
+{
+    public function __construct(public $code = '', public $message = '') {}
+}
+
+function esc_attr($text)
+{
+    return htmlspecialchars((string) $text, ENT_QUOTES);
+}
+
+function is_wp_error($thing)
+{
+    return $thing instanceof WP_Error;
+}
+
+function home_url($path = '')
+{
+    return 'https://example.test' . $path;
+}
+
+function wp_parse_url($url, $component = -1)
+{
+    return parse_url($url, $component);
+}
+
+function wp_unslash($value)
+{
+    return is_string($value) ? stripslashes($value) : $value;
+}
+
+function wp_remote_retrieve_response_code($response)
+{
+    return $response['response']['code'] ?? '';
+}
+
+function wp_remote_retrieve_body($response)
+{
+    return $response['body'] ?? '';
+}
+
+function delete_transient($name)
+{
+    unset($GLOBALS['lcmt_test_transients'][$name]);
+
+    return true;
+}
+
 require_once dirname(__DIR__) . '/includes/post-type.php';
 require_once dirname(__DIR__) . '/includes/field-parser.php';
 require_once dirname(__DIR__) . '/includes/meta-fields.php';
@@ -133,6 +183,7 @@ require_once dirname(__DIR__) . '/includes/unreadable-secrets.php';
 require_once dirname(__DIR__) . '/includes/captcha-settings.php';
 require_once dirname(__DIR__) . '/includes/captcha-provider.php';
 require_once dirname(__DIR__) . '/includes/altcha.php';
+require_once dirname(__DIR__) . '/includes/turnstile.php';
 require_once dirname(__DIR__) . '/includes/captcha.php';
 require_once dirname(__DIR__) . '/includes/submission-csv.php';
 require_once dirname(__DIR__) . '/includes/retention.php';

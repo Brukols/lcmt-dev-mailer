@@ -34,8 +34,15 @@ class SecretBox
         return self::material() !== '';
     }
 
+    /**
+     * @throws \LogicException When no key can be derived (see canEncrypt()).
+     */
     public static function encrypt(string $plain): string
     {
+        if (!self::canEncrypt()) {
+            throw new \LogicException('SecretBox::encrypt() needs the ' . self::CONST_KEY . ' constant or WordPress security keys; check canEncrypt() or use seal().');
+        }
+
         self::loadSodium();
 
         $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
@@ -97,9 +104,18 @@ class SecretBox
         return '';
     }
 
+    /**
+     * The value to store for a secret: encrypted when a key can be derived,
+     * as it is otherwise.
+     */
+    public static function seal(string $plain): string
+    {
+        return $plain !== '' && self::canEncrypt() ? self::encrypt($plain) : $plain;
+    }
+
     public static function writeOption(string $option, string $plain): void
     {
-        $value = $plain !== '' && self::canEncrypt() ? self::encrypt($plain) : $plain;
+        $value = self::seal($plain);
 
         update_option($option, $value, false);
         UnreadableSecrets::clear($option);

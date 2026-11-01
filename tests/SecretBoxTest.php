@@ -38,6 +38,27 @@ class SecretBoxTest extends TestCase
         $this->assertNull(SecretBox::decrypt('lcmt1:'));
     }
 
+    public function test_seal_encrypts_when_a_key_exists(): void
+    {
+        $sealed = SecretBox::seal('s3cret');
+
+        $this->assertTrue(SecretBox::isEncrypted($sealed));
+        $this->assertSame('s3cret', SecretBox::decrypt($sealed));
+        $this->assertSame('', SecretBox::seal(''));
+    }
+
+    public function test_seal_keeps_plain_and_encrypt_throws_without_a_key(): void
+    {
+        // The bootstrap defines the salts, so check in a PHP process without them
+        $script = 'define("ABSPATH", "/"); require ' . var_export(dirname(__DIR__) . '/includes/secret-box.php', true) . ';'
+            . 'echo LcmtDevMailer\\SecretBox::seal("s3cret"), "|";'
+            . 'try { LcmtDevMailer\\SecretBox::encrypt("s3cret"); } catch (\\LogicException $e) { echo "logic"; }';
+
+        $output = shell_exec(escapeshellarg(PHP_BINARY) . ' -r ' . escapeshellarg($script) . ' 2>/dev/null');
+
+        $this->assertSame('s3cret|logic', $output);
+    }
+
     public function test_value_without_prefix_is_not_encrypted(): void
     {
         $this->assertFalse(SecretBox::isEncrypted('plain'));

@@ -225,7 +225,7 @@ class Altcha implements CaptchaProvider
             // first; read back so every request signs with the same one. An
             // unreadable key is still stored, so it is replaced outright.
             if (get_option(self::OPTION_KEY, '') === '') {
-                add_option(self::OPTION_KEY, SecretBox::canEncrypt() ? SecretBox::encrypt($key) : $key, '', false);
+                add_option(self::OPTION_KEY, SecretBox::seal($key), '', false);
             } else {
                 SecretBox::writeOption(self::OPTION_KEY, $key);
             }

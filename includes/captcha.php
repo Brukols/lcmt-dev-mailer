@@ -43,7 +43,8 @@ class Captcha
     public static function providers(): array
     {
         $providers = (array) apply_filters('lcmt_mailer_captcha_providers', [
-            Altcha::id() => Altcha::class,
+            Altcha::id()    => Altcha::class,
+            Turnstile::id() => Turnstile::class,
         ]);
 
         return array_filter(

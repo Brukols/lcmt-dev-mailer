@@ -33,6 +33,42 @@ class CaptchaSettings
             'sanitize_callback' => [Captcha::class, 'sanitize'],
             'default'           => Captcha::DEFAULT,
         ]);
+
+        register_setting(self::GROUP, Turnstile::OPTION_SITE_KEY, [
+            'type'              => 'string',
+            'sanitize_callback' => [Turnstile::class, 'sanitizeSiteKey'],
+            'default'           => '',
+        ]);
+
+        register_setting(self::GROUP, Turnstile::OPTION_SECRET_KEY, [
+            'type'              => 'string',
+            'sanitize_callback' => [Turnstile::class, 'sanitizeSecret'],
+            'default'           => '',
+        ]);
+
+        register_setting(self::GROUP, Turnstile::OPTION_APPEARANCE, [
+            'type'              => 'string',
+            'sanitize_callback' => [Turnstile::class, 'sanitizeAppearance'],
+            'default'           => Turnstile::APPEARANCE_INTERACTION,
+        ]);
+    }
+
+    /**
+     * The copy buttons of the provider rows, on this screen only.
+     */
+    public static function enqueue(string $hook): void
+    {
+        if ($hook !== PostType::SLUG . '_page_' . self::PAGE_SLUG) {
+            return;
+        }
+
+        wp_enqueue_script(
+            'lcmt-admin-captcha-settings',
+            LCMT_MAILER_URL . 'assets/dist/admin-captcha-settings.js',
+            [],
+            lcmt_mailer_asset_version('assets/dist/admin-captcha-settings.js'),
+            true
+        );
     }
 
     public static function url(array $args = []): string
@@ -47,7 +83,7 @@ class CaptchaSettings
     {
         $selected = Captcha::selectedId();
         ?>
-        <div class="wrap">
+        <div class="wrap lcmt-captcha-settings">
             <h1><?php esc_html_e('Spam protection', 'lcmt-dev-mailer'); ?></h1>
 
             <?php settings_errors(); ?>
@@ -84,6 +120,8 @@ class CaptchaSettings
 
                 <?php submit_button(); ?>
             </form>
+
+            <p class="screen-reader-text" role="status" aria-live="polite" data-lcmt-copy-status></p>
         </div>
 
         <script>

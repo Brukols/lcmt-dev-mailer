@@ -47,6 +47,7 @@ require_once LCMT_MAILER_PATH . 'includes/unreadable-secrets.php';
 require_once LCMT_MAILER_PATH . 'includes/captcha-provider.php';
 require_once LCMT_MAILER_PATH . 'includes/captcha.php';
 require_once LCMT_MAILER_PATH . 'includes/altcha.php';
+require_once LCMT_MAILER_PATH . 'includes/turnstile.php';
 require_once LCMT_MAILER_PATH . 'includes/captcha-settings.php';
 require_once LCMT_MAILER_PATH . 'includes/updater.php';
 require_once LCMT_MAILER_PATH . 'includes/submission-data.php';
@@ -108,6 +109,8 @@ add_action('admin_menu', ['LcmtDevMailer\\Settings', 'addSubmenu']);
 add_action('admin_init', ['LcmtDevMailer\\Settings', 'registerSettings']);
 add_action('admin_menu', ['LcmtDevMailer\\CaptchaSettings', 'addSubmenu']);
 add_action('admin_init', ['LcmtDevMailer\\CaptchaSettings', 'registerSettings']);
+add_action('admin_enqueue_scripts', ['LcmtDevMailer\\CaptchaSettings', 'enqueue']);
+LcmtDevMailer\Turnstile::registerHooks();
 add_action('admin_init', ['LcmtDevMailer\\SubmissionSettings', 'registerSettings']);
 add_action('admin_post_' . LcmtDevMailer\SubmissionSettings::PURGE_ACTION, ['LcmtDevMailer\\SubmissionSettings', 'handlePurgeNow']);
 add_action('admin_enqueue_scripts', ['LcmtDevMailer\\StatsPage', 'enqueue']);
@@ -135,6 +138,9 @@ add_action('wp_enqueue_scripts', function () {
             LcmtDevMailer\Attribution::OPTION_WITHOUT_CONSENT,
             LcmtDevMailer\Captcha::OPTION,
             LcmtDevMailer\Altcha::OPTION_KEY,
+            LcmtDevMailer\Turnstile::OPTION_SITE_KEY,
+            LcmtDevMailer\Turnstile::OPTION_SECRET_KEY,
+            LcmtDevMailer\Turnstile::OPTION_APPEARANCE,
         ]);
     }
 }, 0);
