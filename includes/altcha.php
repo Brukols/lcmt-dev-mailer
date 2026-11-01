@@ -76,13 +76,17 @@ class Altcha implements CaptchaProvider, CaptchaAssets, CaptchaBadge, CaptchaPri
     {
         $challengeUrl = home_url('/wp-json/lcmt-mailer/v1/altcha/challenge');
 
-        // The widget stays hidden, so its only visible text is the browser
-        // alert it raises on a submit during verification, in English
-        // whatever the site language. An empty string turns it off: the form
-        // handler waits for the proof behind its loader instead.
-        $strings = wp_json_encode(['waitAlert' => '']);
+        // `challenge` is the v3 widget's attribute; `challengeurl` stays for
+        // pages cached with the 2.7 script (harmless to v3, which ignores it).
+        // The widget is invisible and records no pointer or keyboard samples;
+        // its wait alert is emptied by captcha-altcha.js.
+        $configuration = wp_json_encode([
+            'hideFooter'                => true,
+            'display'                   => 'invisible',
+            'humanInteractionSignature' => false,
+        ]);
 
-        return '<altcha-widget data-lcmt-captcha="altcha" challengeurl="' . esc_attr($challengeUrl) . '" auto="onfocus" strings="' . esc_attr($strings) . '" hidefooter style="display:none;"></altcha-widget>';
+        return '<altcha-widget data-lcmt-captcha="altcha" challenge="' . esc_attr($challengeUrl) . '" challengeurl="' . esc_attr($challengeUrl) . '" auto="onfocus" configuration="' . esc_attr($configuration) . '"></altcha-widget>';
     }
 
     public static function enqueueAssets(): void

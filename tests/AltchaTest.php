@@ -153,7 +153,19 @@ class AltchaTest extends TestCase
         $widget = Altcha::widget();
 
         $this->assertStringStartsWith('<altcha-widget data-lcmt-captcha="altcha" ', $widget);
-        $this->assertStringContainsString('challengeurl="https://example.test/wp-json/lcmt-mailer/v1/altcha/challenge"', $widget);
+        $url = 'https://example.test/wp-json/lcmt-mailer/v1/altcha/challenge';
+        $this->assertStringContainsString('challenge="' . $url . '"', $widget);
+        // Kept for pages cached with the 2.7 script, harmless to the v3 widget.
+        $this->assertStringContainsString('challengeurl="' . $url . '"', $widget);
+        $this->assertStringContainsString('auto="onfocus"', $widget);
+        $this->assertStringNotContainsString('style="display:none', $widget);
+
+        preg_match('/ configuration="([^"]*)"/', $widget, $m);
+        $this->assertNotEmpty($m, 'configuration attribute');
+        $config = json_decode(html_entity_decode($m[1], ENT_QUOTES), true);
+        $this->assertTrue($config['hideFooter']);
+        $this->assertSame('invisible', $config['display']);
+        $this->assertFalse($config['humanInteractionSignature']);
     }
 
     public function test_altcha_loads_its_own_script(): void
