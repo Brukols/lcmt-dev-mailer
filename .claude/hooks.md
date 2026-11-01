@@ -74,7 +74,25 @@ add_filter('lcmt_mailer_captcha_providers', function (array $providers) {
 });
 ```
 
+A provider that loads its own front-end scripts also implements `LcmtDevMailer\CaptchaAssets` (`public static function enqueueAssets(): void`): `Captcha::widget()` calls it once per page, the first time a form protected by the provider renders, so pages without such a form load nothing. Its script registers a JS adapter (see [Frontend](frontend.md#spam-protection-adapters)).
+
+`verify()` returns false when the proof is wrong. When the verification service itself gave no answer (network error, HTTP error, unreadable answer), throw `LcmtDevMailer\CaptchaUnavailable` instead: `Captcha::check()` reports it as unavailable, and the site setting decides whether the message is refused (default) or accepted. Either way a refused message is kept in Received messages → Spam with the reason `captcha_failed` or `captcha_unavailable`.
+
 Used in: `Captcha::providers()`.
+
+### `lcmt_mailer_blocked_hourly_limit`
+How many messages blocked by the spam protection are kept in Received messages → Spam per hour (default `50`), so a flood of bots cannot fill the table. Once reached, further blocked messages are refused without being saved until the next hour. `0` keeps none.
+
+```php
+add_filter('lcmt_mailer_blocked_hourly_limit', function (int $limit) {
+    return 200;
+});
+```
+
+Used in: `SubmissionRecorder::canKeepBlocked()`.
+
+### Post meta `_lcmt_mail_captcha`
+Not a hook, but the setting themes and tools may read or write: the spam protection of a mail template (`MetaFields::FIELD_CAPTCHA`). `''` or missing follows the site default (Spam protection page), `none` disables the protection for this form, any provider id (`altcha`, `turnstile`, or one added with the filter above) selects it. An unknown value is treated as the site default. `Captcha::selectedIdFor($postId)` resolves it, `Captcha::activeFor($postId)` also checks that the provider is ready.
 
 ### `lcmt_mailer_submission_channel`
 Change the channel a received message is counted under. Receives the classified channel (one of `ChannelClassifier::CHANNELS`) and the cleaned context columns.

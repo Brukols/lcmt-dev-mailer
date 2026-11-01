@@ -198,9 +198,13 @@ The plugin adds these classes to the `<form>` during submission:
 
 ## Spam protection
 
-Pick the protection in **Email templates → Spam protection**. ALTCHA is selected by default and needs no setup: its HMAC key is generated on first use and stored in the `lcmt_mailer_altcha_key` option. A **Generate a new key** button replaces it if it may have leaked.
+Two protections are built in: **ALTCHA** (no account, proof of work in the visitor's browser) and **Cloudflare Turnstile** (free Cloudflare account, mostly invisible to visitors). Set them up in **Email templates → Spam protection**; the protection selected there is the **site default**.
 
-A key defined in `wp-config.php` takes precedence over the stored one:
+**Per form.** Each email template has a **Spam protection** select: *Site default*, *None* or a provider. A contact form can use Turnstile while another form stays on ALTCHA or is left unprotected. A choice whose provider is not set up yet falls back to the site default's provider; *None* always means no protection. Each page only loads the scripts of the protections its forms use, and Cloudflare is only contacted once a visitor enters a Turnstile form.
+
+### ALTCHA
+
+Selected by default and needs no setup: its HMAC key is generated on first use and stored encrypted in the `lcmt_mailer_altcha_key` option. A **Generate a new key** button replaces it if it may have leaked. A key defined in `wp-config.php` takes precedence over the stored one:
 
 ```php
 define('ALTCHA_HMAC_KEY', 'a-long-random-string');
@@ -208,7 +212,41 @@ define('ALTCHA_HMAC_KEY', 'a-long-random-string');
 
 Each solved challenge is accepted once, then refused until it expires (5 minutes). The widget solves a new one when it expires, before sending when the visitor comes back from a sleeping computer, and after each answer from the server, so a visitor can take as long as they need and send the form again after fixing a field.
 
-To add another protection, implement `LcmtDevMailer\CaptchaProvider` and register it:
+### Cloudflare Turnstile
+
+1. In the Cloudflare dashboard (Turnstile), create a widget and list every hostname of the site (production and staging).
+2. Pick **Cloudflare Turnstile** in **Email templates → Spam protection** and paste the **site key** and the **secret key**, or, recommended, define them in `wp-config.php` (the page shows the lines to copy and which source is in use):
+
+```php
+define('LCMT_MAILER_TURNSTILE_SITE_KEY', 'your-site-key');
+define('LCMT_MAILER_TURNSTILE_SECRET_KEY', 'your-secret-key');
+```
+
+3. Choose Turnstile on the email templates that need it (or keep it as the site default).
+
+The page shows a connection status for the keys. **Appearance** is *Only when interaction is needed* (default) or *Always visible*. If Cloudflare cannot be reached when a message arrives, the message is **refused** by default; the same page lets you accept it instead. Cloudflare's script is always loaded from `challenges.cloudflare.com`: if you add a Content-Security-Policy header, allow it in `script-src` and `frame-src`.
+
+### Encrypted keys
+
+The ALTCHA key and the Turnstile secret key saved in the database are **encrypted** (libsodium), with a key derived from WordPress's `AUTH_KEY` and `SECURE_AUTH_SALT`, or from your own constant:
+
+```php
+define('LCMT_MAILER_ENCRYPTION_KEY', 'a-long-random-string');
+```
+
+This protects database backups, exports, copies and SQL reads, not someone who can read `wp-config.php`; keeping the keys in `wp-config.php` constants stays the recommended place. A plain ALTCHA key saved by an older version is encrypted on first use.
+
+If the WordPress security keys change (or the database is copied to another site), stored keys can no longer be read. The Turnstile protection then counts as not set up, an admin notice asks you to enter the key again, and **one email** goes to the site's admin address until you do. An unreadable ALTCHA key is simply regenerated. Define `LCMT_MAILER_ENCRYPTION_KEY` before rotating the security keys to avoid this.
+
+### Blocked messages and spam retention
+
+A message refused by the spam protection is **kept in Received messages → Spam** (when its fields are valid and the template saves its messages), never emailed, with the reason (*Blocked by the spam protection* or *the verification service did not answer*). The second one is most likely a real visitor: take it out of spam with **Mark as unread** and use **Send the email again**. At most 50 blocked messages are kept per hour (filter `lcmt_mailer_blocked_hourly_limit`), and **Email templates → Spam protection → Blocked messages** turns the feature off.
+
+Spam is **deleted for good after 30 days** (no trash), whether blocked or marked by hand, by the daily purge. Change the delay in **Email templates → Data retention** (`0` keeps spam as long as other messages).
+
+### Another protection
+
+To add another protection, implement `LcmtDevMailer\CaptchaProvider` (and `CaptchaAssets` if it has scripts) and register it:
 
 ```php
 add_filter('lcmt_mailer_captcha_providers', function (array $providers) {
@@ -216,6 +254,8 @@ add_filter('lcmt_mailer_captcha_providers', function (array $providers) {
     return $providers;
 });
 ```
+
+See [.claude/hooks.md](.claude/hooks.md) and [.claude/frontend.md](.claude/frontend.md) for the PHP and JS contracts.
 
 ---
 
@@ -226,7 +266,7 @@ Every message sent through a form is saved on your site before the email goes ou
 - **Where:** **Email templates → Received messages**, three menu entries: **Received messages**, **Statistics** and **Data retention** (the last one only for users who can manage options). The unread count shows on the **Email templates** menu and on **Received messages**. Read a message, mark it processed, unread or spam, move it to the trash, filter by form, status, source (including **AI assistants** such as ChatGPT, Claude, Perplexity or Gemini, told apart from search and social) or failed email, and export the list as CSV. The list shows the source of each message and its referring site (for example `claude.ai`, a dash for a direct visit). Colored badges show each message's status (new, read, processed, spam) and whether its email was sent. The **Statistics** page shows where messages come from (month, source, campaign, form, page, device, browser, operating system), each box as a chart with a **Chart | Table** toggle that remembers your choice. Its average time on the form only covers messages that are not anonymized yet, since anonymization clears that time.
 - **Trash:** deleting a message moves it to the **Trash**, a view at the end of the list (**Trash (3)**, shown only when it holds something), like WordPress does for posts. From there you can **Restore** a message exactly as it was (its status is kept), **Delete permanently**, or **Empty Trash**; right after moving messages to the trash, an **Undo** link brings them back. Trashed messages are left out of the list, the counts, the unread bubble, the failed email banner, the statistics and the CSV export (the trash view exports the trash). They are deleted for good after **30 days**, by the same daily task as the retention period: the delay is WordPress's `EMPTY_TRASH_DAYS` (30 unless `wp-config.php` sets it), which the `lcmt_mailer_trash_days` filter can override; with `0`, there is no trash and **Delete** deletes at once. A trashed message is still personal data: the retention period, the export and the erasure tools apply to it like to any other. The trash view says how long messages stay there, and a **Deletion** column shows when each one goes ("In 12 days"), as a red badge from 3 days before; an opened trashed message gives the date too.
 - **Per form:** each mail template has a **Save the messages sent through this form** checkbox, on by default. Untick it for forms that must not be stored.
-- **Spam:** since every message is now stored, keep a spam protection enabled (ALTCHA, selected by default in **Spam protection**). Each stored value is cut to 10 000 characters so a bot cannot fill the database; the email still gets the whole value.
+- **Spam:** since every message is now stored, keep a spam protection enabled (ALTCHA is the default; see [Spam protection](#spam-protection)). Each stored value is cut to 10 000 characters so a bot cannot fill the database; the email still gets the whole value.
 - **Failed emails:** if an email cannot be sent, the message stays saved, an admin banner and a dashboard widget show the reason, and **Send the email again** resends it.
 - **Retention:** **Email templates → Data retention**. By default, personal data is kept 1095 days (3 years, the longest the CNIL accepts for prospects), then **anonymized**: what the visitor typed is erased, as are the time of day, the time spent on the form and the raw browser user agent, while the day, form, page, source and the browser and operating system families (for example Chrome, Windows) stay for statistics, kept forever unless you set a period. You can delete whole messages instead. A daily task applies it; **Purge now** runs it at once, after a confirmation. In delete mode, anonymized statistics older than the period are deleted too. State the period in your privacy policy: see [Privacy policy](#privacy-policy) below for the shortcodes that print it, and the text the plugin adds to the WordPress privacy policy guide.
 - **Origin of the visit:** the landing page, campaign parameters (UTM), the name of an ad click id (never its value) and the origin of the referring site (scheme and host, e.g. `https://www.google.com`, never its path or query string) are remembered in the visitor's browser for the visit only (sessionStorage); only the referrer's host is saved with the message. With a consent tool compatible with **WP Consent API**, this only happens once the visitor accepts the *statistics* category. Without one, it is done by default, which needs consent under the ePrivacy rules: untick the option in Data retention → Advanced settings to only record the page the form was sent from. IP addresses are never stored.
@@ -235,7 +275,7 @@ Every message sent through a form is saved on your site before the email goes ou
 - **Privacy tools:** messages are included in Tools → Export Personal Data and Erase Personal Data (erasing anonymizes). They are found by an **exact** email value in a form field: an address that only appears inside a free-text message is not matched, so search for it in Received messages if you need to handle such a request.
 - **Uninstalling:** deactivating or updating the plugin keeps the messages. WordPress only offers **Delete** once the plugin is inactive, when its code no longer runs, so a dialog opens when you click **Deactivate** on the Plugins screen, with a checkbox: *Also delete the received messages and statistics when the plugin is deleted*. Ticked, they are deleted with the plugin, table and settings included; unticked (the default, unless you already answered yes), they stay in the database (no longer anonymized automatically, since the plugin is gone). **Cancel** closes the dialog and nothing happens. The answer is stored in the **Delete received messages when the plugin is deleted** setting on Data retention, off by default. A site deactivated before 2.2.0, with WP-CLI or by a bulk action never sees the question and keeps its data: tick the setting, or run `wp option update lcmt_mailer_delete_data_on_uninstall 1`, before deleting the plugin. On a multisite network, each site follows its own setting, and an answer given in the network admin applies to every site.
 
-For developers: hooks `lcmt_mailer_submission_channel`, `lcmt_mailer_submissions_capability`, `lcmt_mailer_submission_actions` and `lcmt_mailer_trash_days` (the days a message stays in the trash, `0` to disable it) are described in [.claude/hooks.md](.claude/hooks.md).
+For developers: hooks `lcmt_mailer_blocked_hourly_limit` (blocked messages kept per hour), `lcmt_mailer_submission_channel`, `lcmt_mailer_submissions_capability`, `lcmt_mailer_submission_actions` and `lcmt_mailer_trash_days` (the days a message stays in the trash, `0` to disable it) are described in [.claude/hooks.md](.claude/hooks.md).
 
 ---
 

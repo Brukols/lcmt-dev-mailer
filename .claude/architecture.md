@@ -7,7 +7,7 @@ lcmt-dev-mailer/
 ├── lcmt-dev-mailer.php          # Bootstrap: defines constants, requires files, registers hooks
 ├── includes/
 │   ├── post-type.php            # PostType — registers the `mail` CPT
-│   ├── meta-fields.php          # MetaFields — native WP meta box (key, to, subject, content, confirmation page) + syntax reference panel
+│   ├── meta-fields.php          # MetaFields — native WP meta box (key, to, subject, content, confirmation page, spam protection) + syntax reference panel
 │   ├── field-parser.php         # FieldParser — parses [field* type] placeholders from content
 │   ├── field-validator.php      # FieldValidator — sanitizes submitted values and checks them by type
 │   ├── template-loader.php      # TemplateLoader — loads mail-base.php with theme override support
@@ -20,9 +20,12 @@ lcmt-dev-mailer/
 │   ├── admin-mail-sender.php    # AdminMailSender — admin sidebar (usage info, field table, test email, generate template)
 │   ├── settings.php             # Settings — Email templates → Settings page (sender, logo, alert colors)
 │   ├── captcha-settings.php     # CaptchaSettings — Email templates → Spam protection page (provider select + provider rows)
-│   ├── captcha-provider.php     # CaptchaProvider — interface every spam protection implements
-│   ├── captcha.php              # Captcha — resolves the selected provider and routes verify/widget/routes to it
+│   ├── captcha-provider.php     # CaptchaProvider, CaptchaAssets (interfaces) and CaptchaUnavailable (exception)
+│   ├── captcha.php              # Captcha — resolves each mail template's provider and routes check/widget/routes to it
 │   ├── altcha.php               # Altcha — ALTCHA provider (challenge route, one-time proofs, auto-generated key)
+│   ├── turnstile.php            # Turnstile — Cloudflare Turnstile provider (siteverify call, keys, settings rows, connection status)
+│   ├── secret-box.php           # SecretBox — libsodium encryption of the keys stored in the database
+│   ├── unreadable-secrets.php   # UnreadableSecrets — admin notice and single email when a stored key can no longer be decrypted
 │   ├── submission-data.php      # SubmissionData — shapes typed values for storage (snapshot) and back
 │   ├── user-agent.php           # UserAgent — cleans the User-Agent header, derives browser and OS families
 │   ├── submission-context.php   # SubmissionContext — cleans the `_context` object sent by the browser
@@ -57,6 +60,9 @@ lcmt-dev-mailer/
 │   │   ├── admin-privacy-docs.js # Data retention page: Copy buttons of the Privacy policy section
 │   │   ├── attribution.js       # Remembers the landing page of the visit
 │   │   ├── form-handler.js
+│   │   ├── captcha-altcha.js    # ALTCHA browser adapter (bundles `altcha`)
+│   │   ├── captcha-turnstile.js # Turnstile browser adapter (loads Cloudflare's api.js on first focus)
+│   │   ├── admin-captcha-settings.js # Spam protection page: shows the rows of the selected provider
 │   │   ├── lib/attribution.js   # Shared module (not built on its own)
 │   │   ├── lib/uninstall-prompt.js  # Deactivate-link flow (hold back, ask, store, follow once), tested under node
 │   │   ├── lib/deactivate-dialog.js # The <dialog>: checkbox, help line, Cancel/Deactivate, busy state, tested under node
@@ -111,7 +117,7 @@ Core email sending engine.
 - Loads `{theme}/forms/{key}.php`
 - Wraps with `<form>` + `data-lcmt-endpoint` + `data-lcmt-nonce` (or injects into existing `<form>` tag)
 - Enqueues `form-handler.js` on first render
-- The options a public page reads (`Attribution::OPTION_WITHOUT_CONSENT`, `Captcha::OPTION`, `Altcha::OPTION_KEY`) are not autoloaded, so `lcmt-dev-mailer.php` fetches them in one query with `wp_prime_option_caches()` at `wp_enqueue_scripts` priority 0 (WP 6.4+, skipped below). Add any new option read on public pages to that list.
+- The options a public page reads (`Attribution::OPTION_WITHOUT_CONSENT`, `Captcha::OPTION`, `Altcha::OPTION_KEY`, the Turnstile options, `SubmissionSettings::OPTION_SPAM_DAYS`) are not autoloaded, so `lcmt-dev-mailer.php` fetches them in one query with `wp_prime_option_caches()` at `wp_enqueue_scripts` priority 0 (WP 6.4+, skipped below). Add any new option read on public pages to that list.
 
 ### FormEndpoint
 - Registers `POST /wp-json/lcmt-mailer/v1/forms/{key}`
@@ -143,15 +149,25 @@ Admin sidebar metabox with:
 - Test email sender
 
 ### Captcha / CaptchaProvider
-- The `lcmt_mailer_captcha` option holds the selected provider id, or `none`. Defaults to `altcha` until saved.
-- Providers come from the `lcmt_mailer_captcha_providers` filter (`id => class`), each implementing `CaptchaProvider`.
-- `Captcha::verify()` is called by FormEndpoint, `Captcha::widget()` by FormRenderer, `Captcha::registerRoutes()` on `rest_api_init`. A provider that is selected but not `isReady()` protects nothing.
-- Each provider prints its own settings rows, tagged `data-captcha-provider="{id}"` so the Spam protection page (`CaptchaSettings`) only shows the selected one.
+- The `lcmt_mailer_captcha` option holds the **site default** provider id, or `none` (defaults to `altcha` until saved). Each mail template can override it with the `_lcmt_mail_captcha` post meta: `''` (site default), `none`, or a provider id. `Captcha::selectedIdFor($postId)` resolves it; `Captcha::activeFor($postId)` returns the provider class when it `isReady()`, falls back to the site default's provider when the template's choice is not ready, and returns null for `none`.
+- Providers come from the `lcmt_mailer_captcha_providers` filter (`id => class`; built in: `altcha`, `turnstile`), each implementing `CaptchaProvider`. A provider with front-end scripts also implements `CaptchaAssets` (`enqueueAssets()`), called once per page by `Captcha::widget()` the first time a protected form renders.
+- `Captcha::check($postId, $body)` is called by FormEndpoint and returns `PASSED`, `FAILED` or `UNAVAILABLE` (the provider's `verify()` threw `CaptchaUnavailable`: the verification service gave no answer). `Captcha::widget($postId)` is called by FormRenderer, `Captcha::registerRoutes()` on `rest_api_init` for every ready provider (two forms may use two protections).
+- Unavailable service: refused by default; `Captcha::OPTION_UNAVAILABLE` (`refuse` / `accept`) can let the message through.
+- Each provider prints its own settings rows, tagged `data-captcha-provider="{id}"` so the Spam protection page (`CaptchaSettings`, with `admin-captcha-settings.js`) only shows the selected one.
 
 ### Altcha
-- HMAC key: `ALTCHA_HMAC_KEY` constant if defined, otherwise the `lcmt_mailer_altcha_key` option, generated on first use (not autoloaded).
+- HMAC key: `ALTCHA_HMAC_KEY` constant if defined, otherwise the `lcmt_mailer_altcha_key` option, generated on first use (not autoloaded) and **stored encrypted** (`SecretBox`); a plain key saved by an older version is encrypted on first read. An unreadable key is regenerated silently (no email).
 - "Generate a new key" posts to `admin-post.php?action=lcmt_mailer_regenerate_altcha_key` (nonce + `manage_options`).
 - A valid proof is spent: its challenge is stored in a `lcmt_altcha_used_{challenge}` transient until it expires, so it cannot be replayed.
+
+### Turnstile
+- Keys: the `LCMT_MAILER_TURNSTILE_SITE_KEY` / `LCMT_MAILER_TURNSTILE_SECRET_KEY` constants win; otherwise the options `lcmt_mailer_turnstile_site_key` and `lcmt_mailer_turnstile_secret_key` (the secret encrypted, never printed back into the page; a "forget" checkbox removes it). `lcmt_mailer_turnstile_appearance` is `interaction-only` (default) or `always`.
+- `verify()` posts the token to `https://challenges.cloudflare.com/turnstile/v0/siteverify` (5 s timeout) and checks the answer's `action` (`lcmt_form`) and hostname; a transport error, an HTTP error or an unusable answer throws `CaptchaUnavailable`. The Spam protection page shows a connection status (`connected`, `invalid`, `unreachable`, cached in a transient) and the `define()` line to copy into `wp-config.php`.
+- Cloudflare's `api.js` is never self-hosted: the browser adapter loads it from Cloudflare.
+
+### SecretBox / UnreadableSecrets
+- `SecretBox` encrypts with libsodium secretbox; the key derives from `LCMT_MAILER_ENCRYPTION_KEY` when `wp-config.php` defines it, else from `AUTH_KEY` + `SECURE_AUTH_SALT`. Stored values start with `lcmt1:`. `readOption()` / `writeOption()` wrap the options; without sodium or keys, values are stored as they are (`canEncrypt()`).
+- When a stored value cannot be decrypted (security keys changed, database copied), the protection counts as not set up, `UnreadableSecrets::report()` records it in the `lcmt_mailer_unreadable_secrets` option and sends **one** email to `admin_email`; `UnreadableSecrets::notice()` shows an admin notice until the key is saved again (`clear()`).
 
 ### SubmissionData
 Pure helpers around the stored `fields` JSON: `snapshot()` freezes each submitted value with its field name and type (password fields are never stored, each value is cut to `MAX_VALUE_LENGTH` = 10 000 characters, multibyte-safe), `toPlaceholders()` rebuilds the placeholders for a resend, `containsEmail()` matches an exact value, `summary()` builds the line shown in lists. `PERSONAL_COLUMNS` (`fields`, `mail_error`, `user_agent`) lists what anonymization clears.

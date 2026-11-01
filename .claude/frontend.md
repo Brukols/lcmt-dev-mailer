@@ -60,7 +60,11 @@ Each protection has its own script, `assets/src/captcha-{id}.js` (built to `asse
 - **Registration:** `registerAdapter(adapter)` stores it in `window.lcmtMailerCaptchas[id]` and fires `lcmt:captcha-ready` (`detail.id`) on `document`, so the separate bundles share it.
 - **Widget:** the form's `[data-lcmt-captcha="{id}"]` element, or a legacy `<altcha-widget>` without the attribute (id `altcha`).
 - **On submit**, `captchaToken(form, window, timeoutMs, loadAdapter)` waits up to 30 s for an adapter not registered yet. A full-page cache can serve HTML rendered before the adapters, without the `<script>` of `captcha-{id}.js`: `loadAdapter(id)` (`lib/captcha/script-loader.js`) is then called once per id and appends `<script src="{dist}/captcha-{id}.js" defer>`, `{dist}` being the folder of `form-handler.js` (`document.currentScript`).
+- **Limit of the on-demand loader:** it finds the folder of `form-handler.js` through `document.currentScript`. Script optimisers that combine, delay or defer scripts (WP Rocket, Autoptimize, LiteSpeed…) can make `document.currentScript` null; the loader then has no base URL and does nothing, so a legacy cached page (HTML printed before 2.7.0, without `captcha-{id}.js`) waits for the 30 s timeout and the visitor sees the spam protection error. Pages rendered by 2.7.0 or later enqueue the adapter script themselves and are not affected; purge the page cache after updating.
 - **ALTCHA** (`captcha-altcha.js`): bundles `altcha`, cache-busts each widget's `challengeurl` on load, and registers `{ id: 'altcha', field: 'altcha' }` on the next task (the widget mounts a microtask after its element is defined).
+
+- **Turnstile** (`captcha-turnstile.js`, `lib/captcha/turnstile-widget.js`): registers `{ id: 'turnstile', field: 'turnstile' }`. The widget (`[data-lcmt-captcha="turnstile"]`, with `data-sitekey`, `data-action`, `data-appearance`) is rendered explicitly. Cloudflare's `api.js` (`?render=explicit&onload=lcmtTurnstileReady`) is **lazy-loaded on the visitor's first `focusin` in the form** (or at submit if no field was focused), once per page, so a page that only shows a form never contacts Cloudflare. The token is kept in memory (no hidden input) and sent as `turnstile`; `reset(widget)` asks for a new one. If `api.js` fails to load (blocked, offline) the next submit tries again.
+- **Adding an adapter:** build `assets/src/captcha-{id}.js`, call `registerAdapter(defineAdapter({ id, field, token, reset }))`, and enqueue it from the PHP provider's `enqueueAssets()`.
 
 ### Success event and confirmation page
 
@@ -189,7 +193,7 @@ When the form has a confirmation page (or `lcmt_mailer_confirmation_url` returns
 { "success": true, "message": "Email sent successfully.", "redirect": "https://example.com/thank-you/" }
 ```
 
-**403 — Spam protection failed:** the selected captcha rejected the proof (missing, invalid, expired or already used).
+**403 — Spam protection failed:** the form's captcha rejected the proof (missing, invalid, expired or already used), or its verification service could not be reached while the site refuses in that case. When the fields are valid, the message is kept in Received messages → Spam with its reason (see [Architecture](architecture.md)).
 
 **422 — Validation error:** a required field is empty, or a value does not match its type (`email`, `number`, `url`, `tel`; see `FieldValidator`). A field used in To or Reply-To must hold a single valid email address, whatever its declared type.
 ```json
