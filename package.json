@@ -8,7 +8,7 @@
     "watch": "esbuild assets/src/*.js --bundle --minify --target=es2018 --outdir=assets/dist --watch"
   },
   "devDependencies": {
-    "esbuild": "^0.24.0"
+    "esbuild": "^0.28.2"
   },
   "dependencies": {
     "altcha": "^2.3.0",
