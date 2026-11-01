@@ -7,57 +7,10 @@
  */
 import 'altcha';
 import { registerAdapter } from './lib/captcha/registry';
-import { expiresSoon } from './lib/captcha/altcha-proof';
+import { altchaToken } from './lib/captcha/altcha-token';
 
 (function () {
   'use strict';
-
-  var TIMEOUT_MS = 30000;
-
-  /**
-   * Start the widget over and resolve with the proof of a new challenge.
-   */
-  function solve(widget) {
-    return new Promise(function (resolve, reject) {
-      var timer = setTimeout(function () { done(); reject(new Error('ALTCHA timed out')); }, TIMEOUT_MS);
-
-      function onVerified(e) {
-        done();
-        resolve(e.detail && e.detail.payload);
-      }
-
-      function onStateChange(e) {
-        if (e.detail && e.detail.state === 'error') {
-          done();
-          reject(new Error('ALTCHA failed'));
-        }
-      }
-
-      function done() {
-        clearTimeout(timer);
-        widget.removeEventListener('verified', onVerified);
-        widget.removeEventListener('statechange', onStateChange);
-      }
-
-      widget.addEventListener('verified', onVerified);
-      widget.addEventListener('statechange', onStateChange);
-      widget.reset();
-      widget.verify();
-    });
-  }
-
-  /**
-   * The current proof while it stays valid, else the proof of a new challenge.
-   */
-  function token(widget) {
-    var form = widget.closest('form');
-    var input = form ? form.querySelector('input[name="altcha"]') : null;
-    var payload = input ? input.value : '';
-
-    if (payload && !expiresSoon(payload)) return Promise.resolve(payload);
-
-    return solve(widget);
-  }
 
   function reset(widget) {
     if (typeof widget.reset === 'function') widget.reset();
@@ -100,7 +53,7 @@ import { expiresSoon } from './lib/captcha/altcha-proof';
     // reset() and verify() only work from then: register on the next task, so
     // a form that is already waiting (cached page) gets a working widget.
     setTimeout(function () {
-      registerAdapter({ id: 'altcha', field: 'altcha', token: token, reset: reset });
+      registerAdapter({ id: 'altcha', field: 'altcha', token: function (widget) { return altchaToken(widget); }, reset: reset });
     }, 0);
   }
 
