@@ -82,6 +82,54 @@ class TurnstileTest extends TestCase
         Turnstile::parseVerification(['response' => ['code' => 200], 'body' => '<html>'], self::HOST);
     }
 
+    public function test_testing_key_success_passes_without_host_and_action(): void
+    {
+        $response = self::response([
+            'success'     => true,
+            'hostname'    => 'example.com',
+            'error-codes' => [],
+            'metadata'    => ['result_with_testing_key' => true],
+        ]);
+
+        $this->assertTrue(Turnstile::parseVerification($response, self::HOST));
+    }
+
+    public function test_testing_key_failure_fails(): void
+    {
+        $response = self::response([
+            'success'     => false,
+            'hostname'    => 'example.com',
+            'error-codes' => ['invalid-input-response'],
+            'metadata'    => ['result_with_testing_key' => true],
+        ]);
+
+        $this->assertFalse(Turnstile::parseVerification($response, self::HOST));
+    }
+
+    public function test_key_check_invalid_secret(): void
+    {
+        foreach (['invalid-input-secret', 'missing-input-secret'] as $code) {
+            $this->assertSame('invalid', Turnstile::parseKeyCheck(self::response(['success' => false, 'error-codes' => [$code]])));
+        }
+    }
+
+    public function test_key_check_connected(): void
+    {
+        $this->assertSame('connected', Turnstile::parseKeyCheck(self::response(['success' => false, 'error-codes' => ['invalid-input-response']])));
+        $this->assertSame('connected', Turnstile::parseKeyCheck(self::response(['success' => true, 'error-codes' => []])));
+    }
+
+    public function test_key_check_unreachable(): void
+    {
+        $this->assertSame('unreachable', Turnstile::parseKeyCheck(new WP_Error('http_request_failed')));
+        $this->assertSame('unreachable', Turnstile::parseKeyCheck(self::response([], 500)));
+    }
+
+    public function test_key_check_other_code_is_invalid(): void
+    {
+        $this->assertSame('invalid', Turnstile::parseKeyCheck(self::response(['success' => false, 'error-codes' => ['bad-request']])));
+    }
+
     public function test_not_ready_without_secret(): void
     {
         $GLOBALS['lcmt_test_options'][Turnstile::OPTION_SITE_KEY] = 'site';

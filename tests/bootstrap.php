@@ -146,11 +146,6 @@ function wp_parse_url($url, $component = -1)
     return parse_url($url, $component);
 }
 
-function wp_unslash($value)
-{
-    return is_string($value) ? stripslashes($value) : $value;
-}
-
 function wp_remote_retrieve_response_code($response)
 {
     return $response['response']['code'] ?? '';

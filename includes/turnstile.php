@@ -221,6 +221,12 @@ class Turnstile implements CaptchaProvider, CaptchaAssets
             throw new CaptchaUnavailable('Turnstile reported an internal error.');
         }
 
+        // A Cloudflare test secret answers without action, and with a hostname
+        // that is not ours: only its verdict counts.
+        if (($data['metadata']['result_with_testing_key'] ?? false) === true) {
+            return ($data['success'] ?? false) === true;
+        }
+
         return ($data['success'] ?? false) === true
             && ($data['action'] ?? null) === self::ACTION
             && ($data['hostname'] ?? null) === $expectedHost;
@@ -237,25 +243,38 @@ class Turnstile implements CaptchaProvider, CaptchaAssets
         $cached = get_transient(self::STATUS_TRANSIENT);
         if (is_string($cached) && $cached !== '') return $cached;
 
-        try {
-            $data   = self::decodeResponse(self::siteverify(self::KEY_CHECK));
-            $errors = (array) ($data['error-codes'] ?? []);
-
-            if (in_array('invalid-input-secret', $errors, true)) {
-                $status = self::STATUS_INVALID;
-            } elseif (in_array('invalid-input-response', $errors, true) || ($data['success'] ?? false) === true) {
-                $status = self::STATUS_CONNECTED;
-            } else {
-                $status = self::STATUS_UNREACHABLE;
-            }
-        } catch (CaptchaUnavailable $e) {
-            $status = self::STATUS_UNREACHABLE;
-        }
+        $status = self::parseKeyCheck(self::siteverify(self::KEY_CHECK));
 
         // An outage should not be remembered for a day
         set_transient(self::STATUS_TRANSIENT, $status, $status === self::STATUS_UNREACHABLE ? 5 * MINUTE_IN_SECONDS : DAY_IN_SECONDS);
 
         return $status;
+    }
+
+    /**
+     * Map the siteverify answer to a fake token to a key status.
+     *
+     * @param array|\WP_Error $response Result of wp_remote_post().
+     */
+    public static function parseKeyCheck($response): string
+    {
+        try {
+            $data = self::decodeResponse($response);
+        } catch (CaptchaUnavailable $e) {
+            return self::STATUS_UNREACHABLE;
+        }
+
+        $errors = (array) ($data['error-codes'] ?? []);
+
+        if (in_array('invalid-input-secret', $errors, true) || in_array('missing-input-secret', $errors, true)) {
+            return self::STATUS_INVALID;
+        }
+
+        if (($data['success'] ?? false) === true || in_array('invalid-input-response', $errors, true)) {
+            return self::STATUS_CONNECTED;
+        }
+
+        return self::STATUS_INVALID;
     }
 
     public static function constantLine(string $constant): string
@@ -326,7 +345,7 @@ class Turnstile implements CaptchaProvider, CaptchaAssets
                 <?php else: ?>
                     <input type="password" id="lcmt-turnstile-secret-key" class="regular-text code"
                            name="<?= esc_attr(self::OPTION_SECRET_KEY) ?>" value=""
-                           autocomplete="off" spellcheck="false">
+                           autocomplete="new-password" data-1p-ignore data-lpignore="true" spellcheck="false">
 
                     <?php if ($secretSource === 'unreadable'): ?>
                         <p class="description">
