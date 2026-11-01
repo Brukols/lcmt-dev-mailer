@@ -214,8 +214,8 @@ Each solved challenge is accepted once, then refused until it expires (5 minutes
 
 ### Cloudflare Turnstile
 
-1. In the Cloudflare dashboard (Turnstile), create a widget and list every hostname of the site (production and staging).
-2. Pick **Cloudflare Turnstile** in **Email templates → Spam protection** and paste the **site key** and the **secret key**, or, recommended, define them in `wp-config.php` (the page shows the lines to copy and which source is in use):
+1. In the Cloudflare dashboard (Turnstile), create a widget and list every hostname of the site (production and staging). The plugin checks that the hostname Cloudflare reports matches the host of `home_url()`: a site served on several domains (Polylang with one domain per language, or both `www` and the bare domain without a redirect) must list each hostname in Cloudflare and redirect to one canonical host.
+2. In **Email templates → Spam protection**, section **Cloudflare Turnstile**, paste the **site key** and the **secret key**, or, recommended, define them in `wp-config.php` (the page shows the lines to copy and which source is in use):
 
 ```php
 define('LCMT_MAILER_TURNSTILE_SITE_KEY', 'your-site-key');
@@ -234,7 +234,7 @@ The ALTCHA key and the Turnstile secret key saved in the database are **encrypte
 define('LCMT_MAILER_ENCRYPTION_KEY', 'a-long-random-string');
 ```
 
-This protects database backups, exports, copies and SQL reads, not someone who can read `wp-config.php`; keeping the keys in `wp-config.php` constants stays the recommended place. A plain ALTCHA key saved by an older version is encrypted on first use.
+This protects database backups, exports, copies and SQL reads, not someone who can read `wp-config.php`; keeping the keys in `wp-config.php` constants stays the recommended place. A plain ALTCHA key saved by an older version is encrypted on first use. Define it **before** any key is stored, or enter the keys again afterwards: defining it (or changing it) later makes the keys already stored unreadable, exactly like a change of the security keys. The ALTCHA key is regenerated on its own; the Turnstile secret key must be entered again.
 
 If the WordPress security keys change (or the database is copied to another site), stored keys can no longer be read. The Turnstile protection then counts as not set up, an admin notice asks you to enter the key again, and **one email** goes to the site's admin address until you do. An unreadable ALTCHA key is simply regenerated. Define `LCMT_MAILER_ENCRYPTION_KEY` before rotating the security keys to avoid this.
 

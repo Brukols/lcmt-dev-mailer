@@ -38,8 +38,8 @@ class SubmissionSettings
     }
 
     /**
-     * Days spam is kept before it is deleted for good: 30 at most, 0 keeps it
-     * as long as other messages.
+     * Days spam is kept before it is deleted for good (30 by default,
+     * Retention::MAX_DAYS at most), 0 keeps it as long as other messages.
      */
     public static function spamRetentionDays(): int
     {
