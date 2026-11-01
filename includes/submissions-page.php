@@ -680,6 +680,14 @@ class SubmissionsPage
             echo '</p></div>';
         }
 
+        if (($row['spam_reason'] ?? '') !== '') {
+            echo '<p>' . esc_html(
+                $row['spam_reason'] === SubmissionRecorder::REASON_UNAVAILABLE
+                    ? __('Blocked because the verification service did not answer: probably a real visitor.', 'lcmt-dev-mailer')
+                    : __('Blocked by the spam protection.', 'lcmt-dev-mailer')
+            ) . '</p>';
+        }
+
         // ── What the visitor typed ──
         echo '<h2>' . esc_html__('Message', 'lcmt-dev-mailer') . '</h2>';
 

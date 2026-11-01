@@ -15,6 +15,7 @@ class SubmissionSettings
     public const GROUP = 'lcmt_mailer_retention';
     public const OPTION_DAYS = 'lcmt_mailer_retention_days';
     public const OPTION_ACTION = 'lcmt_mailer_retention_action';
+    public const OPTION_SPAM_DAYS = 'lcmt_mailer_spam_retention_days';
     public const OPTION_STATS_DAYS = 'lcmt_mailer_stats_retention_days';
     public const PURGE_ACTION = 'lcmt_mailer_purge_now';
 
@@ -36,6 +37,15 @@ class SubmissionSettings
         return get_option(self::OPTION_ACTION, 'anonymize') === 'delete' ? 'delete' : 'anonymize';
     }
 
+    /**
+     * Days spam is kept before it is deleted for good: 30 at most, 0 keeps it
+     * as long as other messages.
+     */
+    public static function spamRetentionDays(): int
+    {
+        return Retention::clampDays(get_option(self::OPTION_SPAM_DAYS, 30), 0, 30);
+    }
+
     public static function statsRetentionDays(): int
     {
         return Retention::clampDays(get_option(self::OPTION_STATS_DAYS, 0), 0, 0);
@@ -53,6 +63,12 @@ class SubmissionSettings
             'type'              => 'string',
             'sanitize_callback' => static fn($value) => $value === 'delete' ? 'delete' : 'anonymize',
             'default'           => 'anonymize',
+        ]);
+
+        register_setting(self::GROUP, self::OPTION_SPAM_DAYS, [
+            'type'              => 'integer',
+            'sanitize_callback' => static fn($value) => min(30, Retention::clampDays($value, 0, 30)),
+            'default'           => 30,
         ]);
 
         register_setting(self::GROUP, self::OPTION_STATS_DAYS, [
@@ -89,6 +105,7 @@ class SubmissionSettings
             'anonymized' => $done['anonymized'],
             'deleted'    => $done['deleted'],
             'trash'      => $done['trash'],
+            'spam'       => $done['spam'],
         ]));
         exit;
     }
@@ -119,6 +136,7 @@ class SubmissionSettings
         $days      = self::retentionDays();
         $action    = self::retentionAction();
         $statsDays = self::statsRetentionDays();
+        $spamDays  = self::spamRetentionDays();
         ?>
         <div class="wrap">
         <h1 class="wp-heading-inline"><?php esc_html_e('Data retention', 'lcmt-dev-mailer'); ?></h1>
@@ -139,6 +157,14 @@ class SubmissionSettings
                             /* translators: %d: number of messages deleted from the trash */
                             esc_html(_n('%d trashed message deleted.', '%d trashed messages deleted.', absint($_GET['trash']), 'lcmt-dev-mailer')),
                             absint($_GET['trash'])
+                        );
+                    }
+                    if (absint($_GET['spam'] ?? 0)) {
+                        echo ' ';
+                        printf(
+                            /* translators: %d: number of spam messages deleted */
+                            esc_html(_n('%d spam message deleted.', '%d spam messages deleted.', absint($_GET['spam']), 'lcmt-dev-mailer')),
+                            absint($_GET['spam'])
                         );
                     }
                     ?>
@@ -189,6 +215,16 @@ class SubmissionSettings
                                 <?php esc_html_e('Delete received messages when the plugin is deleted', 'lcmt-dev-mailer'); ?>
                             </label>
                             <p class="description"><?php esc_html_e('Unticked, deleting the plugin keeps the messages and their statistics in the database. Deactivating the plugin from the Plugins screen asks the question and stores the answer here; deactivating it with WP-CLI or a bulk action does not.', 'lcmt-dev-mailer'); ?></p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row"><label for="lcmt-spam-days"><?php esc_html_e('Delete spam after', 'lcmt-dev-mailer'); ?></label></th>
+                        <td>
+                            <input type="number" min="0" max="30" id="lcmt-spam-days"
+                                   name="<?= esc_attr(self::OPTION_SPAM_DAYS) ?>" value="<?= esc_attr((string) $spamDays) ?>" class="small-text" />
+                            <?php esc_html_e('days', 'lcmt-dev-mailer'); ?>
+                            <p class="description"><?php esc_html_e('Deleted for good, without going through the trash. 0 keeps spam as long as other messages.', 'lcmt-dev-mailer'); ?></p>
                         </td>
                     </tr>
 

@@ -124,6 +124,14 @@ class Privacy
                 : __('We also record the user agent of your browser, a technical description of your browser and device. It is erased when the message is anonymized.', 'lcmt-dev-mailer'),
         ];
 
+        if (SubmissionSettings::spamRetentionDays() > 0) {
+            $paragraphs[] = sprintf(
+                /* translators: %s: number of days */
+                _n('A message blocked by our spam protection is kept for %s day, then deleted.', 'A message blocked by our spam protection is kept for %s days, then deleted.', SubmissionSettings::spamRetentionDays(), 'lcmt-dev-mailer'),
+                number_format_i18n(SubmissionSettings::spamRetentionDays())
+            );
+        }
+
         if (Attribution::consentApiActive()) {
             $paragraphs[] = __('Once you accept statistics, the page you arrived on and the campaign that brought you are kept in your browser until you close the tab, so a form sent later in the visit knows where it started.', 'lcmt-dev-mailer');
         } elseif (Attribution::storesWithoutConsent()) {

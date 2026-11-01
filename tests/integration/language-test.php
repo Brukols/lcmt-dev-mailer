@@ -64,10 +64,10 @@ function lcmt_lang_mail_with_translation(string $default, string $other, string 
     return [$source, $key, $translationId];
 }
 
-lcmt_it('The schema is version 4 and knows the language column', function () {
-    lcmt_assert_same('4', SubmissionSchema::VERSION);
+lcmt_it('The schema is version 5 and knows the language and spam reason columns', function () {
+    lcmt_assert_same('5', SubmissionSchema::VERSION);
     lcmt_assert_true(in_array('language', SubmissionSchema::COLUMNS, true), 'listed');
-    lcmt_assert_true(SubmissionSchema::hasColumns(['language']), 'exists in the table');
+    lcmt_assert_true(SubmissionSchema::hasColumns(['language', 'spam_reason']), 'exists in the table');
 });
 
 lcmt_it('record stores the submission language', function () {

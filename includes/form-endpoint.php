@@ -65,13 +65,20 @@ class FormEndpoint
 
         $body = (array) $request->get_json_params();
 
-        // Check the spam protection this template uses, if any
-        if (Captcha::check($post->ID, $body) !== Captcha::PASSED) {
-            return new \WP_REST_Response([
-                'success' => false,
-                'message' => __('Security verification failed. Please try again.', 'lcmt-dev-mailer'),
-            ], 403);
+        // Check the spam protection this template uses, if any. A blocked
+        // message is still validated below, so it can be kept as spam.
+        $outcome = Captcha::check($post->ID, $body);
+
+        if ($outcome === Captcha::UNAVAILABLE && Captcha::sanitizeUnavailable(get_option(Captcha::OPTION_UNAVAILABLE, Captcha::REFUSE)) === Captcha::ACCEPT) {
+            $outcome = Captcha::PASSED;
         }
+
+        $blocked = $outcome !== Captcha::PASSED;
+
+        $refusal = static fn() => new \WP_REST_Response([
+            'success' => false,
+            'message' => __('Security verification failed. Please try again.', 'lcmt-dev-mailer'),
+        ], 403);
 
         // Collect and validate submitted data
         $errors = [];
@@ -103,12 +110,37 @@ class FormEndpoint
             $values[$field['name']] = $value;
         }
 
+        if ($blocked && !empty($errors)) {
+            // Nothing to keep, and the same answer as any blocked message.
+            return $refusal();
+        }
+
         if (!empty($errors)) {
             return new \WP_REST_Response([
                 'success' => false,
                 'message' => __('Some fields are invalid or missing. Please check and try again.', 'lcmt-dev-mailer'),
                 'errors'  => $errors,
             ], 422);
+        }
+
+        if ($blocked) {
+            // Kept for the site owner, never emailed, and the visitor (or bot) learns nothing.
+            if (MetaFields::storesSubmissions($post->ID)
+                && Captcha::sanitizeKeepBlocked(get_option(Captcha::OPTION_KEEP_BLOCKED, '1')) === '1'
+                && SubmissionRecorder::canKeepBlocked()
+            ) {
+                SubmissionRecorder::record(
+                    $post,
+                    $key,
+                    $fields,
+                    $values,
+                    $body['_context'] ?? null,
+                    (string) $request->get_header('user_agent'),
+                    $outcome === Captcha::UNAVAILABLE ? SubmissionRecorder::REASON_UNAVAILABLE : SubmissionRecorder::REASON_FAILED
+                );
+            }
+
+            return $refusal();
         }
 
         $submissionId = SubmissionRecorder::record($post, $key, $fields, $values, $body['_context'] ?? null, (string) $request->get_header('user_agent'));

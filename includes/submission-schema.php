@@ -14,14 +14,14 @@ if (!defined('ABSPATH')) {
  */
 class SubmissionSchema
 {
-    public const VERSION = '4';
+    public const VERSION = '5';
     public const OPTION_VERSION = 'lcmt_mailer_db_version';
 
     /**
      * Every column of the current schema, to tell an upgrade that worked from one that did not.
      */
     public const COLUMNS = [
-        'id', 'form_key', 'mail_post_id', 'created_at', 'status', 'mail_sent', 'mail_error', 'fields',
+        'id', 'form_key', 'mail_post_id', 'created_at', 'status', 'spam_reason', 'mail_sent', 'mail_error', 'fields',
         'page_path', 'page_id', 'landing_path', 'referrer_host', 'channel', 'utm_source', 'utm_medium',
         'utm_campaign', 'click_id_type', 'device', 'locale', 'form_seconds', 'user_agent', 'browser', 'os',
         'anonymized_at', 'trashed_at', 'language',
@@ -52,6 +52,7 @@ class SubmissionSchema
             mail_post_id bigint(20) unsigned NOT NULL DEFAULT 0,
             created_at datetime NOT NULL,
             status varchar(20) NOT NULL DEFAULT 'new',
+            spam_reason varchar(30) NOT NULL DEFAULT '',
             mail_sent tinyint(1) NOT NULL DEFAULT 0,
             mail_error text NULL,
             fields longtext NULL,

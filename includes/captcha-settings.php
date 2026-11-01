@@ -34,6 +34,19 @@ class CaptchaSettings
             'default'           => Captcha::DEFAULT,
         ]);
 
+        register_setting(self::GROUP, Captcha::OPTION_UNAVAILABLE, [
+            'type'              => 'string',
+            'sanitize_callback' => [Captcha::class, 'sanitizeUnavailable'],
+            'default'           => Captcha::REFUSE,
+        ]);
+
+        // options.php sends null for an unchecked box.
+        register_setting(self::GROUP, Captcha::OPTION_KEEP_BLOCKED, [
+            'type'              => 'string',
+            'sanitize_callback' => [Captcha::class, 'sanitizeKeepBlocked'],
+            'default'           => '1',
+        ]);
+
         register_setting(self::GROUP, Turnstile::OPTION_SITE_KEY, [
             'type'              => 'string',
             'sanitize_callback' => [Turnstile::class, 'sanitizeSiteKey'],
@@ -81,7 +94,8 @@ class CaptchaSettings
 
     public static function renderPage(): void
     {
-        $selected = Captcha::selectedId();
+        $selected    = Captcha::selectedId();
+        $unavailable = Captcha::sanitizeUnavailable(get_option(Captcha::OPTION_UNAVAILABLE, Captcha::REFUSE));
         ?>
         <div class="wrap lcmt-captcha-settings">
             <h1><?php esc_html_e('Spam protection', 'lcmt-dev-mailer'); ?></h1>
@@ -116,6 +130,29 @@ class CaptchaSettings
                     <?php foreach (Captcha::providers() as $provider) {
                         $provider::renderSettings();
                     } ?>
+
+                    <tr>
+                        <th scope="row"><?php esc_html_e('If the verification service does not answer', 'lcmt-dev-mailer'); ?></th>
+                        <td>
+                            <fieldset>
+                                <label><input type="radio" name="<?= esc_attr(Captcha::OPTION_UNAVAILABLE) ?>" value="<?= esc_attr(Captcha::REFUSE) ?>" <?php checked($unavailable, Captcha::REFUSE); ?> />
+                                    <?php esc_html_e('Refuse the message (recommended)', 'lcmt-dev-mailer'); ?></label><br>
+                                <label><input type="radio" name="<?= esc_attr(Captcha::OPTION_UNAVAILABLE) ?>" value="<?= esc_attr(Captcha::ACCEPT) ?>" <?php checked($unavailable, Captcha::ACCEPT); ?> />
+                                    <?php esc_html_e('Accept it', 'lcmt-dev-mailer'); ?></label>
+                            </fieldset>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row"><?php esc_html_e('Blocked messages', 'lcmt-dev-mailer'); ?></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="<?= esc_attr(Captcha::OPTION_KEEP_BLOCKED) ?>" value="1" <?php checked(get_option(Captcha::OPTION_KEEP_BLOCKED, '1'), '1'); ?> />
+                                <?php esc_html_e('Keep blocked messages in Received messages → Spam', 'lcmt-dev-mailer'); ?>
+                            </label>
+                            <p class="description"><?php esc_html_e('Never emailed. Mark one as not spam, then resend it, if a real visitor was blocked.', 'lcmt-dev-mailer'); ?></p>
+                        </td>
+                    </tr>
                 </table>
 
                 <?php submit_button(); ?>

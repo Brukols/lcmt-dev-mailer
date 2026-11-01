@@ -19,6 +19,19 @@ class Captcha
      */
     public const INHERIT = '';
 
+    /**
+     * What to do when the verification service does not answer: refuse the
+     * message (default) or accept it.
+     */
+    public const OPTION_UNAVAILABLE = 'lcmt_mailer_captcha_unavailable';
+    public const REFUSE             = 'refuse';
+    public const ACCEPT             = 'accept';
+
+    /**
+     * Whether blocked messages are kept in Received messages → Spam ('1', default).
+     */
+    public const OPTION_KEEP_BLOCKED = 'lcmt_mailer_keep_blocked';
+
     public const PASSED      = 'passed';
     public const FAILED      = 'failed';
     public const UNAVAILABLE = 'unavailable';
@@ -153,6 +166,24 @@ class Captcha
         } catch (CaptchaUnavailable $e) {
             return self::UNAVAILABLE;
         }
+    }
+
+    /**
+     * Keep the policy to a known value.
+     *
+     * @param mixed $value
+     */
+    public static function sanitizeUnavailable($value): string
+    {
+        return $value === self::ACCEPT ? self::ACCEPT : self::REFUSE;
+    }
+
+    /**
+     * @param mixed $value
+     */
+    public static function sanitizeKeepBlocked($value): string
+    {
+        return $value === '0' || !$value ? '0' : '1';
     }
 
     /**

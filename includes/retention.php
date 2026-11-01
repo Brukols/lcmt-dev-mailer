@@ -94,19 +94,26 @@ class Retention
     }
 
     /**
-     * @return array{anonymized: int, deleted: int, trash: int} Rows anonymized, rows deleted by
-     *         the retention period, rows deleted after their time in the trash.
+     * @return array{anonymized: int, deleted: int, trash: int, spam: int} Rows anonymized, rows deleted by
+     *         the retention period, rows deleted after their time in the trash, spam deleted.
      */
     public static function run(): array
     {
         $now         = time();
-        $done        = ['anonymized' => 0, 'deleted' => 0, 'trash' => 0];
+        $done        = ['anonymized' => 0, 'deleted' => 0, 'trash' => 0, 'spam' => 0];
 
         // With the trash off (0 days), rows trashed before it was turned off are
         // due at once, like WordPress does: they are still personal data.
         $trashCutoff = self::cutoff(self::trashDays(), $now) ?? gmdate('Y-m-d H:i:s', $now + 1);
 
         $done['trash'] += self::drain(static fn() => SubmissionRepository::deleteTrashedBefore($trashCutoff, self::BATCH));
+
+        // Spam goes first: it never needs the anonymize step, whatever the action.
+        $spamCutoff = self::cutoff(SubmissionSettings::spamRetentionDays(), $now);
+
+        if ($spamCutoff) {
+            $done['spam'] += self::drain(static fn() => SubmissionRepository::deleteSpamBefore($spamCutoff, self::BATCH));
+        }
 
         $cutoff = (string) self::cutoff(SubmissionSettings::retentionDays(), $now);
 

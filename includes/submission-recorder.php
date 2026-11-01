@@ -11,6 +11,11 @@ if (!defined('ABSPATH')) {
  */
 class SubmissionRecorder
 {
+    public const REASON_FAILED      = 'captcha_failed';
+    public const REASON_UNAVAILABLE = 'captcha_unavailable';
+
+    private const BLOCKED_COUNTER = 'lcmt_mailer_blocked_';
+
     /**
      * The message of the last wp_mail failure during send().
      */
@@ -21,9 +26,10 @@ class SubmissionRecorder
      * @param array<string, string> $values
      * @param mixed $rawContext The `_context` value of the request body.
      * @param string $userAgent The User-Agent header of the request.
+     * @param string $spamReason Why the message was blocked: it is then saved as spam. '' for a normal message.
      * @return int The submission id, or 0 when this form does not save messages.
      */
-    public static function record(\WP_Post $post, string $key, array $fields, array $values, $rawContext, string $userAgent = ''): int
+    public static function record(\WP_Post $post, string $key, array $fields, array $values, $rawContext, string $userAgent = '', string $spamReason = ''): int
     {
         if (!MetaFields::storesSubmissions($post->ID)) {
             return 0;
@@ -46,13 +52,38 @@ class SubmissionRecorder
             'form_key'     => $key,
             'mail_post_id' => $post->ID,
             'created_at'   => current_time('mysql', true),
-            'status'       => 'new',
+            'status'       => $spamReason === '' ? 'new' : 'spam',
+            'spam_reason'  => substr($spamReason, 0, 30),
             'mail_sent'    => 0,
             'fields'       => wp_json_encode(SubmissionData::snapshot($fields, $values), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             'page_id'      => self::pageId($home, $context['page_path']),
             'channel'      => substr($channel, 0, 30),
             'user_agent'   => $userAgent === '' ? null : $userAgent,
         ] + UserAgent::parse($userAgent) + $context);
+    }
+
+    /**
+     * Whether one more blocked message may be kept this hour, so a flood of
+     * bots cannot fill the table. Counts the call that returns true.
+     */
+    public static function canKeepBlocked(): bool
+    {
+        /**
+         * Filter how many blocked messages are kept per hour.
+         *
+         * @param int $limit
+         */
+        $limit   = max(0, (int) apply_filters('lcmt_mailer_blocked_hourly_limit', 50));
+        $counter = self::BLOCKED_COUNTER . gmdate('YmdH');
+        $count   = (int) get_transient($counter);
+
+        if ($count >= $limit) {
+            return false;
+        }
+
+        set_transient($counter, $count + 1, HOUR_IN_SECONDS);
+
+        return true;
     }
 
     /**

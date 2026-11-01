@@ -232,6 +232,22 @@ class SubmissionRepository
         ));
     }
 
+    /**
+     * Delete spam older than the cutoff for good, trashed rows included.
+     *
+     * @return int Rows deleted.
+     */
+    public static function deleteSpamBefore(string $cutoff, int $limit): int
+    {
+        global $wpdb;
+
+        return (int) $wpdb->query($wpdb->prepare(
+            'DELETE FROM ' . self::table() . " WHERE status = 'spam' AND created_at < %s LIMIT %d",
+            $cutoff,
+            $limit
+        ));
+    }
+
     public static function deleteAnonymizedBefore(string $cutoff, int $limit): int
     {
         global $wpdb;
