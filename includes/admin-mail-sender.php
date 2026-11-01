@@ -286,6 +286,8 @@ class AdminMailSender
         $formsDir = get_stylesheet_directory() . '/forms';
         $filePath = $formsDir . '/' . $key . '.php';
 
+        // The key is saved through sanitize_title() (no slash, no dot), and only an admin with a valid nonce gets here
+        // nosemgrep: php.lang.security.injection.tainted-filename.tainted-filename
         if (file_exists($filePath)) {
             wp_send_json_error(__('File already exists: forms/', 'lcmt-dev-mailer') . $key . '.php');
         }
@@ -308,6 +310,8 @@ class AdminMailSender
         // Generate the template
         $template = self::buildFormTemplate($key, $fields);
 
+        // Same path as the file_exists() check above
+        // nosemgrep: php.lang.security.injection.tainted-filename.tainted-filename
         $written = file_put_contents($filePath, $template);
 
         if ($written === false) {

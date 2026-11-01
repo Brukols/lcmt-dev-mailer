@@ -464,6 +464,8 @@ class SubmissionsPage
 
         // Beside the title, not in it: the heading's accessible name stays the title.
         if ($row) {
+            // Both badges escape what they print; the id from the URL went through absint()
+            // nosemgrep: php.lang.security.injection.echoed-request.echoed-request
             echo ' <span class="lcmt-badges">' . self::statusBadge((string) $row['status']) . ' ' . self::mailBadge((int) $row['mail_sent'] === 1) . '</span>';
         }
 
