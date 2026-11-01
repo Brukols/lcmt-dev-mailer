@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
  * The HMAC key comes from the ALTCHA_HMAC_KEY constant when wp-config.php
  * defines it, otherwise from an option generated on first use.
  */
-class Altcha implements CaptchaProvider, CaptchaAssets, CaptchaBadge
+class Altcha implements CaptchaProvider, CaptchaAssets, CaptchaBadge, CaptchaPrivacy
 {
     public const OPTION_KEY = 'lcmt_mailer_altcha_key';
     public const REGENERATE_ACTION = 'lcmt_mailer_regenerate_altcha_key';
@@ -40,6 +40,22 @@ class Altcha implements CaptchaProvider, CaptchaAssets, CaptchaBadge
     public static function color(): string
     {
         return '#2271b1';
+    }
+
+    /**
+     * The proof is solved in the browser on the first focus in the form
+     * (auto="onfocus") against our own challenge route; the bundled widget
+     * calls no outside service and sets no cookie.
+     */
+    public static function privacyText(): string
+    {
+        return '<h3>' . esc_html(sprintf(
+            /* translators: %s: spam protection name */
+            __('Form protection (%s)', 'lcmt-dev-mailer'),
+            self::label()
+        )) . '</h3>'
+            . '<p>' . esc_html__('To protect our forms against automated submissions (spam, bots), your browser solves a small calculation when you start filling in a form, then our site checks the result. This check is done entirely by our site: no data is sent to a third-party service and no cookie is set.', 'lcmt-dev-mailer') . '</p>'
+            . '<p>' . esc_html__('This processing is based on our legitimate interest in securing our site and protecting it against abuse (Article 6(1)(f) of the GDPR).', 'lcmt-dev-mailer') . '</p>';
     }
 
     public static function isReady(): bool

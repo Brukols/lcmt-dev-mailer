@@ -131,6 +131,26 @@ function esc_attr($text)
     return htmlspecialchars((string) $text, ENT_QUOTES);
 }
 
+function esc_html($text)
+{
+    return htmlspecialchars((string) $text, ENT_QUOTES);
+}
+
+function esc_html__($text, $domain = 'default')
+{
+    return esc_html($text);
+}
+
+function esc_url($url)
+{
+    return (string) $url;
+}
+
+function wp_kses($text, $allowed)
+{
+    return (string) $text;
+}
+
 function is_wp_error($thing)
 {
     return $thing instanceof WP_Error;
@@ -187,6 +207,7 @@ require_once dirname(__DIR__) . '/includes/turnstile.php';
 require_once dirname(__DIR__) . '/includes/captcha.php';
 require_once dirname(__DIR__) . '/includes/admin-mail-sender.php';
 require_once dirname(__DIR__) . '/includes/form-renderer.php';
+require_once dirname(__DIR__) . '/includes/privacy.php';
 require_once dirname(__DIR__) . '/includes/submission-csv.php';
 require_once dirname(__DIR__) . '/includes/retention.php';
 require_once dirname(__DIR__) . '/includes/user-agent.php';

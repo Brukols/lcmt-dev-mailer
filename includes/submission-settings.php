@@ -312,6 +312,7 @@ class SubmissionSettings
                 );
                 ?>
             </p>
+            <p><?php esc_html_e('Its spam protection part follows the protections in use automatically: the site default and those of the published email templates. As on many policies, it fits under a "Service providers" section.', 'lcmt-dev-mailer'); ?></p>
 
             <table class="widefat striped lcmt-privacy-docs__table">
                 <thead>

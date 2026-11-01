@@ -118,6 +118,49 @@ class Captcha
     }
 
     /**
+     * Ids of the ready providers that protect something: the site default,
+     * and the protection each mail template actually gets (activeFor(), so a
+     * choice that is not set up counts as the site default). In provider order.
+     *
+     * @param int[]|null $postIds Mail templates to look at; null for the published ones.
+     * @return string[]
+     */
+    public static function inUseIds(?array $postIds = null): array
+    {
+        $providers = self::providers();
+        $used      = [];
+
+        $default = $providers[self::selectedId()] ?? null;
+        if ($default && $default::isReady()) {
+            $used[] = $default;
+        }
+
+        foreach ($postIds ?? self::publishedMailIds() as $postId) {
+            $active = self::activeFor((int) $postId);
+            if ($active) {
+                $used[] = $active;
+            }
+        }
+
+        return array_keys(array_filter($providers, static fn($class) => in_array($class, $used, true)));
+    }
+
+    /**
+     * @return int[]
+     */
+    private static function publishedMailIds(): array
+    {
+        return array_map('intval', get_posts([
+            'post_type'   => PostType::SLUG,
+            'post_status' => 'publish',
+            'numberposts' => -1,
+            'fields'      => 'ids',
+            // Every language: Polylang would keep the current one only
+            'lang'        => '',
+        ]));
+    }
+
+    /**
      * Register the routes of every ready provider: two forms may use two
      * different protections.
      */

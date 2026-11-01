@@ -266,7 +266,7 @@ add_filter('lcmt_mailer_captcha_providers', function (array $providers) {
 });
 ```
 
-See [.claude/hooks.md](.claude/hooks.md) and [.claude/frontend.md](.claude/frontend.md) for the PHP and JS contracts.
+A provider can add its own privacy policy part by implementing `CaptchaPrivacy`. See [.claude/hooks.md](.claude/hooks.md) and [.claude/frontend.md](.claude/frontend.md) for the PHP and JS contracts.
 
 ---
 
@@ -297,6 +297,7 @@ Your privacy policy has to state what the plugin does with the messages. Four sh
 | Shortcode | Prints (example with the defaults) |
 |-----------|-------------------------------------|
 | `[lcmt-privacy-policy]` | The plugin's paragraphs: retention period and what happens after it, what is recorded with a message, the user agent, what anonymization keeps, and what is stored in the visitor's browser. **Recommended**: paste this one. It is the same text as in the WordPress privacy policy guide (**Settings → Privacy → Policy Guide**). |
+| | It ends with a **Form protection** part for each spam protection in use (the site default, and the protection of each published email template), with what the provider receives, the legal basis and, for Turnstile, the transfer to the United States. It follows the protections automatically: nothing to change when you switch a form to Turnstile. It fits under a "Service providers" section of the policy. |
 | `[lcmt-retention-period]` | The period in words: `3 years`. Whole years when the days make whole years (365, 730, 1095…), else whole months (30, 180…), else days: `1 year`, `6 months`, `45 days`. |
 | `[lcmt-retention-action]` | `anonymized` or `deleted`, following the setting. |
 | `[lcmt-retention-days]` | The number of days: `1095`. |

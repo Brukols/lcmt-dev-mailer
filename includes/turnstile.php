@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
  * The secret key is kept encrypted (see SecretBox); the site key is public
  * and stored as it is.
  */
-class Turnstile implements CaptchaProvider, CaptchaAssets, CaptchaBadge
+class Turnstile implements CaptchaProvider, CaptchaAssets, CaptchaBadge, CaptchaPrivacy
 {
     public const OPTION_SITE_KEY   = 'lcmt_mailer_turnstile_site_key';
     public const OPTION_SECRET_KEY = 'lcmt_mailer_turnstile_secret_key';
@@ -59,6 +59,28 @@ class Turnstile implements CaptchaProvider, CaptchaAssets, CaptchaBadge
     public static function color(): string
     {
         return '#00a32a';
+    }
+
+    public static function privacyText(): string
+    {
+        return '<h3>' . esc_html(sprintf(
+            /* translators: %s: spam protection name */
+            __('Form protection (%s)', 'lcmt-dev-mailer'),
+            self::label()
+        )) . '</h3>'
+            . '<p>' . esc_html__('To protect our forms against automated submissions (spam, bots), we use the Turnstile service of Cloudflare, Inc. (101 Townsend St, San Francisco, CA 94107, United States).', 'lcmt-dev-mailer') . '</p>'
+            . '<p>' . esc_html__('When you start filling in a form, Turnstile analyzes technical information sent by your browser: your IP address, the identifier of your browser ("User-Agent"), technical characteristics of the connection and the page concerned. This information is only used to check that the form is filled in by a person and not by a bot. Cloudflare states that it does not use it to identify, profile or target people, nor for advertising. The content of your message is not sent to Cloudflare.', 'lcmt-dev-mailer') . '</p>'
+            . '<p>' . esc_html__('This processing is based on our legitimate interest in securing our site and protecting it against abuse (Article 6(1)(f) of the GDPR).', 'lcmt-dev-mailer') . '</p>'
+            . '<p>' . esc_html__('As Cloudflare may process this data in the United States, this transfer is covered by the EU–US Data Privacy Framework, under which Cloudflare is certified, and by standard contractual clauses of the European Commission.', 'lcmt-dev-mailer') . '</p>'
+            . '<p>' . sprintf(
+                wp_kses(
+                    /* translators: 1: URL of the Turnstile privacy policy, 2: URL of the Cloudflare privacy policy */
+                    __('Learn more: <a href="%1$s">Turnstile privacy policy</a> and <a href="%2$s">Cloudflare privacy policy</a>.', 'lcmt-dev-mailer'),
+                    ['a' => ['href' => true]]
+                ),
+                esc_url('https://www.cloudflare.com/turnstile-privacy-policy/'),
+                esc_url('https://www.cloudflare.com/privacypolicy/')
+            ) . '</p>';
     }
 
     /**

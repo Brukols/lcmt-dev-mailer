@@ -78,6 +78,8 @@ A provider that loads its own front-end scripts also implements `LcmtDevMailer\C
 
 Optionally, it implements `LcmtDevMailer\CaptchaBadge` (`icon(): string`, a dashicon class such as `dashicons-shield`, and `color(): string`, a hex color) for its badge in the **Protection** column of the email templates list. Without it, the column shows a neutral `dashicons-shield` in `#50575e`.
 
+It can also implement `LcmtDevMailer\CaptchaPrivacy` (`privacyText(): string`, a translated and escaped `<h3>` heading and its paragraphs): `[lcmt-privacy-policy]` and the WordPress policy guide then include it while the provider is in use (ready, and the site default or the protection of a published email template).
+
 `verify()` returns false when the proof is wrong. When the verification service itself gave no answer (network error, HTTP error, unreadable answer), throw `LcmtDevMailer\CaptchaUnavailable` instead: `Captcha::check()` reports it as unavailable, and the site setting decides whether the message is refused (default) or accepted. Either way a refused message is kept in Received messages → Spam with the reason `captcha_failed` or `captcha_unavailable`.
 
 Used in: `Captcha::providers()`.

@@ -85,6 +85,19 @@ interface CaptchaBadge
 }
 
 /**
+ * A provider with its own part in the privacy policy (Privacy::policyText()),
+ * included while the provider is in use (Captcha::inUseIds()). Optional:
+ * providers without it add nothing.
+ */
+interface CaptchaPrivacy
+{
+    /**
+     * A heading and its paragraphs, translated and escaped.
+     */
+    public static function privacyText(): string;
+}
+
+/**
  * Thrown by CaptchaProvider::verify() when the provider's service could not
  * give an answer, as opposed to the proof being wrong.
  */

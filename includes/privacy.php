@@ -138,7 +138,26 @@ class Privacy
             $paragraphs[] = __('The page you arrived on and the campaign that brought you are kept in your browser until you close the tab, so a form sent later in the visit knows where it started.', 'lcmt-dev-mailer');
         }
 
-        return wp_kses_post(wpautop(implode("\n\n", $paragraphs)));
+        return wp_kses_post(wpautop(implode("\n\n", $paragraphs)) . self::captchaPolicy(Captcha::inUseIds()));
+    }
+
+    /**
+     * The privacy policy part of each spam protection in use, in provider
+     * order; empty when none is in use or none has a text.
+     *
+     * @param string[] $inUseIds From Captcha::inUseIds().
+     */
+    public static function captchaPolicy(array $inUseIds): string
+    {
+        $text = '';
+
+        foreach (Captcha::providers() as $id => $provider) {
+            if (in_array($id, $inUseIds, true) && is_subclass_of($provider, CaptchaPrivacy::class)) {
+                $text .= $provider::privacyText();
+            }
+        }
+
+        return $text;
     }
 
     /**
