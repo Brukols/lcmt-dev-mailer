@@ -60,6 +60,8 @@ class Turnstile implements CaptchaProvider, CaptchaAssets
      */
     public static function registerHooks(): void
     {
+        UnreadableSecrets::replacedByConstant(self::OPTION_SECRET_KEY, self::CONST_SECRET_KEY);
+
         foreach ([self::OPTION_SITE_KEY, self::OPTION_SECRET_KEY] as $option) {
             add_action('update_option_' . $option, [self::class, 'forgetStatus']);
             add_action('add_option_' . $option, [self::class, 'forgetStatus']);
