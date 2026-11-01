@@ -15,6 +15,7 @@ class MetaFields
     public const FIELD_CONTENT = '_lcmt_mail_content';
     public const FIELD_STORE_SUBMISSIONS = '_lcmt_mail_store_submissions';
     public const FIELD_CONFIRMATION_PAGE = '_lcmt_mail_confirmation_page';
+    public const FIELD_CAPTCHA = '_lcmt_mail_captcha';
 
     public static function addMetaBox(): void
     {
@@ -88,6 +89,7 @@ class MetaFields
         echo '</tr>';
 
         self::renderConfirmationPage($post);
+        self::renderCaptcha($post);
 
         echo '</table>';
 
@@ -148,6 +150,63 @@ class MetaFields
                 delete_post_meta($postId, self::FIELD_CONFIRMATION_PAGE);
             }
         }
+
+        $captcha = Captcha::sanitizeForMail(wp_unslash($_POST['lcmt_mail_captcha'] ?? ''));
+
+        if ($captcha === Captcha::INHERIT) {
+            delete_post_meta($postId, self::FIELD_CAPTCHA);
+        } else {
+            update_post_meta($postId, self::FIELD_CAPTCHA, $captcha);
+        }
+    }
+
+    /**
+     * The "Spam protection" row: the site default, none, or one provider.
+     * A provider that is not set up is flagged: a form using it stays
+     * unprotected until its keys are entered.
+     */
+    private static function renderCaptcha(\WP_Post $post): void
+    {
+        $stored    = (string) get_post_meta($post->ID, self::FIELD_CAPTCHA, true);
+        $providers = Captcha::providers();
+        $defaultId = Captcha::selectedId();
+        $default   = isset($providers[$defaultId]) ? $providers[$defaultId]::label() : __('None', 'lcmt-dev-mailer');
+
+        echo '<tr>';
+        echo '<th><label for="lcmt_mail_captcha">' . esc_html__('Spam protection', 'lcmt-dev-mailer') . '</label></th>';
+        echo '<td>';
+        echo '<select id="lcmt_mail_captcha" name="lcmt_mail_captcha">';
+        echo '<option value="' . esc_attr(Captcha::INHERIT) . '" ' . selected($stored, Captcha::INHERIT, false) . '>'
+            . esc_html(sprintf(
+                /* translators: %s: name of the site-wide spam protection */
+                __('Site default (%s)', 'lcmt-dev-mailer'),
+                $default
+            )) . '</option>';
+        echo '<option value="' . esc_attr(Captcha::NONE) . '" ' . selected($stored, Captcha::NONE, false) . '>' . esc_html__('None', 'lcmt-dev-mailer') . '</option>';
+
+        $notReady = false;
+
+        foreach ($providers as $id => $provider) {
+            $label = $provider::label();
+
+            if (!$provider::isReady()) {
+                $label .= ' — ' . __('not set up', 'lcmt-dev-mailer');
+                $notReady = true;
+            }
+
+            echo '<option value="' . esc_attr($id) . '" ' . selected($stored, $id, false) . '>' . esc_html($label) . '</option>';
+        }
+
+        echo '</select>';
+        echo '<p class="description">' . esc_html__('Blocks automated submissions of this form.', 'lcmt-dev-mailer');
+
+        if ($notReady) {
+            echo ' <a href="' . esc_url(CaptchaSettings::url()) . '">' . esc_html__('Set up a protection', 'lcmt-dev-mailer') . '</a>';
+        }
+
+        echo '</p>';
+        echo '</td>';
+        echo '</tr>';
     }
 
     /**

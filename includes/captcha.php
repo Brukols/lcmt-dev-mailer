@@ -15,6 +15,22 @@ class Captcha
     public const NONE   = 'none';
 
     /**
+     * A mail template without its own choice follows the site default.
+     */
+    public const INHERIT = '';
+
+    public const PASSED      = 'passed';
+    public const FAILED      = 'failed';
+    public const UNAVAILABLE = 'unavailable';
+
+    /**
+     * Providers whose assets were already enqueued on this page.
+     *
+     * @var string[]
+     */
+    private static array $enqueued = [];
+
+    /**
      * Protection used until the setting is saved once.
      */
     public const DEFAULT = 'altcha';
@@ -47,41 +63,93 @@ class Captcha
     }
 
     /**
-     * The selected provider, when it is ready to protect forms.
+     * Id of the protection a mail template uses: its own choice when it
+     * names "none" or a known provider, else the site default.
+     */
+    public static function selectedIdFor(int $postId): string
+    {
+        $choice = (string) get_post_meta($postId, MetaFields::FIELD_CAPTCHA, true);
+
+        if ($choice === self::NONE || isset(self::providers()[$choice])) {
+            return $choice;
+        }
+
+        return self::selectedId();
+    }
+
+    /**
+     * The provider protecting a mail template, when it is ready.
      *
      * @return class-string<CaptchaProvider>|null
      */
-    public static function active(): ?string
+    public static function activeFor(int $postId): ?string
     {
-        $provider = self::providers()[self::selectedId()] ?? null;
+        $provider = self::providers()[self::selectedIdFor($postId)] ?? null;
 
         return $provider && $provider::isReady() ? $provider : null;
     }
 
+    /**
+     * Register the routes of every ready provider: two forms may use two
+     * different protections.
+     */
     public static function registerRoutes(): void
     {
-        $provider = self::active();
-
-        if ($provider) {
-            $provider::registerRoutes();
+        foreach (self::providers() as $provider) {
+            if ($provider::isReady()) {
+                $provider::registerRoutes();
+            }
         }
     }
 
-    public static function widget(): string
+    public static function widget(int $postId): string
     {
-        $provider = self::active();
+        $provider = self::activeFor($postId);
 
-        return $provider ? $provider::widget() : '';
+        if (!$provider) {
+            return '';
+        }
+
+        // Scripts are enqueued once per page, the first time the provider renders.
+        if (is_subclass_of($provider, CaptchaAssets::class) && !in_array($provider, self::$enqueued, true)) {
+            self::$enqueued[] = $provider;
+            $provider::enqueueAssets();
+        }
+
+        return $provider::widget();
     }
 
     /**
+     * Check a submission against the protection of its mail template.
+     *
      * @param array<string, mixed> $body The decoded JSON body of the request.
+     * @return string One of self::PASSED, self::FAILED or self::UNAVAILABLE.
      */
-    public static function verify(array $body): bool
+    public static function check(int $postId, array $body): string
     {
-        $provider = self::active();
+        $provider = self::activeFor($postId);
 
-        return !$provider || $provider::verify($body);
+        if (!$provider) {
+            return self::PASSED;
+        }
+
+        try {
+            return $provider::verify($body) ? self::PASSED : self::FAILED;
+        } catch (CaptchaUnavailable $e) {
+            return self::UNAVAILABLE;
+        }
+    }
+
+    /**
+     * Keep a template's choice to "" (site default), "none" or a known provider id.
+     *
+     * @param mixed $value
+     */
+    public static function sanitizeForMail($value): string
+    {
+        $value = sanitize_key((string) $value);
+
+        return $value === self::NONE || isset(self::providers()[$value]) ? $value : self::INHERIT;
     }
 
     /**

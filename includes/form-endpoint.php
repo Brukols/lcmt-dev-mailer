@@ -65,8 +65,8 @@ class FormEndpoint
 
         $body = (array) $request->get_json_params();
 
-        // Check the spam protection selected in the settings, if any
-        if (!Captcha::verify($body)) {
+        // Check the spam protection this template uses, if any
+        if (Captcha::check($post->ID, $body) !== Captcha::PASSED) {
             return new \WP_REST_Response([
                 'success' => false,
                 'message' => __('Security verification failed. Please try again.', 'lcmt-dev-mailer'),

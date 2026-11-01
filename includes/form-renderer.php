@@ -47,8 +47,8 @@ class FormRenderer
         // Auto-include the plugin's loader overlay
         $innerHtml .= '<div class="lcmt-loader" aria-hidden="true"><div class="lcmt-loader__spinner"></div></div>';
 
-        // Auto-include the widget of the selected spam protection
-        $innerHtml .= Captcha::widget();
+        // Auto-include the widget of the spam protection this template uses
+        $innerHtml .= Captcha::widget($mailPost->ID);
 
         // Check if developer already included a <form> tag
         if (preg_match('/<form[\s>]/i', $innerHtml)) {

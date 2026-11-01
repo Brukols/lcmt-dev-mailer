@@ -55,3 +55,22 @@ interface CaptchaProvider
      */
     public static function renderSettings(): void;
 }
+
+/**
+ * A provider that loads front-end scripts of its own.
+ *
+ * Captcha::widget() calls enqueueAssets() the first time a page renders a
+ * form protected by the provider, so pages without such a form load nothing.
+ */
+interface CaptchaAssets
+{
+    public static function enqueueAssets(): void;
+}
+
+/**
+ * Thrown by CaptchaProvider::verify() when the provider's service could not
+ * give an answer, as opposed to the proof being wrong.
+ */
+class CaptchaUnavailable extends \RuntimeException
+{
+}

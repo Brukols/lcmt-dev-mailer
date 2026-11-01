@@ -67,6 +67,6 @@ class WpmlConfigTest extends TestCase
             $this->assertContains($name, $constants, $name . ' is not a MetaFields constant');
         }
 
-        $this->assertCount(7, array_merge($this->fields('translate'), $this->fields('copy')));
+        $this->assertCount(8, array_merge($this->fields('translate'), $this->fields('copy')));
     }
 }
