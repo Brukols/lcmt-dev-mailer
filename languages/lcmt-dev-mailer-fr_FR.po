@@ -53,7 +53,7 @@ msgid "name=\"\""
 msgstr "name=\"\""
 
 #: includes/admin-mail-sender.php:76
-#: includes/meta-fields.php:293
+#: includes/meta-fields.php:296
 msgid "Type"
 msgstr "Type"
 
@@ -122,7 +122,7 @@ msgstr "Vérification de sécurité échouée"
 
 #: includes/admin-mail-sender.php:196
 #: includes/admin-mail-sender.php:270
-#: includes/altcha.php:220
+#: includes/altcha.php:236
 msgid "Insufficient permissions"
 msgstr "Permissions insuffisantes"
 
@@ -197,69 +197,69 @@ msgstr "Actions"
 msgid "Manage"
 msgstr "Gérer"
 
-#: includes/admin-mail-sender.php:494
+#: includes/admin-mail-sender.php:505
 msgid "Tip:"
 msgstr "Astuce :"
 
-#: includes/admin-mail-sender.php:494
+#: includes/admin-mail-sender.php:505
 msgid "You can send test emails directly from the edit page using the \"Actions & Usage\" panel on the right."
 msgstr "Vous pouvez envoyer des emails de test directement depuis la page d'édition en utilisant le panneau \"Actions & Utilisation\" sur la droite."
 
-#: includes/altcha.php:180
-#: includes/altcha.php:240
-#: includes/altcha.php:254
+#: includes/altcha.php:196
+#: includes/altcha.php:256
+#: includes/altcha.php:270
 msgid "ALTCHA key"
 msgstr "Clé ALTCHA"
 
 #. translators: %1$s: constant name, %2$s: file name
-#: includes/altcha.php:187
+#: includes/altcha.php:203
 #, php-format
 msgid "Set by the %1$s constant in %2$s."
 msgstr "Définie par la constante %1$s dans %2$s."
 
-#: includes/altcha.php:194
+#: includes/altcha.php:210
 msgid "Generated automatically and stored in the database. Nothing to configure."
 msgstr "Générée automatiquement et enregistrée en base de données. Rien à configurer."
 
-#: includes/altcha.php:198
+#: includes/altcha.php:214
 msgid "Generate a new key? A visitor who opened a form in the last five minutes will have to submit it again."
 msgstr "Générer une nouvelle clé ? Un visiteur qui a ouvert un formulaire dans les cinq dernières minutes devra le renvoyer."
 
-#: includes/altcha.php:199
+#: includes/altcha.php:215
 msgid "Generate a new key"
 msgstr "Générer une nouvelle clé"
 
-#: includes/altcha.php:202
+#: includes/altcha.php:218
 msgid "New key generated."
 msgstr "Nouvelle clé générée."
 
-#: includes/altcha.php:206
+#: includes/altcha.php:222
 msgid "Only needed if the key may have leaked, from a copied database for instance."
 msgstr "Utile uniquement si la clé a pu fuiter, par exemple depuis une copie de la base de données."
 
-#: includes/captcha-settings.php:21
-#: includes/captcha-settings.php:22
-#: includes/captcha-settings.php:83
+#: includes/captcha-settings.php:25
+#: includes/captcha-settings.php:26
+#: includes/captcha-settings.php:135
 #: includes/meta-fields.php:176
 msgid "Spam protection"
 msgstr "Protection anti-spam"
 
-#: includes/captcha-settings.php:93
+#: includes/captcha-settings.php:195
 msgid "Site default protection"
 msgstr "Protection par défaut du site"
 
-#: includes/captcha-settings.php:106
+#: includes/captcha-settings.php:208
 msgid "Each email template can override it with its own Spam protection setting."
 msgstr "Chaque modèle d'e-mail peut la remplacer par son propre réglage « Protection anti-spam »."
 
-#: includes/captcha-settings.php:98
+#: includes/captcha-settings.php:200
 #: includes/meta-fields.php:173
 #: includes/meta-fields.php:185
-#: includes/meta-fields.php:225
+#: includes/meta-fields.php:228
 msgid "None"
 msgstr "Aucune"
 
-#: includes/captcha-settings.php:108
+#: includes/captcha-settings.php:210
 msgid "Forms accept any submission, including from bots."
 msgstr "Les formulaires acceptent tous les envois, y compris ceux des robots."
 
@@ -451,51 +451,51 @@ msgstr "Enregistrer les messages envoyés via ce formulaire"
 msgid "They appear under Email templates → Received messages, and are anonymized or deleted after the retention period set there."
 msgstr "Ils apparaissent sous Modèles d'e-mails → Messages reçus, et sont anonymisés ou supprimés à l'issue de la durée de conservation définie à cet endroit."
 
-#: includes/meta-fields.php:270
+#: includes/meta-fields.php:273
 msgid "Placeholder syntax reference"
 msgstr "Référence de la syntaxe des placeholders"
 
-#: includes/meta-fields.php:277
+#: includes/meta-fields.php:280
 msgid "Syntax"
 msgstr "Syntaxe"
 
-#: includes/meta-fields.php:278
+#: includes/meta-fields.php:281
 msgid "Result"
 msgstr "Résultat"
 
-#: includes/meta-fields.php:282
+#: includes/meta-fields.php:285
 msgid "Optional field, type text"
 msgstr "Champ optionnel, type texte"
 
-#: includes/meta-fields.php:283
+#: includes/meta-fields.php:286
 msgid "Required field, type text"
 msgstr "Champ obligatoire, type texte"
 
-#: includes/meta-fields.php:284
+#: includes/meta-fields.php:287
 msgid "Optional field with explicit type"
 msgstr "Champ optionnel avec type explicite"
 
-#: includes/meta-fields.php:285
+#: includes/meta-fields.php:288
 msgid "Required field with explicit type"
 msgstr "Champ obligatoire avec type explicite"
 
-#: includes/meta-fields.php:289
+#: includes/meta-fields.php:292
 msgid "Available types:"
 msgstr "Types disponibles :"
 
-#: includes/meta-fields.php:294
+#: includes/meta-fields.php:297
 msgid "HTML output"
 msgstr "Rendu HTML"
 
-#: includes/meta-fields.php:310
+#: includes/meta-fields.php:313
 msgid "Example content:"
 msgstr "Exemple de contenu :"
 
-#: includes/meta-fields.php:323
+#: includes/meta-fields.php:326
 msgid "Built-in placeholders (always available): [currentUserLink], [currentUserEmail], [submissionLanguage]"
 msgstr "Placeholders intégrés (toujours disponibles) : [currentUserLink], [currentUserEmail], [submissionLanguage]"
 
-#: includes/meta-fields.php:326
+#: includes/meta-fields.php:329
 msgid "the language of the page the form was sent from, e.g. English; empty without Polylang."
 msgstr "la langue de la page depuis laquelle le formulaire a été envoyé, par ex. Anglais ; vide sans Polylang."
 
@@ -588,7 +588,7 @@ msgid "The page you arrived on and the campaign that brought you are kept in you
 msgstr "La page par laquelle vous êtes arrivé et la campagne qui vous a amené sont conservées dans votre navigateur jusqu'à la fermeture de l'onglet, pour qu'un formulaire envoyé plus tard dans la visite sache d'où elle est partie."
 
 #. translators: %s: number of years
-#: includes/privacy.php:155
+#: includes/privacy.php:174
 #, php-format
 msgid "%s year"
 msgid_plural "%s years"
@@ -596,7 +596,7 @@ msgstr[0] "%s an"
 msgstr[1] "%s ans"
 
 #. translators: %s: number of months
-#: includes/privacy.php:158
+#: includes/privacy.php:177
 #, php-format
 msgid "%s month"
 msgid_plural "%s months"
@@ -604,7 +604,7 @@ msgstr[0] "%s mois"
 msgstr[1] "%s mois"
 
 #. translators: %s: number of days
-#: includes/privacy.php:161
+#: includes/privacy.php:180
 #, php-format
 msgid "%s day"
 msgid_plural "%s days"
@@ -612,12 +612,12 @@ msgstr[0] "%s jour"
 msgstr[1] "%s jours"
 
 #. translators: completes "…are then [action]": plural masculine in French, as it refers to "messages" or "data".
-#: includes/privacy.php:172
+#: includes/privacy.php:191
 msgid "deleted"
 msgstr "supprimés"
 
 #. translators: completes "…are then [action]": plural masculine in French, as it refers to "messages" or "data".
-#: includes/privacy.php:174
+#: includes/privacy.php:193
 msgid "anonymized"
 msgstr "anonymisés"
 
@@ -961,38 +961,38 @@ msgstr "Politique de confidentialité"
 msgid "These shortcodes follow the settings above. Paste them in your %1$s to state how this plugin handles personal data. The same text is in the WordPress %2$s."
 msgstr "Ces shortcodes suivent les réglages ci-dessus. Collez-les dans votre %1$s pour indiquer comment cette extension traite les données personnelles. Le même texte figure dans le %2$s de WordPress."
 
-#: includes/submission-settings.php:319
+#: includes/submission-settings.php:320
 msgid "Shortcode"
 msgstr "Shortcode"
 
-#: includes/submission-settings.php:320
+#: includes/submission-settings.php:321
 msgid "Displays"
 msgstr "Affichage"
 
-#: includes/submission-settings.php:321
-#: includes/submission-settings.php:341
-#: includes/submission-settings.php:356
+#: includes/submission-settings.php:322
+#: includes/submission-settings.php:342
+#: includes/submission-settings.php:357
 msgid "Copy"
 msgstr "Copier"
 
-#: includes/submission-settings.php:331
+#: includes/submission-settings.php:332
 msgid "Recommended"
 msgstr "Recommandé"
 
-#: includes/submission-settings.php:341
-#: includes/submission-settings.php:356
+#: includes/submission-settings.php:342
+#: includes/submission-settings.php:357
 msgid "Copied"
 msgstr "Copié"
 
-#: includes/submission-settings.php:348
+#: includes/submission-settings.php:349
 msgid "Write your own text"
 msgstr "Rédiger votre propre texte"
 
-#: includes/submission-settings.php:349
+#: includes/submission-settings.php:350
 msgid "To word it yourself, combine the shortcodes in your own sentences. For example:"
 msgstr "Pour le formuler vous-même, combinez les shortcodes dans vos propres phrases. Par exemple :"
 
-#: includes/submission-settings.php:351
+#: includes/submission-settings.php:352
 msgid "Sample paragraph"
 msgstr "Paragraphe d'exemple"
 
@@ -1001,7 +1001,7 @@ msgid "Sender"
 msgstr "Expéditeur"
 
 #: includes/submissions-list-table.php:34
-#: includes/turnstile.php:341
+#: includes/turnstile.php:368
 msgid "Status"
 msgstr "Statut"
 
@@ -1326,33 +1326,33 @@ msgstr "Désactivation…"
 msgid "Deactivate"
 msgstr "Désactiver"
 
-#: includes/captcha-settings.php:114
+#: includes/captcha-settings.php:216
 msgid "If the verification service does not answer"
 msgstr "Si le service de vérification ne répond pas"
 
-#: includes/captcha-settings.php:118
+#: includes/captcha-settings.php:220
 msgid "Refuse the message (recommended)"
 msgstr "Refuser le message (recommandé)"
 
-#: includes/captcha-settings.php:120
+#: includes/captcha-settings.php:222
 msgid "Accept it"
 msgstr "L'accepter"
 
-#: includes/captcha-settings.php:126
+#: includes/captcha-settings.php:228
 msgid "Blocked messages"
 msgstr "Messages bloqués"
 
-#: includes/captcha-settings.php:130
+#: includes/captcha-settings.php:232
 msgid "Keep blocked messages in Received messages → Spam"
 msgstr "Conserver les messages bloqués dans Messages reçus → Spam"
 
-#: includes/captcha-settings.php:132
+#: includes/captcha-settings.php:234
 msgid "Never emailed. If a real visitor was blocked, open the message, take it out of Spam with \"Mark as unread\", then use \"Send the email again\"."
 msgstr "Jamais envoyés par e-mail. Si un vrai visiteur a été bloqué, ouvrez son message, retirez-le du spam avec « Marquer comme non lu », puis utilisez « Renvoyer l'e-mail »."
 
 #. translators: %s: spam protection name
 #. translators: %s: name of the site-wide spam protection
-#: includes/admin-mail-sender.php:461
+#: includes/admin-mail-sender.php:472
 #: includes/meta-fields.php:182
 #, php-format
 msgid "Site default (%s)"
@@ -1366,25 +1366,25 @@ msgstr "non configurée"
 msgid "Blocks automated submissions of this form."
 msgstr "Bloque les envois automatisés de ce formulaire."
 
-#: includes/meta-fields.php:204
+#: includes/meta-fields.php:207
 msgid "Set up a protection"
 msgstr "Configurer une protection"
 
-#: includes/meta-fields.php:232
+#: includes/meta-fields.php:235
 msgid "Confirmation page"
 msgstr "Page de confirmation"
 
-#: includes/meta-fields.php:240
+#: includes/meta-fields.php:243
 msgid "No published page yet."
 msgstr "Aucune page publiée pour l'instant."
 
 #. translators: %d: page ID
-#: includes/meta-fields.php:246
+#: includes/meta-fields.php:249
 #, php-format
 msgid "The page selected before (#%d) is no longer published: visitors see the success message, and saving this form clears it."
 msgstr "La page choisie auparavant (n°%d) n'est plus publiée : les visiteurs voient le message de succès, et l'enregistrement de ce formulaire l'efface."
 
-#: includes/meta-fields.php:251
+#: includes/meta-fields.php:254
 msgid "Optional. After a successful submission, visitors are taken to this page instead of seeing the success message. On a multilingual site, its translation in the visitor's language is used when there is one."
 msgstr "Facultatif. Après un envoi réussi, les visiteurs sont redirigés vers cette page au lieu de voir le message de succès. Sur un site multilingue, sa traduction dans la langue du visiteur est utilisée lorsqu'elle existe."
 
@@ -1420,74 +1420,74 @@ msgstr "Bloqué car le service de vérification n'a pas répondu : probablement 
 msgid "Blocked by the spam protection."
 msgstr "Bloqué par la protection anti-spam."
 
-#: includes/turnstile.php:114
+#: includes/turnstile.php:141
 msgid "Cloudflare Turnstile secret key"
 msgstr "Clé secrète Cloudflare Turnstile"
 
-#: includes/turnstile.php:284
+#: includes/turnstile.php:311
 msgid "Cloudflare setup"
 msgstr "Configuration de Cloudflare"
 
 #. translators: %s: link to the Cloudflare dashboard
-#: includes/turnstile.php:290
+#: includes/turnstile.php:317
 #, php-format
 msgid "Create a widget in the Cloudflare dashboard (%s), list the hostnames of this site (production and staging), then copy both keys here."
 msgstr "Créez un widget dans le tableau de bord Cloudflare (%s), indiquez les noms de domaine de ce site (production et préproduction), puis copiez les deux clés ici."
 
-#: includes/turnstile.php:291
+#: includes/turnstile.php:318
 msgid "Turnstile, Add widget"
 msgstr "Turnstile, Ajouter un widget"
 
-#: includes/turnstile.php:298
+#: includes/turnstile.php:325
 msgid "Site key"
 msgstr "Clé du site"
 
-#: includes/turnstile.php:307
+#: includes/turnstile.php:334
 msgid "Secret key"
 msgstr "Clé secrète"
 
-#: includes/turnstile.php:317
+#: includes/turnstile.php:344
 msgid "The saved key can no longer be read (WordPress security keys changed or database copied from another site). Enter it again."
 msgstr "La clé enregistrée n'est plus lisible (clés de sécurité WordPress modifiées ou base de données copiée depuis un autre site). Saisissez-la à nouveau."
 
-#: includes/turnstile.php:328
+#: includes/turnstile.php:355
 msgid "Forget the saved secret key"
 msgstr "Oublier la clé secrète enregistrée"
 
-#: includes/turnstile.php:335
+#: includes/turnstile.php:362
 msgid "Stored without encryption: this site has no WordPress security keys."
 msgstr "Stockée sans chiffrement : ce site n'a pas de clés de sécurité WordPress."
 
-#: includes/turnstile.php:349
+#: includes/turnstile.php:376
 msgid "Cloudflare accepts the keys."
 msgstr "Cloudflare accepte les clés."
 
-#: includes/turnstile.php:352
+#: includes/turnstile.php:379
 msgid "Cloudflare refuses the secret key."
 msgstr "Cloudflare refuse la clé secrète."
 
-#: includes/turnstile.php:355
+#: includes/turnstile.php:382
 msgid "Cloudflare could not be reached."
 msgstr "Cloudflare est injoignable."
 
-#: includes/turnstile.php:358
+#: includes/turnstile.php:385
 msgid "Add both keys to protect forms with Turnstile."
 msgstr "Ajoutez les deux clés pour protéger les formulaires avec Turnstile."
 
-#: includes/turnstile.php:365
+#: includes/turnstile.php:392
 msgid "Appearance"
 msgstr "Apparence"
 
-#: includes/turnstile.php:369
+#: includes/turnstile.php:396
 msgid "Only when Cloudflare needs the visitor (recommended)"
 msgstr "Uniquement lorsque Cloudflare sollicite le visiteur (recommandé)"
 
-#: includes/turnstile.php:372
+#: includes/turnstile.php:399
 msgid "Always visible"
 msgstr "Toujours visible"
 
 #. translators: 1-2: site key and secret key that always pass, 3-4: site key and secret key that always fail
-#: includes/turnstile.php:379
+#: includes/turnstile.php:406
 #, php-format
 msgid "To test, Cloudflare publishes keys: site key %1$s with secret key %2$s always passes; site key %3$s with secret key %4$s always fails."
 msgstr "Pour tester, Cloudflare publie des clés : la clé de site %1$s avec la clé secrète %2$s réussit toujours ; la clé de site %3$s avec la clé secrète %4$s échoue toujours."
@@ -1515,12 +1515,12 @@ msgstr ""
 "Saisissez-la à nouveau ici : %3$s"
 
 #. translators: %s: comma-separated key names
-#: includes/unreadable-secrets.php:80
+#: includes/unreadable-secrets.php:85
 #, php-format
 msgid "LCMT Mailer can no longer read these spam protection keys: %s. The forms that use them are not protected by them."
 msgstr "LCMT Mailer ne peut plus lire ces clés de protection anti-spam : %s. Les formulaires qui les utilisent ne sont pas protégés par elles."
 
-#: includes/unreadable-secrets.php:84
+#: includes/unreadable-secrets.php:89
 msgid "Open the Spam protection page"
 msgstr "Ouvrir la page Protection anti-spam"
 
@@ -1538,6 +1538,74 @@ msgstr "Non protégé"
 msgid "%s — not set up"
 msgstr "%s — non configurée"
 
-#: includes/turnstile.php:323
+#: includes/turnstile.php:350
 msgid "Saved. Leave empty to keep it."
 msgstr "Enregistrée. Laissez vide pour la conserver."
+
+#. translators: 1: spam protection the template chose, 2: site default protection used instead
+#: includes/admin-mail-sender.php:457
+#, php-format
+msgid "%1$s — not set up (using %2$s)"
+msgstr "%1$s — non configurée (%2$s utilisée à la place)"
+
+#. translators: %s: spam protection name
+#: includes/altcha.php:54
+#: includes/turnstile.php:73
+#, php-format
+msgid "Form protection (%s)"
+msgstr "Protection des formulaires (%s)"
+
+#: includes/altcha.php:57
+msgid "To protect our forms against automated submissions (spam, bots), your browser solves a small calculation when you start filling in a form, then our site checks the result. This check is done entirely by our site: no data is sent to a third-party service and no cookie is set."
+msgstr "Pour protéger nos formulaires contre les envois automatisés (spam, robots), votre navigateur résout un petit calcul lorsque vous commencez à remplir un formulaire, puis notre site vérifie le résultat. Cette vérification est réalisée entièrement par notre site : aucune donnée n’est transmise à un service tiers et aucun cookie n’est déposé."
+
+#: includes/altcha.php:58
+#: includes/turnstile.php:78
+msgid "This processing is based on our legitimate interest in securing our site and protecting it against abuse (Article 6(1)(f) of the GDPR)."
+msgstr "Ce traitement repose sur notre intérêt légitime à sécuriser notre site et à le protéger contre les abus (article 6.1.f du RGPD)."
+
+#: includes/captcha-settings.php:101
+msgid "Active"
+msgstr "Active"
+
+#: includes/captcha-settings.php:103
+msgid "Ready, not used"
+msgstr "Prête, non utilisée"
+
+#: includes/captcha-settings.php:105
+msgid "Key unreadable"
+msgstr "Clé illisible"
+
+#: includes/captcha-settings.php:107
+msgid "Not set up"
+msgstr "Non configurée"
+
+#: includes/captcha-settings.php:139
+msgid "Spam protection sections"
+msgstr "Sections de la protection anti-spam"
+
+#: includes/captcha-settings.php:141
+msgid "General"
+msgstr "Général"
+
+#: includes/submission-settings.php:315
+msgid "Its spam protection part follows the protections in use automatically: the site default and those of the published email templates. As on many policies, it fits under a \"Service providers\" section."
+msgstr "Sa partie sur la protection anti-spam suit automatiquement les protections utilisées : celle du réglage du site et celles des modèles d'e-mail publiés. Comme dans beaucoup de politiques de confidentialité, elle trouve sa place dans une section « Prestataires de services »."
+
+#: includes/turnstile.php:76
+msgid "To protect our forms against automated submissions (spam, bots), we use the Turnstile service of Cloudflare, Inc. (101 Townsend St, San Francisco, CA 94107, United States)."
+msgstr "Pour protéger nos formulaires contre les envois automatisés (spam, robots), nous utilisons le service Turnstile de Cloudflare, Inc. (101 Townsend St, San Francisco, CA 94107, États-Unis)."
+
+#: includes/turnstile.php:77
+msgid "When you start filling in a form, Turnstile analyzes technical information sent by your browser: your IP address, the identifier of your browser (\"User-Agent\"), technical characteristics of the connection and the page concerned. This information is only used to check that the form is filled in by a person and not by a bot. Cloudflare states that it does not use it to identify, profile or target people, nor for advertising. The content of your message is not sent to Cloudflare."
+msgstr "Lorsque vous commencez à remplir un formulaire, Turnstile analyse des informations techniques transmises par votre navigateur : votre adresse IP, l’identifiant de votre navigateur (« User-Agent »), des caractéristiques techniques de la connexion et la page concernée. Ces informations servent uniquement à vérifier que le formulaire est rempli par une personne et non par un robot. Cloudflare indique ne pas les utiliser pour identifier, profiler ou cibler les personnes, ni à des fins publicitaires. Le contenu de votre message n’est pas transmis à Cloudflare."
+
+#: includes/turnstile.php:79
+msgid "As Cloudflare may process this data in the United States, this transfer is covered by the EU–US Data Privacy Framework, under which Cloudflare is certified, and by standard contractual clauses of the European Commission."
+msgstr "Cloudflare pouvant traiter ces données aux États-Unis, ce transfert est encadré par le Data Privacy Framework UE–États-Unis, auquel Cloudflare est certifiée, et par des clauses contractuelles types de la Commission européenne."
+
+#. translators: 1: URL of the Turnstile privacy policy, 2: URL of the Cloudflare privacy policy
+#: includes/turnstile.php:83
+#, php-format
+msgid "Learn more: <a href=\"%1$s\">Turnstile privacy policy</a> and <a href=\"%2$s\">Cloudflare privacy policy</a>."
+msgstr "Pour en savoir plus : <a href=\"%1$s\">politique de confidentialité de Turnstile</a> et <a href=\"%2$s\">politique de confidentialité de Cloudflare</a>."
