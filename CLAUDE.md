@@ -23,6 +23,7 @@ See the `.claude/` folder for topic-specific docs:
 - [Filters & actions](.claude/hooks.md) — All available WordPress hooks
 - [Frontend](.claude/frontend.md) — Form handler JS, CSS classes, and rendering
 - [Build](.claude/build.md) — JS build pipeline and asset management
+- [Security](.claude/security.md) — Dependabot, Semgrep, dependency audit, reviewing Dependabot PRs
 - Received messages: storage, retention and stats — see [Architecture](.claude/architecture.md)
 
 ## Key rules

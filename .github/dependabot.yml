@@ -1,0 +1,28 @@
+# Dependabot: security alerts + update PRs (process in .claude/security.md).
+# Every PR is checked before merging (registry, publisher and repository, lockfile origins, release age of every new
+# version, transitive included, install scripts), then built and tested.
+version: 2
+updates:
+    # Front-end packages (ALTCHA, node-snackbar) and the build (esbuild), yarn 1
+    - package-ecosystem: npm
+      directory: /
+      schedule:
+          interval: weekly
+          day: monday
+      open-pull-requests-limit: 5
+      # Same quarantine as the sites: no release younger than 7 days
+      cooldown:
+          default-days: 7
+      groups:
+          minor-and-patch:
+              update-types: [minor, patch]
+
+    # Actions of the release and security workflows
+    - package-ecosystem: github-actions
+      directory: /
+      schedule:
+          interval: weekly
+          day: monday
+      open-pull-requests-limit: 3
+      cooldown:
+          default-days: 7
