@@ -215,7 +215,7 @@ The plugin adds these classes to the `<form>` during submission:
 
 ## Spam protection
 
-Two protections are built in: **ALTCHA** (no account, proof of work in the visitor's browser) and **Cloudflare Turnstile** (free Cloudflare account, mostly invisible to visitors). Set them up in **Email templates → Spam protection**; the protection selected there is the **site default**.
+Two protections are built in: **ALTCHA** (no account, proof of work in the visitor's browser) and **Cloudflare Turnstile** (free Cloudflare account, mostly invisible to visitors). Set them up in **Email templates → Spam protection**: its **General** tab holds the **site default** protection, what to do when the verification service does not answer and the blocked messages setting; each protection has its own tab, with a status next to its name (*Active*, *Ready, not used*, *Not set up* or *Key unreadable*).
 
 **Per form.** Each email template has a **Spam protection** select: *Site default*, *None* or a provider. A contact form can use Turnstile while another form stays on ALTCHA or is left unprotected. A choice whose provider is not set up yet falls back to the site default's provider; *None* always means no protection. The **Protection** column of the email templates list shows what protects each form: the provider, the site default it follows (in grey), a provider that is not set up yet (orange warning, with the protection used instead, if any) or *Not protected* (red). Each page only loads the scripts of the protections its forms use, and Cloudflare is only contacted once a visitor enters a Turnstile form.
 
@@ -232,7 +232,7 @@ Each solved challenge is accepted once, then refused until it expires (5 minutes
 ### Cloudflare Turnstile
 
 1. In the Cloudflare dashboard (Turnstile), create a widget and list every hostname of the site (production and staging). The plugin checks that the hostname Cloudflare reports matches the host of `home_url()`: a site served on several domains (Polylang with one domain per language, or both `www` and the bare domain without a redirect) must list each hostname in Cloudflare and redirect to one canonical host.
-2. In **Email templates → Spam protection**, section **Cloudflare Turnstile**, paste the **site key** and the **secret key**, then save. The secret key is never shown again: once saved, its field stays empty (it shows `xxxxxxxx`); leave it empty to keep the key, or tick **Forget the saved secret key** to remove it.
+2. In **Email templates → Spam protection**, tab **Cloudflare Turnstile**, paste the **site key** and the **secret key**, then save. The secret key is never shown again: once saved, its field stays empty (it shows `xxxxxxxx`); leave it empty to keep the key, or tick **Forget the saved secret key** to remove it.
 3. Choose Turnstile on the email templates that need it (or keep it as the site default).
 
 The page shows a connection status for the keys. **Appearance** is *Only when Cloudflare needs the visitor* (default) or *Always visible*. If Cloudflare cannot be reached when a message arrives, the message is **refused** by default; the same page lets you accept it instead. Cloudflare's script is always loaded from `challenges.cloudflare.com`: if you add a Content-Security-Policy header, allow it in `script-src` and `frame-src`.

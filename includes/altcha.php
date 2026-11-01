@@ -242,7 +242,7 @@ class Altcha implements CaptchaProvider, CaptchaAssets, CaptchaBadge, CaptchaPri
             SecretBox::writeOption(self::OPTION_KEY, self::generateKey());
         }
 
-        wp_safe_redirect(CaptchaSettings::url(['lcmt_altcha_key' => 'regenerated']));
+        wp_safe_redirect(CaptchaSettings::tabUrl(self::id(), ['lcmt_altcha_key' => 'regenerated']));
         exit;
     }
 

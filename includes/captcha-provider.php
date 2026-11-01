@@ -98,6 +98,20 @@ interface CaptchaPrivacy
 }
 
 /**
+ * A provider that stores encrypted keys: the Spam protection page reads its
+ * status as "Key unreadable" while one of them is listed in UnreadableSecrets.
+ */
+interface CaptchaSecrets
+{
+    /**
+     * Names of the options holding its encrypted keys.
+     *
+     * @return string[]
+     */
+    public static function secretOptions(): array;
+}
+
+/**
  * Thrown by CaptchaProvider::verify() when the provider's service could not
  * give an answer, as opposed to the proof being wrong.
  */

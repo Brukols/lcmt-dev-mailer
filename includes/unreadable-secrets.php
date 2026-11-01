@@ -40,7 +40,7 @@ class UnreadableSecrets
             __("The spam protection key \"%2\$s\" stored on %1\$s can no longer be read. The WordPress security keys have probably changed, or the database was copied from another site.\n\nUntil it is entered again, the forms that use it are not protected by it.\n\nEnter it again here: %3\$s", 'lcmt-dev-mailer'),
             $siteName,
             $label,
-            CaptchaSettings::url()
+            CaptchaSettings::tabUrl(CaptchaSettings::tabForSecret($option))
         );
 
         wp_mail((string) get_option('admin_email'), $subject, $body);
@@ -64,6 +64,11 @@ class UnreadableSecrets
         }
     }
 
+    public static function has(string $option): bool
+    {
+        return isset(self::all()[$option]);
+    }
+
     public static function notice(): void
     {
         if (!current_user_can('manage_options')) return;
@@ -81,7 +86,7 @@ class UnreadableSecrets
                     '<strong>' . esc_html(implode(', ', $list)) . '</strong>'
                 );
                 ?>
-                <a href="<?= esc_url(CaptchaSettings::url()) ?>"><?php esc_html_e('Open the Spam protection page', 'lcmt-dev-mailer'); ?></a>
+                <a href="<?= esc_url(CaptchaSettings::tabUrl(CaptchaSettings::tabForSecret((string) array_key_first($list)))) ?>"><?php esc_html_e('Open the Spam protection page', 'lcmt-dev-mailer'); ?></a>
             </p>
         </div>
         <?php

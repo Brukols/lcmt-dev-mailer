@@ -200,8 +200,11 @@ class MetaFields
         $selectedProvider = $providers[Captcha::selectedIdFor($post->ID)] ?? null;
         $defaultProvider  = $providers[$defaultId] ?? null;
 
-        if (($selectedProvider && !$selectedProvider::isReady()) || ($defaultProvider && !$defaultProvider::isReady())) {
-            echo ' <a href="' . esc_url(CaptchaSettings::url()) . '">' . esc_html__('Set up a protection', 'lcmt-dev-mailer') . '</a>';
+        $unready = $selectedProvider && !$selectedProvider::isReady() ? $selectedProvider : ($defaultProvider && !$defaultProvider::isReady() ? $defaultProvider : null);
+
+        if ($unready) {
+            // Straight to the tab of the provider to set up
+            echo ' <a href="' . esc_url(CaptchaSettings::tabUrl((string) array_search($unready, $providers, true))) . '">' . esc_html__('Set up a protection', 'lcmt-dev-mailer') . '</a>';
         }
 
         echo '</p>';

@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
  * The secret key is kept encrypted (see SecretBox); the site key is public
  * and stored as it is.
  */
-class Turnstile implements CaptchaProvider, CaptchaAssets, CaptchaBadge, CaptchaPrivacy
+class Turnstile implements CaptchaProvider, CaptchaAssets, CaptchaBadge, CaptchaPrivacy, CaptchaSecrets
 {
     public const OPTION_SITE_KEY   = 'lcmt_mailer_turnstile_site_key';
     public const OPTION_SECRET_KEY = 'lcmt_mailer_turnstile_secret_key';
@@ -59,6 +59,11 @@ class Turnstile implements CaptchaProvider, CaptchaAssets, CaptchaBadge, Captcha
     public static function color(): string
     {
         return '#00a32a';
+    }
+
+    public static function secretOptions(): array
+    {
+        return [self::OPTION_SECRET_KEY];
     }
 
     public static function privacyText(): string

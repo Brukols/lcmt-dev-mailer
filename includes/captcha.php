@@ -32,6 +32,14 @@ class Captcha
      */
     public const OPTION_KEEP_BLOCKED = 'lcmt_mailer_keep_blocked';
 
+    /**
+     * Status of a provider on the Spam protection page (Captcha::status()).
+     */
+    public const STATUS_ACTIVE     = 'active';
+    public const STATUS_UNUSED     = 'unused';
+    public const STATUS_NOT_SET_UP = 'not-set-up';
+    public const STATUS_UNREADABLE = 'unreadable';
+
     public const PASSED      = 'passed';
     public const FAILED      = 'failed';
     public const UNAVAILABLE = 'unavailable';
@@ -143,6 +151,36 @@ class Captcha
         }
 
         return array_keys(array_filter($providers, static fn($class) => in_array($class, $used, true)));
+    }
+
+    /**
+     * A provider's status: one of its keys can no longer be read, it is not
+     * set up, it protects something, or it is ready but used by nothing.
+     *
+     * @param string[] $inUseIds From inUseIds().
+     */
+    public static function status(string $id, array $inUseIds): string
+    {
+        $provider = self::providers()[$id] ?? null;
+
+        if (!$provider) {
+            return self::STATUS_NOT_SET_UP;
+        }
+
+        // First, since reading a key is what records it as unreadable
+        $ready = $provider::isReady();
+
+        if (is_subclass_of($provider, CaptchaSecrets::class)) {
+            foreach ($provider::secretOptions() as $option) {
+                if (UnreadableSecrets::has($option)) return self::STATUS_UNREADABLE;
+            }
+        }
+
+        if (!$ready) {
+            return self::STATUS_NOT_SET_UP;
+        }
+
+        return in_array($id, $inUseIds, true) ? self::STATUS_ACTIVE : self::STATUS_UNUSED;
     }
 
     /**
