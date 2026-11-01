@@ -68,6 +68,12 @@ class CaptchaSettings
             'sanitize_callback' => [Turnstile::class, 'sanitizeAppearance'],
             'default'           => Turnstile::APPEARANCE_INTERACTION,
         ]);
+
+        register_setting(self::group(Altcha::id()), Altcha::OPTION_DIFFICULTY, [
+            'type'              => 'string',
+            'sanitize_callback' => [Altcha::class, 'sanitizeDifficulty'],
+            'default'           => Altcha::DIFFICULTY_DEFAULT,
+        ]);
     }
 
     /**
@@ -183,7 +189,7 @@ class CaptchaSettings
                     <?php submit_button(); ?>
                 </form>
             <?php else: ?>
-                <?php // Nothing to save on this tab (ALTCHA): no form, options.php would refuse the group ?>
+                <?php // Nothing to save on this tab: no form, options.php would refuse the group ?>
                 <table class="form-table">
                     <?php $providers[$tab]::renderSettings(); ?>
                 </table>

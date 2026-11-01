@@ -263,7 +263,10 @@ class AltchaTest extends TestCase
         unset($parameters, $solution);
 
         $this->assertFalse(Altcha::validatePayload(self::encode($data)));
-        // The untouched payload still passes: the rejection came from the change.
+        // The untouched payload still passes: the rejection came from the
+        // change. Forget the spent markers first, since a wrong solution to
+        // the genuine challenge spends it.
+        $GLOBALS['lcmt_test_transients'] = [];
         $this->assertTrue(Altcha::validatePayload($fixture['payload']));
     }
 
@@ -378,6 +381,133 @@ class AltchaTest extends TestCase
         SpyAltcha::$derivations = 0;
         $this->assertTrue(SpyAltcha::validatePayload($this->solve(Altcha::createChallenge(self::EASY))));
         $this->assertSame(1, SpyAltcha::$derivations);
+    }
+
+    public function test_a_wrong_solution_spends_the_challenge(): void
+    {
+        $challenge = Altcha::createChallenge(self::EASY);
+        $right = json_decode(base64_decode($this->solve($challenge)), true);
+        $wrong = $right;
+        $wrong['solution']['derivedKey'] = str_repeat('0', 64); // well formed, not the key
+
+        $this->assertFalse(Altcha::validatePayload(self::encode($wrong)));
+        $this->assertFalse(Altcha::validatePayload(self::encode($right)), 'the right solution comes too late');
+    }
+
+    public function test_a_challenge_costs_one_key_derivation_at_most(): void
+    {
+        $challenge = Altcha::createChallenge(self::EASY);
+        $right = json_decode(base64_decode($this->solve($challenge)), true);
+        $wrong = $right;
+        $wrong['solution']['derivedKey'] = str_repeat('0', 64);
+
+        SpyAltcha::$derivations = 0;
+        $this->assertFalse(SpyAltcha::validatePayload(self::encode($wrong)));
+        $this->assertFalse(SpyAltcha::validatePayload(self::encode($wrong)));
+        $this->assertFalse(SpyAltcha::validatePayload(self::encode($right)));
+        $this->assertSame(1, SpyAltcha::$derivations);
+    }
+
+    // Difficulty -------------------------------------------------------------
+
+    public static function levels(): array
+    {
+        return ['low' => ['low'], 'normal' => ['normal'], 'high' => ['high']];
+    }
+
+    #[DataProvider('levels')]
+    public function test_each_level_is_a_valid_difficulty(string $level): void
+    {
+        update_option(Altcha::OPTION_DIFFICULTY, $level);
+        $difficulty = Altcha::difficulty();
+
+        $this->assertSame(['cost', 'keyPrefix'], array_keys($difficulty));
+        $this->assertTrue(Altcha::isValidDifficulty($difficulty));
+        $this->assertSame($difficulty, array_intersect_key(Altcha::createChallenge($difficulty)['parameters'], $difficulty));
+    }
+
+    /** The expected work: PBKDF2 iterations per try times tries (16 per hex digit). */
+    private static function work(array $difficulty): int
+    {
+        return $difficulty['cost'] * 16 ** strlen($difficulty['keyPrefix']);
+    }
+
+    public function test_levels_ask_for_more_work_in_order(): void
+    {
+        $work = [];
+        foreach (['low', 'normal', 'high'] as $level) {
+            update_option(Altcha::OPTION_DIFFICULTY, $level);
+            $work[$level] = self::work(Altcha::difficulty());
+        }
+
+        $this->assertLessThan($work['normal'], $work['low']);
+        $this->assertLessThan($work['high'], $work['normal']);
+    }
+
+    public function test_an_unknown_or_missing_level_means_normal(): void
+    {
+        update_option(Altcha::OPTION_DIFFICULTY, 'normal');
+        $normal = Altcha::difficulty();
+
+        foreach (['', 'extreme', 'LOW', null, ['low'], 3] as $value) {
+            update_option(Altcha::OPTION_DIFFICULTY, $value);
+            $this->assertSame($normal, Altcha::difficulty(), var_export($value, true));
+        }
+
+        delete_option(Altcha::OPTION_DIFFICULTY);
+        $this->assertSame($normal, Altcha::difficulty(), 'missing');
+    }
+
+    public function test_sanitize_keeps_only_the_three_levels(): void
+    {
+        foreach (['low', 'normal', 'high'] as $level) {
+            $this->assertSame($level, Altcha::sanitizeDifficulty($level));
+        }
+
+        foreach (['', 'extreme', 'HIGH', ' high', null, false, 1, ['high']] as $value) {
+            $this->assertSame('normal', Altcha::sanitizeDifficulty($value), var_export($value, true));
+        }
+    }
+
+    public function test_a_challenge_without_difficulty_uses_the_setting(): void
+    {
+        foreach (['low', 'high'] as $level) {
+            update_option(Altcha::OPTION_DIFFICULTY, $level);
+            $parameters = Altcha::createChallenge()['parameters'];
+
+            $this->assertSame(Altcha::difficulty(), ['cost' => $parameters['cost'], 'keyPrefix' => $parameters['keyPrefix']], $level);
+        }
+    }
+
+    public static function invalidDifficulties(): array
+    {
+        return [
+            'cost 0'               => [['cost' => 0, 'keyPrefix' => '0']],
+            'cost negative'        => [['cost' => -5, 'keyPrefix' => '0']],
+            'cost as a string'     => [['cost' => '1000', 'keyPrefix' => '0']],
+            'cost as a float'      => [['cost' => 1000.0, 'keyPrefix' => '0']],
+            'cost missing'         => [['keyPrefix' => '0']],
+            'keyPrefix empty'      => [['cost' => 1, 'keyPrefix' => '']],
+            'keyPrefix uppercase'  => [['cost' => 1, 'keyPrefix' => 'A']],
+            'keyPrefix not hex'    => [['cost' => 1, 'keyPrefix' => '0g']],
+            'keyPrefix too long'   => [['cost' => 1, 'keyPrefix' => str_repeat('0', 65)]],
+            'keyPrefix an integer' => [['cost' => 1, 'keyPrefix' => 0]],
+            'keyPrefix missing'    => [['cost' => 1]],
+        ];
+    }
+
+    #[DataProvider('invalidDifficulties')]
+    public function test_refuses_to_issue_an_invalid_difficulty(array $difficulty): void
+    {
+        $this->assertFalse(Altcha::isValidDifficulty($difficulty));
+
+        $this->expectException(\InvalidArgumentException::class);
+        Altcha::createChallenge($difficulty);
+    }
+
+    public function test_the_longest_prefix_is_valid(): void
+    {
+        $this->assertTrue(Altcha::isValidDifficulty(['cost' => 1, 'keyPrefix' => str_repeat('f', 64)]));
     }
 
     // Key --------------------------------------------------------------------

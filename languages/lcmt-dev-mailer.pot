@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-01T14:24:39+00:00\n"
+"POT-Creation-Date: 2026-11-01T15:49:13+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: lcmt-dev-mailer\n"
@@ -124,7 +124,7 @@ msgstr ""
 
 #: includes/admin-mail-sender.php:196
 #: includes/admin-mail-sender.php:270
-#: includes/altcha.php:236
+#: includes/altcha.php:353
 msgid "Insufficient permissions"
 msgstr ""
 
@@ -162,198 +162,218 @@ msgstr ""
 msgid "Error: "
 msgstr ""
 
-#: includes/admin-mail-sender.php:290
+#: includes/admin-mail-sender.php:292
 msgid "File already exists: forms/"
 msgstr ""
 
-#: includes/admin-mail-sender.php:300
+#: includes/admin-mail-sender.php:302
 msgid "No fields found in the mail content. Add placeholders like [firstname*] first."
 msgstr ""
 
-#: includes/admin-mail-sender.php:314
+#: includes/admin-mail-sender.php:318
 msgid "Could not write file. Check directory permissions."
 msgstr ""
 
-#: includes/admin-mail-sender.php:317
+#: includes/admin-mail-sender.php:321
 msgid "Template created: forms/"
 msgstr ""
 
-#: includes/admin-mail-sender.php:363
+#: includes/admin-mail-sender.php:367
 msgid "Submit"
 msgstr ""
 
-#: includes/admin-mail-sender.php:381
+#: includes/admin-mail-sender.php:385
 msgid "Protection"
 msgstr ""
 
-#: includes/admin-mail-sender.php:384
+#: includes/admin-mail-sender.php:388
 #: includes/meta-fields.php:45
 msgid "Key"
 msgstr ""
 
-#: includes/admin-mail-sender.php:385
+#: includes/admin-mail-sender.php:389
 msgid "Form file"
 msgstr ""
 
-#: includes/admin-mail-sender.php:386
+#: includes/admin-mail-sender.php:390
 msgid "Actions"
 msgstr ""
 
-#: includes/admin-mail-sender.php:419
+#: includes/admin-mail-sender.php:423
 msgid "Manage"
 msgstr ""
 
-#: includes/admin-mail-sender.php:439
+#: includes/admin-mail-sender.php:443
 msgid "Not protected"
 msgstr ""
 
 #. translators: %s: spam protection name
-#: includes/admin-mail-sender.php:449
+#: includes/admin-mail-sender.php:453
 #, php-format
 msgid "%s — not set up"
 msgstr ""
 
 #. translators: 1: spam protection the template chose, 2: site default protection used instead
-#: includes/admin-mail-sender.php:460
+#: includes/admin-mail-sender.php:464
 #, php-format
 msgid "%1$s — not set up (using %2$s)"
 msgstr ""
 
 #. translators: %s: spam protection name
 #. translators: %s: name of the site-wide spam protection
-#: includes/admin-mail-sender.php:475
+#: includes/admin-mail-sender.php:479
 #: includes/meta-fields.php:182
 #, php-format
 msgid "Site default (%s)"
 msgstr ""
 
-#: includes/admin-mail-sender.php:508
+#: includes/admin-mail-sender.php:512
 msgid "Tip:"
 msgstr ""
 
-#: includes/admin-mail-sender.php:508
+#: includes/admin-mail-sender.php:512
 msgid "You can send test emails directly from the edit page using the \"Actions & Usage\" panel on the right."
 msgstr ""
 
 #. translators: %s: spam protection name
-#: includes/altcha.php:54
+#: includes/altcha.php:75
 #: includes/turnstile.php:73
 #, php-format
 msgid "Form protection (%s)"
 msgstr ""
 
-#: includes/altcha.php:57
+#: includes/altcha.php:78
 msgid "To protect our forms against automated submissions (spam, bots), your browser solves a small calculation when you start filling in a form, then our site checks the result. This check is done entirely by our site: no data is sent to a third-party service and no cookie is set."
 msgstr ""
 
-#: includes/altcha.php:58
+#: includes/altcha.php:79
 #: includes/turnstile.php:78
 msgid "This processing is based on our legitimate interest in securing our site and protecting it against abuse (Article 6(1)(f) of the GDPR)."
 msgstr ""
 
-#: includes/altcha.php:196
-#: includes/altcha.php:256
-#: includes/altcha.php:270
+#: includes/altcha.php:294
+msgid "Light (fast, stops the simplest bots)"
+msgstr ""
+
+#: includes/altcha.php:295
+msgid "Normal (recommended)"
+msgstr ""
+
+#: includes/altcha.php:296
+msgid "High (slower on phones)"
+msgstr ""
+
+#: includes/altcha.php:300
+msgid "Difficulty"
+msgstr ""
+
+#: includes/altcha.php:308
+msgid "The time a visitor's browser spends proving it is not a bot, without them noticing. A higher level costs bots more but makes older phones wait a few seconds before sending."
+msgstr ""
+
+#: includes/altcha.php:313
+#: includes/altcha.php:373
+#: includes/altcha.php:387
 msgid "ALTCHA key"
 msgstr ""
 
 #. translators: %1$s: constant name, %2$s: file name
-#: includes/altcha.php:203
+#: includes/altcha.php:320
 #, php-format
 msgid "Set by the %1$s constant in %2$s."
 msgstr ""
 
-#: includes/altcha.php:210
+#: includes/altcha.php:327
 msgid "Generated automatically and stored in the database. Nothing to configure."
 msgstr ""
 
-#: includes/altcha.php:214
+#: includes/altcha.php:331
 msgid "Generate a new key? A visitor who opened a form in the last five minutes will have to submit it again."
 msgstr ""
 
-#: includes/altcha.php:215
+#: includes/altcha.php:332
 msgid "Generate a new key"
 msgstr ""
 
-#: includes/altcha.php:218
+#: includes/altcha.php:335
 msgid "New key generated."
 msgstr ""
 
-#: includes/altcha.php:222
+#: includes/altcha.php:339
 msgid "Only needed if the key may have leaked, from a copied database for instance."
 msgstr ""
 
 #: includes/captcha-settings.php:25
 #: includes/captcha-settings.php:26
-#: includes/captcha-settings.php:149
+#: includes/captcha-settings.php:155
 #: includes/meta-fields.php:176
 msgid "Spam protection"
 msgstr ""
 
-#: includes/captcha-settings.php:115
+#: includes/captcha-settings.php:121
 msgid "Active"
 msgstr ""
 
-#: includes/captcha-settings.php:117
+#: includes/captcha-settings.php:123
 msgid "Ready, not used"
 msgstr ""
 
-#: includes/captcha-settings.php:119
+#: includes/captcha-settings.php:125
 msgid "Key unreadable"
 msgstr ""
 
-#: includes/captcha-settings.php:121
+#: includes/captcha-settings.php:127
 msgid "Not set up"
 msgstr ""
 
-#: includes/captcha-settings.php:153
+#: includes/captcha-settings.php:159
 msgid "Spam protection sections"
 msgstr ""
 
-#: includes/captcha-settings.php:155
+#: includes/captcha-settings.php:161
 msgid "General"
 msgstr ""
 
-#: includes/captcha-settings.php:211
+#: includes/captcha-settings.php:217
 msgid "Site default protection"
 msgstr ""
 
-#: includes/captcha-settings.php:216
+#: includes/captcha-settings.php:222
 #: includes/meta-fields.php:173
 #: includes/meta-fields.php:185
 #: includes/meta-fields.php:228
 msgid "None"
 msgstr ""
 
-#: includes/captcha-settings.php:224
+#: includes/captcha-settings.php:230
 msgid "Each email template can override it with its own Spam protection setting."
 msgstr ""
 
-#: includes/captcha-settings.php:226
+#: includes/captcha-settings.php:232
 msgid "Forms accept any submission, including from bots."
 msgstr ""
 
-#: includes/captcha-settings.php:232
+#: includes/captcha-settings.php:238
 msgid "If the verification service does not answer"
 msgstr ""
 
-#: includes/captcha-settings.php:236
+#: includes/captcha-settings.php:242
 msgid "Refuse the message (recommended)"
 msgstr ""
 
-#: includes/captcha-settings.php:238
+#: includes/captcha-settings.php:244
 msgid "Accept it"
 msgstr ""
 
-#: includes/captcha-settings.php:244
+#: includes/captcha-settings.php:250
 msgid "Blocked messages"
 msgstr ""
 
-#: includes/captcha-settings.php:248
+#: includes/captcha-settings.php:254
 msgid "Keep blocked messages in Received messages → Spam"
 msgstr ""
 
-#: includes/captcha-settings.php:250
+#: includes/captcha-settings.php:256
 msgid "Never emailed. If a real visitor was blocked, open the message, take it out of Spam with \"Mark as unread\", then use \"Send the email again\"."
 msgstr ""
 
@@ -372,7 +392,7 @@ msgstr ""
 #: includes/channel-classifier.php:107
 #: includes/privacy.php:52
 #: includes/submissions-list-table.php:39
-#: includes/submissions-page.php:718
+#: includes/submissions-page.php:720
 msgid "Email"
 msgstr ""
 
@@ -429,7 +449,7 @@ msgid "Form emails that failed"
 msgstr ""
 
 #: includes/failure-notice.php:73
-#: includes/submissions-page.php:720
+#: includes/submissions-page.php:722
 msgid "The request stopped before the email was sent."
 msgstr ""
 
@@ -664,12 +684,12 @@ msgid "No email templates found in trash"
 msgstr ""
 
 #: includes/privacy.php:53
-#: includes/submissions-page.php:556
+#: includes/submissions-page.php:558
 msgid "Sent"
 msgstr ""
 
 #: includes/privacy.php:53
-#: includes/submissions-page.php:557
+#: includes/submissions-page.php:559
 msgid "Not sent"
 msgstr ""
 
@@ -1198,7 +1218,7 @@ msgid "Email failed"
 msgstr ""
 
 #: includes/submissions-list-table.php:89
-#: includes/submissions-page.php:496
+#: includes/submissions-page.php:498
 msgid "Spam"
 msgstr ""
 
@@ -1209,13 +1229,13 @@ msgstr ""
 
 #: includes/submissions-list-table.php:116
 #: includes/submissions-list-table.php:199
-#: includes/submissions-page.php:678
+#: includes/submissions-page.php:680
 msgid "Restore"
 msgstr ""
 
 #: includes/submissions-list-table.php:117
 #: includes/submissions-list-table.php:200
-#: includes/submissions-page.php:679
+#: includes/submissions-page.php:681
 msgid "Delete permanently"
 msgstr ""
 
@@ -1224,23 +1244,23 @@ msgid "Mark as read"
 msgstr ""
 
 #: includes/submissions-list-table.php:123
-#: includes/submissions-page.php:742
+#: includes/submissions-page.php:744
 msgid "Mark as processed"
 msgstr ""
 
 #: includes/submissions-list-table.php:124
-#: includes/submissions-page.php:744
+#: includes/submissions-page.php:746
 msgid "Mark as spam"
 msgstr ""
 
 #: includes/submissions-list-table.php:125
-#: includes/submissions-page.php:763
+#: includes/submissions-page.php:765
 msgid "Move to Trash"
 msgstr ""
 
 #: includes/submissions-list-table.php:125
 #: includes/submissions-list-table.php:210
-#: includes/submissions-page.php:765
+#: includes/submissions-page.php:767
 msgid "Delete"
 msgstr ""
 
@@ -1285,8 +1305,8 @@ msgid "View"
 msgstr ""
 
 #: includes/submissions-list-table.php:193
-#: includes/submissions-page.php:679
-#: includes/submissions-page.php:765
+#: includes/submissions-page.php:681
+#: includes/submissions-page.php:767
 msgid "Delete this message for good?"
 msgstr ""
 
@@ -1314,40 +1334,40 @@ msgstr ""
 msgid "Received message"
 msgstr ""
 
-#: includes/submissions-page.php:471
+#: includes/submissions-page.php:473
 msgid "Export CSV"
 msgstr ""
 
-#: includes/submissions-page.php:493
+#: includes/submissions-page.php:495
 msgid "New"
 msgstr ""
 
-#: includes/submissions-page.php:494
+#: includes/submissions-page.php:496
 msgid "Read"
 msgstr ""
 
-#: includes/submissions-page.php:495
+#: includes/submissions-page.php:497
 msgid "Processed"
 msgstr ""
 
-#: includes/submissions-page.php:522
+#: includes/submissions-page.php:524
 msgid "today"
 msgstr ""
 
-#: includes/submissions-page.php:522
+#: includes/submissions-page.php:524
 msgid "Today"
 msgstr ""
 
-#: includes/submissions-page.php:526
+#: includes/submissions-page.php:528
 msgid "tomorrow"
 msgstr ""
 
-#: includes/submissions-page.php:526
+#: includes/submissions-page.php:528
 msgid "Tomorrow"
 msgstr ""
 
 #. translators: %s: number of days
-#: includes/submissions-page.php:532
+#: includes/submissions-page.php:534
 #, php-format
 msgid "in %s day"
 msgid_plural "in %s days"
@@ -1355,19 +1375,19 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: number of days
-#: includes/submissions-page.php:534
+#: includes/submissions-page.php:536
 #, php-format
 msgid "In %s day"
 msgid_plural "In %s days"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/submissions-page.php:587
+#: includes/submissions-page.php:589
 msgid "Messages updated."
 msgstr ""
 
 #. translators: %s: number of messages
-#: includes/submissions-page.php:590
+#: includes/submissions-page.php:592
 #, php-format
 msgid "%s message moved to the Trash."
 msgid_plural "%s messages moved to the Trash."
@@ -1375,7 +1395,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: number of messages
-#: includes/submissions-page.php:595
+#: includes/submissions-page.php:597
 #, php-format
 msgid "%s message restored from the Trash."
 msgid_plural "%s messages restored from the Trash."
@@ -1383,74 +1403,74 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: number of messages
-#: includes/submissions-page.php:600
+#: includes/submissions-page.php:602
 #, php-format
 msgid "%s message permanently deleted."
 msgid_plural "%s messages permanently deleted."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/submissions-page.php:603
+#: includes/submissions-page.php:605
 msgid "Email sent."
 msgstr ""
 
-#: includes/submissions-page.php:604
+#: includes/submissions-page.php:606
 msgid "The email could not be sent again. The reason is shown below."
 msgstr ""
 
-#: includes/submissions-page.php:622
+#: includes/submissions-page.php:624
 msgid "Undo"
 msgstr ""
 
-#: includes/submissions-page.php:653
+#: includes/submissions-page.php:655
 msgid "Search messages"
 msgstr ""
 
-#: includes/submissions-page.php:660
+#: includes/submissions-page.php:662
 msgid "Back to the messages"
 msgstr ""
 
-#: includes/submissions-page.php:663
+#: includes/submissions-page.php:665
 msgid "This message no longer exists."
 msgstr ""
 
-#: includes/submissions-page.php:672
+#: includes/submissions-page.php:674
 msgid "This message is in the trash."
 msgstr ""
 
 #. translators: 1: "in 3 days", "tomorrow" or "today", 2: date
-#: includes/submissions-page.php:674
+#: includes/submissions-page.php:676
 #, php-format
 msgid "It will be deleted for good %1$s (%2$s)."
 msgstr ""
 
-#: includes/submissions-page.php:686
+#: includes/submissions-page.php:688
 msgid "Blocked because the verification service did not answer: probably a real visitor."
 msgstr ""
 
-#: includes/submissions-page.php:687
+#: includes/submissions-page.php:689
 msgid "Blocked by the spam protection."
 msgstr ""
 
-#: includes/submissions-page.php:692
+#: includes/submissions-page.php:694
 msgid "Message"
 msgstr ""
 
 #. translators: %s: date of the anonymization
-#: includes/submissions-page.php:699
+#: includes/submissions-page.php:701
 #, php-format
 msgid "Personal data anonymized on %s."
 msgstr ""
 
-#: includes/submissions-page.php:724
+#: includes/submissions-page.php:726
 msgid "Context"
 msgstr ""
 
-#: includes/submissions-page.php:738
+#: includes/submissions-page.php:740
 msgid "Send the email again"
 msgstr ""
 
-#: includes/submissions-page.php:743
+#: includes/submissions-page.php:745
 msgid "Mark as unread"
 msgstr ""
 
@@ -1549,35 +1569,35 @@ msgstr ""
 msgid "To test, Cloudflare publishes keys: site key %1$s with secret key %2$s always passes; site key %3$s with secret key %4$s always fails."
 msgstr ""
 
-#: includes/uninstaller.php:145
+#: includes/uninstaller.php:146
 msgid "They stay in the database, but are no longer anonymized automatically once the plugin is inactive."
 msgstr ""
 
-#: includes/uninstaller.php:146
+#: includes/uninstaller.php:147
 msgid "They will be erased for good when you delete the plugin."
 msgstr ""
 
-#: includes/uninstaller.php:161
+#: includes/uninstaller.php:162
 msgid "Deactivate LCMT Mailer"
 msgstr ""
 
-#: includes/uninstaller.php:162
+#: includes/uninstaller.php:163
 msgid "Deactivating keeps everything: your settings, your templates and the received messages."
 msgstr ""
 
-#: includes/uninstaller.php:165
+#: includes/uninstaller.php:166
 msgid "Also delete the received messages and statistics when the plugin is deleted"
 msgstr ""
 
-#: includes/uninstaller.php:169
+#: includes/uninstaller.php:170
 msgid "Cancel"
 msgstr ""
 
-#: includes/uninstaller.php:170
+#: includes/uninstaller.php:171
 msgid "Deactivating…"
 msgstr ""
 
-#: includes/uninstaller.php:170
+#: includes/uninstaller.php:171
 msgid "Deactivate"
 msgstr ""
 

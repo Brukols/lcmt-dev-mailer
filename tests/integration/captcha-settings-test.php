@@ -1,5 +1,6 @@
 <?php
 
+use LcmtDevMailer\Altcha;
 use LcmtDevMailer\Captcha;
 use LcmtDevMailer\CaptchaSettings;
 use LcmtDevMailer\Turnstile;
@@ -35,6 +36,7 @@ function lcmt_cs_seed(): void
     update_option(Turnstile::OPTION_SITE_KEY, '1x00000000000000000000AA');
     update_option(Turnstile::OPTION_SECRET_KEY, 'it-secret');
     update_option(Turnstile::OPTION_APPEARANCE, Turnstile::APPEARANCE_ALWAYS);
+    update_option(Altcha::OPTION_DIFFICULTY, 'high');
 }
 
 lcmt_it('captcha settings: saving the General tab keeps the Turnstile keys and appearance', function () {
@@ -53,6 +55,7 @@ lcmt_it('captcha settings: saving the General tab keeps the Turnstile keys and a
     lcmt_assert_same('1x00000000000000000000AA', get_option(Turnstile::OPTION_SITE_KEY), 'site key kept');
     lcmt_assert_same($secret, get_option(Turnstile::OPTION_SECRET_KEY), 'secret kept');
     lcmt_assert_same(Turnstile::APPEARANCE_ALWAYS, get_option(Turnstile::OPTION_APPEARANCE), 'appearance kept');
+    lcmt_assert_same('high', get_option(Altcha::OPTION_DIFFICULTY), 'difficulty kept');
 });
 
 lcmt_it('captcha settings: saving the Turnstile tab keeps the General options', function () {
@@ -73,12 +76,57 @@ lcmt_it('captcha settings: saving the Turnstile tab keeps the General options', 
     lcmt_assert_same('1', get_option(Captcha::OPTION_KEEP_BLOCKED), 'keep-blocked kept');
 });
 
-lcmt_it('captcha settings: the ALTCHA tab has no settings group to post', function () {
+lcmt_it('captcha settings: the ALTCHA tab posts its own group, the difficulty alone', function () {
     global $new_allowed_options;
 
     CaptchaSettings::registerSettings();
 
-    lcmt_assert_true(empty($new_allowed_options[CaptchaSettings::group('altcha')]), 'no altcha group');
+    // registerSettings() runs once per test: the list may repeat the option.
+    lcmt_assert_same([Altcha::OPTION_DIFFICULTY], array_values(array_unique($new_allowed_options[CaptchaSettings::group('altcha')] ?? [])), 'altcha group');
+});
+
+lcmt_it('captcha settings: saving the ALTCHA tab keeps the Turnstile keys and the General options', function () {
+    lcmt_cs_seed();
+    $secret = get_option(Turnstile::OPTION_SECRET_KEY);
+
+    lcmt_cs_save('altcha', [Altcha::OPTION_DIFFICULTY => 'low']);
+
+    lcmt_assert_same('low', get_option(Altcha::OPTION_DIFFICULTY), 'difficulty saved');
+    lcmt_assert_same('1x00000000000000000000AA', get_option(Turnstile::OPTION_SITE_KEY), 'site key kept');
+    lcmt_assert_same($secret, get_option(Turnstile::OPTION_SECRET_KEY), 'secret kept');
+    lcmt_assert_same(Turnstile::APPEARANCE_ALWAYS, get_option(Turnstile::OPTION_APPEARANCE), 'appearance kept');
+    lcmt_assert_same('altcha', get_option(Captcha::OPTION), 'site default kept');
+    lcmt_assert_same(Captcha::ACCEPT, get_option(Captcha::OPTION_UNAVAILABLE), 'unavailable kept');
+    lcmt_assert_same('1', get_option(Captcha::OPTION_KEEP_BLOCKED), 'keep-blocked kept');
+});
+
+lcmt_it('captcha settings: an unknown difficulty is saved as normal', function () {
+    lcmt_cs_seed();
+
+    lcmt_cs_save('altcha', [Altcha::OPTION_DIFFICULTY => 'extreme']);
+    lcmt_assert_same('normal', get_option(Altcha::OPTION_DIFFICULTY), 'unknown value');
+
+    lcmt_cs_save('altcha', []);
+    lcmt_assert_same('normal', get_option(Altcha::OPTION_DIFFICULTY), 'nothing sent');
+});
+
+lcmt_it('captcha settings: the ALTCHA tab prints a form with the difficulty', function () {
+    CaptchaSettings::registerSettings();
+    update_option(Altcha::OPTION_DIFFICULTY, 'high');
+    $_GET['tab'] = 'altcha';
+
+    ob_start();
+    try {
+        CaptchaSettings::renderPage();
+    } finally {
+        $html = ob_get_clean();
+        unset($_GET['tab']);
+    }
+
+    lcmt_assert_true(str_contains($html, 'action="options.php"'), 'form');
+    lcmt_assert_true(str_contains($html, "value='" . CaptchaSettings::group('altcha') . "'"), 'option_page field');
+    lcmt_assert_true((bool) preg_match('/<select[^>]+name="' . Altcha::OPTION_DIFFICULTY . '"/', $html), 'select');
+    lcmt_assert_true((bool) preg_match('/<option value="high"\s+selected/', $html), 'saved level selected');
 });
 
 lcmt_it('captcha settings: links open the tab of their provider', function () {

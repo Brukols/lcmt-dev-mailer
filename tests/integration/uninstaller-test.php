@@ -30,6 +30,7 @@ lcmt_it('Uninstaller deletes the data only once the site asked for it', function
 lcmt_it('Uninstaller removes its own option with the data', function () {
     lcmt_assert_true(in_array(Uninstaller::OPTION_DELETE_DATA, Uninstaller::DATA_OPTIONS, true));
     lcmt_assert_true(in_array('lcmt_mailer_retention_days', Uninstaller::DATA_OPTIONS, true));
+    lcmt_assert_true(in_array(\LcmtDevMailer\Altcha::OPTION_DIFFICULTY, Uninstaller::DATA_OPTIONS, true), 'ALTCHA difficulty');
 });
 
 lcmt_it('Uninstaller sanitizes the setting to 1 or 0', function () {
