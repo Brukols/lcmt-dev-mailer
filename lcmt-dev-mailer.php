@@ -42,6 +42,8 @@ require_once LCMT_MAILER_PATH . 'includes/form-renderer.php';
 require_once LCMT_MAILER_PATH . 'includes/form-endpoint.php';
 require_once LCMT_MAILER_PATH . 'includes/admin-mail-sender.php';
 require_once LCMT_MAILER_PATH . 'includes/settings.php';
+require_once LCMT_MAILER_PATH . 'includes/secret-box.php';
+require_once LCMT_MAILER_PATH . 'includes/unreadable-secrets.php';
 require_once LCMT_MAILER_PATH . 'includes/captcha-provider.php';
 require_once LCMT_MAILER_PATH . 'includes/captcha.php';
 require_once LCMT_MAILER_PATH . 'includes/altcha.php';
@@ -120,6 +122,7 @@ add_action('wp_ajax_lcmt_generate_form_template', ['LcmtDevMailer\\AdminMailSend
 add_filter('manage_mail_posts_columns', ['LcmtDevMailer\\AdminMailSender', 'addColumns']);
 add_action('manage_mail_posts_custom_column', ['LcmtDevMailer\\AdminMailSender', 'populateColumns'], 10, 2);
 add_action('admin_notices', ['LcmtDevMailer\\AdminMailSender', 'adminNotice']);
+add_action('admin_notices', ['LcmtDevMailer\\UnreadableSecrets', 'notice']);
 add_action('admin_post_' . LcmtDevMailer\Altcha::REGENERATE_ACTION, ['LcmtDevMailer\\Altcha', 'handleRegenerateKey']);
 
 // ── Frontend: register assets early, enqueue on shortcode render ──

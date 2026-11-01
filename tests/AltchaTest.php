@@ -1,6 +1,8 @@
 <?php
 
 use LcmtDevMailer\Altcha;
+use LcmtDevMailer\SecretBox;
+use LcmtDevMailer\UnreadableSecrets;
 use PHPUnit\Framework\TestCase;
 
 class AltchaTest extends TestCase
@@ -120,7 +122,29 @@ class AltchaTest extends TestCase
 
         Altcha::createChallenge();
 
-        $this->assertSame(64, strlen($key));
+        $this->assertSame(64, strlen(SecretBox::decrypt($key)));
         $this->assertSame($key, $GLOBALS['lcmt_test_options'][Altcha::OPTION_KEY]);
+    }
+
+    public function test_altcha_unreadable_key_is_regenerated_without_mail(): void
+    {
+        $GLOBALS['lcmt_test_mails'] = [];
+        $GLOBALS['lcmt_test_options'][Altcha::OPTION_KEY] = 'lcmt1:' . base64_encode(str_repeat('x', 60));
+
+        $challenge = Altcha::createChallenge();
+
+        $stored = $GLOBALS['lcmt_test_options'][Altcha::OPTION_KEY];
+        $this->assertTrue(SecretBox::isEncrypted($stored));
+        $this->assertNotNull(SecretBox::decrypt($stored));
+        $this->assertSame(hash_hmac('sha256', $challenge['challenge'], SecretBox::decrypt($stored)), $challenge['signature']);
+        $this->assertSame([], $GLOBALS['lcmt_test_mails']);
+        $this->assertArrayNotHasKey(UnreadableSecrets::OPTION, $GLOBALS['lcmt_test_options']);
+    }
+
+    public function test_altcha_key_is_stored_encrypted(): void
+    {
+        Altcha::createChallenge();
+
+        $this->assertTrue(SecretBox::isEncrypted($GLOBALS['lcmt_test_options'][Altcha::OPTION_KEY]));
     }
 }

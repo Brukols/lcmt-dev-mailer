@@ -9,11 +9,14 @@
  */
 
 define('ABSPATH', __DIR__ . '/');
+define('AUTH_KEY', 'test-auth-key');
+define('SECURE_AUTH_SALT', 'test-secure-auth-salt');
 
 $GLOBALS['lcmt_test_options']    = [];
 $GLOBALS['lcmt_test_transients'] = [];
 $GLOBALS['lcmt_test_post_meta']  = [];
 $GLOBALS['lcmt_test_filters']    = [];
+$GLOBALS['lcmt_test_mails']      = [];
 
 function __($text, $domain = 'default')
 {
@@ -41,6 +44,35 @@ function update_option($name, $value, $autoload = null)
     $GLOBALS['lcmt_test_options'][$name] = $value;
 
     return true;
+}
+
+function delete_option($name)
+{
+    unset($GLOBALS['lcmt_test_options'][$name]);
+
+    return true;
+}
+
+function get_bloginfo($show = '')
+{
+    return 'Test site';
+}
+
+function wp_mail($to, $subject, $message)
+{
+    $GLOBALS['lcmt_test_mails'][] = compact('to', 'subject', 'message');
+
+    return true;
+}
+
+function admin_url($path = '')
+{
+    return 'https://example.test/wp-admin/' . $path;
+}
+
+function add_query_arg($args, $url)
+{
+    return $args === [] ? $url : $url . '&' . http_build_query($args);
 }
 
 function get_transient($name)
@@ -91,6 +123,9 @@ require_once dirname(__DIR__) . '/includes/field-validator.php';
 require_once dirname(__DIR__) . '/includes/submission-data.php';
 require_once dirname(__DIR__) . '/includes/submission-context.php';
 require_once dirname(__DIR__) . '/includes/channel-classifier.php';
+require_once dirname(__DIR__) . '/includes/secret-box.php';
+require_once dirname(__DIR__) . '/includes/unreadable-secrets.php';
+require_once dirname(__DIR__) . '/includes/captcha-settings.php';
 require_once dirname(__DIR__) . '/includes/captcha-provider.php';
 require_once dirname(__DIR__) . '/includes/altcha.php';
 require_once dirname(__DIR__) . '/includes/captcha.php';

@@ -202,7 +202,7 @@ class Altcha implements CaptchaProvider
         check_admin_referer(self::REGENERATE_ACTION);
 
         if (!self::isKeyFromConfig()) {
-            update_option(self::OPTION_KEY, self::generateKey(), false);
+            SecretBox::writeOption(self::OPTION_KEY, self::generateKey());
         }
 
         wp_safe_redirect(CaptchaSettings::url(['lcmt_altcha_key' => 'regenerated']));
@@ -215,15 +215,22 @@ class Altcha implements CaptchaProvider
             return (string) ALTCHA_HMAC_KEY;
         }
 
-        $key = (string) get_option(self::OPTION_KEY, '');
+        // Unreadable counts as unset: a new key replaces it, no email needed
+        $key = SecretBox::readOption(self::OPTION_KEY, __('ALTCHA key', 'lcmt-dev-mailer'), false);
 
         if ($key === '') {
             $key = self::generateKey();
 
             // add_option only writes when no other request stored a key
-            // first; read back so every request signs with the same one.
-            add_option(self::OPTION_KEY, $key, '', false);
-            $key = (string) get_option(self::OPTION_KEY, $key);
+            // first; read back so every request signs with the same one. An
+            // unreadable key is still stored, so it is replaced outright.
+            if (get_option(self::OPTION_KEY, '') === '') {
+                add_option(self::OPTION_KEY, SecretBox::canEncrypt() ? SecretBox::encrypt($key) : $key, '', false);
+            } else {
+                SecretBox::writeOption(self::OPTION_KEY, $key);
+            }
+
+            $key = SecretBox::readOption(self::OPTION_KEY, __('ALTCHA key', 'lcmt-dev-mailer'), false) ?: $key;
         }
 
         return $key;
