@@ -123,6 +123,7 @@ add_action('wp_ajax_lcmt_send_test_mail', ['LcmtDevMailer\\AdminMailSender', 'ha
 add_action('wp_ajax_lcmt_generate_form_template', ['LcmtDevMailer\\AdminMailSender', 'handleGenerateFormTemplate']);
 add_filter('manage_mail_posts_columns', ['LcmtDevMailer\\AdminMailSender', 'addColumns']);
 add_action('manage_mail_posts_custom_column', ['LcmtDevMailer\\AdminMailSender', 'populateColumns'], 10, 2);
+add_action('admin_head', ['LcmtDevMailer\\AdminMailSender', 'columnStyles']);
 add_action('admin_notices', ['LcmtDevMailer\\AdminMailSender', 'adminNotice']);
 add_action('admin_notices', ['LcmtDevMailer\\UnreadableSecrets', 'notice']);
 add_action('admin_post_' . LcmtDevMailer\Altcha::REGENERATE_ACTION, ['LcmtDevMailer\\Altcha', 'handleRegenerateKey']);

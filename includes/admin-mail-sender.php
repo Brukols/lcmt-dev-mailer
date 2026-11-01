@@ -8,6 +8,14 @@ if (!defined('ABSPATH')) {
 
 class AdminMailSender
 {
+    private const PROTECTION_COLUMN = 'lcmt_protection';
+
+    /**
+     * Badge of a provider that does not implement CaptchaBadge.
+     */
+    private const NEUTRAL_ICON  = 'dashicons-shield';
+    private const NEUTRAL_COLOR = '#50575e';
+
     public static function addMetaBox(): void
     {
         add_meta_box(
@@ -366,6 +374,13 @@ class AdminMailSender
 
     public static function addColumns(array $columns): array
     {
+        // "Protection" right after the title
+        $position = array_search('title', array_keys($columns), true);
+        $position = $position === false ? count($columns) : $position + 1;
+        $columns  = array_slice($columns, 0, $position, true)
+            + [self::PROTECTION_COLUMN => __('Protection', 'lcmt-dev-mailer')]
+            + array_slice($columns, $position, null, true);
+
         $columns['lcmt_key']    = __('Key', 'lcmt-dev-mailer');
         $columns['lcmt_form']   = __('Form file', 'lcmt-dev-mailer');
         $columns['test_email']  = __('Actions', 'lcmt-dev-mailer');
@@ -375,6 +390,16 @@ class AdminMailSender
     public static function populateColumns(string $column, int $postId): void
     {
         switch ($column) {
+            case self::PROTECTION_COLUMN:
+                $badge = self::protectionBadge($postId);
+                printf(
+                    '<span class="lcmt-protection%s"><span class="dashicons %s" style="color:%s" aria-hidden="true"></span> %s</span>',
+                    $badge['muted'] ? ' lcmt-protection--muted' : '',
+                    esc_attr($badge['icon']),
+                    esc_attr($badge['color']),
+                    esc_html($badge['label'])
+                );
+                break;
             case 'lcmt_key':
                 $key = MetaFields::get($postId, 'key');
                 echo $key ? '<code>' . esc_html($key) . '</code>' : '—';
@@ -393,6 +418,68 @@ class AdminMailSender
                 echo '<a href="' . esc_url(get_edit_post_link($postId)) . '" class="button button-small">' . esc_html__('Manage', 'lcmt-dev-mailer') . '</a>';
                 break;
         }
+    }
+
+    /**
+     * What the "Protection" column shows for a mail template: the provider
+     * that protects it, the site default it follows, a provider that is not
+     * set up, or no protection. The label is not escaped.
+     *
+     * @return array{icon: string, color: string, label: string, muted: bool}
+     */
+    public static function protectionBadge(int $postId): array
+    {
+        $providers = Captcha::providers();
+        $id        = Captcha::selectedIdFor($postId);
+
+        if ($id === Captcha::NONE) {
+            return ['icon' => 'dashicons-dismiss', 'color' => '#d63638', 'label' => __('Not protected', 'lcmt-dev-mailer'), 'muted' => false];
+        }
+
+        $active = Captcha::activeFor($postId);
+
+        if (!$active) {
+            return [
+                'icon'  => 'dashicons-warning',
+                'color' => '#dba617',
+                /* translators: %s: spam protection name */
+                'label' => sprintf(__('%s — not set up', 'lcmt-dev-mailer'), $providers[$id]::label()),
+                'muted' => false,
+            ];
+        }
+
+        $badge  = is_subclass_of($active, CaptchaBadge::class);
+        $choice = (string) get_post_meta($postId, MetaFields::FIELD_CAPTCHA, true);
+
+        // No choice of its own, or a choice not set up: the site default protects it
+        $inherited = !isset($providers[$choice]) || $providers[$choice] !== $active;
+
+        return [
+            'icon'  => $badge ? $active::icon() : self::NEUTRAL_ICON,
+            'color' => $badge ? $active::color() : self::NEUTRAL_COLOR,
+            /* translators: %s: spam protection name */
+            'label' => $inherited ? sprintf(__('Site default (%s)', 'lcmt-dev-mailer'), $active::label()) : $active::label(),
+            'muted' => $inherited,
+        ];
+    }
+
+    /**
+     * Styles of the "Protection" column, on the email templates list only.
+     */
+    public static function columnStyles(): void
+    {
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+
+        if (!$screen || $screen->id !== 'edit-' . PostType::SLUG) {
+            return;
+        }
+        ?>
+        <style>
+            .column-<?= esc_attr(self::PROTECTION_COLUMN) ?> { width: 16em; }
+            .lcmt-protection { display: inline-flex; align-items: center; gap: 4px; }
+            .lcmt-protection--muted { color: #646970; font-style: italic; }
+        </style>
+        <?php
     }
 
     public static function adminNotice(): void

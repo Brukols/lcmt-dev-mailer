@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
  * The HMAC key comes from the ALTCHA_HMAC_KEY constant when wp-config.php
  * defines it, otherwise from an option generated on first use.
  */
-class Altcha implements CaptchaProvider, CaptchaAssets
+class Altcha implements CaptchaProvider, CaptchaAssets, CaptchaBadge
 {
     public const OPTION_KEY = 'lcmt_mailer_altcha_key';
     public const REGENERATE_ACTION = 'lcmt_mailer_regenerate_altcha_key';
@@ -30,6 +30,16 @@ class Altcha implements CaptchaProvider, CaptchaAssets
     public static function label(): string
     {
         return 'ALTCHA';
+    }
+
+    public static function icon(): string
+    {
+        return 'dashicons-shield-alt';
+    }
+
+    public static function color(): string
+    {
+        return '#2271b1';
     }
 
     public static function isReady(): bool

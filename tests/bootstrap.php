@@ -185,6 +185,7 @@ require_once dirname(__DIR__) . '/includes/captcha-provider.php';
 require_once dirname(__DIR__) . '/includes/altcha.php';
 require_once dirname(__DIR__) . '/includes/turnstile.php';
 require_once dirname(__DIR__) . '/includes/captcha.php';
+require_once dirname(__DIR__) . '/includes/admin-mail-sender.php';
 require_once dirname(__DIR__) . '/includes/submission-csv.php';
 require_once dirname(__DIR__) . '/includes/retention.php';
 require_once dirname(__DIR__) . '/includes/user-agent.php';

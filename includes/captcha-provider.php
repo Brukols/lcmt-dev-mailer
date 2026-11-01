@@ -68,6 +68,23 @@ interface CaptchaAssets
 }
 
 /**
+ * A provider with its own badge in the "Protection" column of the email
+ * templates list. Optional: providers without it get a neutral shield.
+ */
+interface CaptchaBadge
+{
+    /**
+     * Dashicon class, e.g. "dashicons-shield".
+     */
+    public static function icon(): string;
+
+    /**
+     * Hex color of the icon, e.g. "#2271b1".
+     */
+    public static function color(): string;
+}
+
+/**
  * Thrown by CaptchaProvider::verify() when the provider's service could not
  * give an answer, as opposed to the proof being wrong.
  */

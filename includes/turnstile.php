@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
  * The secret key is kept encrypted (see SecretBox); the site key is public
  * and stored as it is.
  */
-class Turnstile implements CaptchaProvider, CaptchaAssets
+class Turnstile implements CaptchaProvider, CaptchaAssets, CaptchaBadge
 {
     public const OPTION_SITE_KEY   = 'lcmt_mailer_turnstile_site_key';
     public const OPTION_SECRET_KEY = 'lcmt_mailer_turnstile_secret_key';
@@ -49,6 +49,16 @@ class Turnstile implements CaptchaProvider, CaptchaAssets
     public static function label(): string
     {
         return 'Cloudflare Turnstile';
+    }
+
+    public static function icon(): string
+    {
+        return 'dashicons-shield';
+    }
+
+    public static function color(): string
+    {
+        return '#00a32a';
     }
 
     /**

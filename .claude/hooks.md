@@ -76,6 +76,8 @@ add_filter('lcmt_mailer_captcha_providers', function (array $providers) {
 
 A provider that loads its own front-end scripts also implements `LcmtDevMailer\CaptchaAssets` (`public static function enqueueAssets(): void`): `Captcha::widget()` calls it once per page, the first time a form protected by the provider renders, so pages without such a form load nothing. Its script registers a JS adapter (see [Frontend](frontend.md#spam-protection-adapters)).
 
+Optionally, it implements `LcmtDevMailer\CaptchaBadge` (`icon(): string`, a dashicon class such as `dashicons-shield`, and `color(): string`, a hex color) for its badge in the **Protection** column of the email templates list. Without it, the column shows a neutral `dashicons-shield` in `#50575e`.
+
 `verify()` returns false when the proof is wrong. When the verification service itself gave no answer (network error, HTTP error, unreadable answer), throw `LcmtDevMailer\CaptchaUnavailable` instead: `Captcha::check()` reports it as unavailable, and the site setting decides whether the message is refused (default) or accepted. Either way a refused message is kept in Received messages → Spam with the reason `captcha_failed` or `captcha_unavailable`.
 
 Used in: `Captcha::providers()`.

@@ -17,10 +17,10 @@ lcmt-dev-mailer/
 │   ├── mailer.php               # Mailer — core email engine (lookup by key, placeholder replacement, wp_mail)
 │   ├── form-renderer.php        # FormRenderer — renders forms via shortcode or PHP, enqueues frontend JS
 │   ├── form-endpoint.php        # FormEndpoint — REST API endpoint with auto-validation and sending
-│   ├── admin-mail-sender.php    # AdminMailSender — admin sidebar (usage info, field table, test email, generate template)
+│   ├── admin-mail-sender.php    # AdminMailSender — admin sidebar (usage info, field table, test email, generate template) + list columns
 │   ├── settings.php             # Settings — Email templates → Settings page (sender, logo, alert colors)
 │   ├── captcha-settings.php     # CaptchaSettings — Email templates → Spam protection page (provider select + provider rows)
-│   ├── captcha-provider.php     # CaptchaProvider, CaptchaAssets (interfaces) and CaptchaUnavailable (exception)
+│   ├── captcha-provider.php     # CaptchaProvider, CaptchaAssets, CaptchaBadge (interfaces) and CaptchaUnavailable (exception)
 │   ├── captcha.php              # Captcha — resolves each mail template's provider and routes check/widget/routes to it
 │   ├── altcha.php               # Altcha — ALTCHA provider (challenge route, one-time proofs, auto-generated key)
 │   ├── turnstile.php            # Turnstile — Cloudflare Turnstile provider (siteverify call, keys, settings rows, connection status)
@@ -146,6 +146,8 @@ Admin sidebar metabox with:
 - Form file status with "Generate form template" button
 - TypeScript interface preview
 - Test email sender
+
+It also owns the columns of the email templates list (`addColumns()` / `populateColumns()`): **Protection** (right after the title), Key, Form file, Actions. `protectionBadge($postId)` (pure, tested) resolves the Protection cell through `Captcha::selectedIdFor()` / `activeFor()` into `{icon, color, label, muted}`: the active provider's badge and label; "Site default (ALTCHA)" in a muted style when the template has no choice of its own, or its choice is not set up and the site default protects it; `dashicons-warning` `#dba617` "<Label> — not set up" when nothing is active; `dashicons-dismiss` `#d63638` "Not protected" for `none`. Icon and color come from the provider (`CaptchaBadge`: ALTCHA `dashicons-shield-alt` `#2271b1`, Turnstile `dashicons-shield` `#00a32a`); a provider without it gets `dashicons-shield` `#50575e`. The icon is `aria-hidden`, the label is visible text; `columnStyles()` prints the few styles on `admin_head`, on the `edit-mail` screen only.
 
 ### Captcha / CaptchaProvider
 - The `lcmt_mailer_captcha` option holds the **site default** provider id, or `none` (defaults to `altcha` until saved). Each mail template can override it with the `_lcmt_mail_captcha` post meta: `''` (site default), `none`, or a provider id. `Captcha::selectedIdFor($postId)` resolves it; `Captcha::activeFor($postId)` returns the provider class when it `isReady()`, falls back to the site default's provider when the template's choice is not ready, and returns null for `none`.
