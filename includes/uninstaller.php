@@ -32,6 +32,7 @@ class Uninstaller
         'lcmt_mailer_keep_blocked',
         'lcmt_mailer_attribution_without_consent',
         'lcmt_mailer_failures_dismissed_at',
+        'lcmt_mailer_altcha_difficulty', // Altcha::OPTION_DIFFICULTY (uninstall.php loads this file alone)
         self::OPTION_DELETE_DATA,
     ];
 

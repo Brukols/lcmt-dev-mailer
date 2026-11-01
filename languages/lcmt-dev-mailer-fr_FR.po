@@ -205,6 +205,26 @@ msgstr "Astuce :"
 msgid "You can send test emails directly from the edit page using the \"Actions & Usage\" panel on the right."
 msgstr "Vous pouvez envoyer des emails de test directement depuis la page d'édition en utilisant le panneau \"Actions & Utilisation\" sur la droite."
 
+#: includes/altcha.php:294
+msgid "Light (fast, stops the simplest bots)"
+msgstr "Légère (rapide, arrête les robots les plus simples)"
+
+#: includes/altcha.php:295
+msgid "Normal (recommended)"
+msgstr "Normale (recommandée)"
+
+#: includes/altcha.php:296
+msgid "High (slower on phones)"
+msgstr "Élevée (plus lente sur les téléphones)"
+
+#: includes/altcha.php:300
+msgid "Difficulty"
+msgstr "Difficulté"
+
+#: includes/altcha.php:308
+msgid "The time a visitor's browser spends proving it is not a bot, without them noticing. A higher level costs bots more but makes older phones wait a few seconds before sending."
+msgstr "Le temps que le navigateur du visiteur consacre à prouver qu’il n’est pas un robot, sans qu’il s’en aperçoive. Un niveau plus élevé coûte davantage aux robots, mais fait patienter quelques secondes les téléphones anciens avant l’envoi."
+
 #: includes/altcha.php:196
 #: includes/altcha.php:256
 #: includes/altcha.php:270

@@ -15,10 +15,31 @@ if (!defined('ABSPATH')) {
 class Altcha implements CaptchaProvider, CaptchaAssets, CaptchaBadge, CaptchaPrivacy
 {
     public const OPTION_KEY = 'lcmt_mailer_altcha_key';
+    public const OPTION_DIFFICULTY = 'lcmt_mailer_altcha_difficulty';
+    public const DIFFICULTY_DEFAULT = 'normal';
     public const REGENERATE_ACTION = 'lcmt_mailer_regenerate_altcha_key';
 
-    private const ALGORITHM = 'SHA-256';
-    private const MAX_NUMBER = 100000;
+    // ALTCHA v2 protocol: the browser looks for a counter whose PBKDF2 key,
+    // derived from the nonce and the counter, starts with keyPrefix.
+    private const ALGORITHM = 'PBKDF2/SHA-256';
+    private const KEY_LENGTH = 32;
+    private const MAX_COUNTER = 0xFFFFFFFF; // the counter is packed as a uint32
+    // The levels of the Difficulty setting: PBKDF2 iterations per try, and
+    // the hex prefix the derived key must start with (three digits: 1 try in
+    // 4096). A long prefix and a low cost keep the server's check cheap (one
+    // PBKDF2 at `cost`) for the same work in the browser.
+    // Measured 2026-11-01 (median of 20 solves, altcha/lib solveChallenge,
+    // one thread, Node 20 on an Apple M1): low 0.30 s, normal 0.99 to 1.3 s,
+    // high 2.7 to 2.9 s. In Chrome with the CPU throttled 4x (a mid-range
+    // phone), widget workers, median of 10 from focus to "verified": low
+    // 0.50 s, normal 0.53 s (slowest 2.5 s), high 1.2 s (slowest 9.5 s),
+    // under the form handler's 30 s wait.
+    private const DIFFICULTIES = [
+        'low'    => ['cost' => 200, 'keyPrefix' => '000'],
+        'normal' => ['cost' => 1200, 'keyPrefix' => '000'],
+        'high'   => ['cost' => 3500, 'keyPrefix' => '000'],
+    ];
+    private const PARAMETER_KEYS = ['algorithm', 'cost', 'expiresAt', 'keyLength', 'keyPrefix', 'nonce', 'salt'];
     private const EXPIRATION_SECONDS = 300; // 5 minutes
     private const USED_PREFIX = 'lcmt_altcha_used_';
 
@@ -76,13 +97,17 @@ class Altcha implements CaptchaProvider, CaptchaAssets, CaptchaBadge, CaptchaPri
     {
         $challengeUrl = home_url('/wp-json/lcmt-mailer/v1/altcha/challenge');
 
-        // The widget stays hidden, so its only visible text is the browser
-        // alert it raises on a submit during verification, in English
-        // whatever the site language. An empty string turns it off: the form
-        // handler waits for the proof behind its loader instead.
-        $strings = wp_json_encode(['waitAlert' => '']);
+        // `challenge` is the v3 widget's attribute; `challengeurl` stays for
+        // pages cached with the 2.7 script (harmless to v3, which ignores it).
+        // The widget is invisible and records no pointer or keyboard samples;
+        // its wait alert is emptied by captcha-altcha.js.
+        $configuration = wp_json_encode([
+            'hideFooter'                => true,
+            'display'                   => 'invisible',
+            'humanInteractionSignature' => false,
+        ]);
 
-        return '<altcha-widget data-lcmt-captcha="altcha" challengeurl="' . esc_attr($challengeUrl) . '" auto="onfocus" strings="' . esc_attr($strings) . '" hidefooter style="display:none;"></altcha-widget>';
+        return '<altcha-widget data-lcmt-captcha="altcha" challenge="' . esc_attr($challengeUrl) . '" challengeurl="' . esc_attr($challengeUrl) . '" auto="onfocus" configuration="' . esc_attr($configuration) . '"></altcha-widget>';
     }
 
     public static function enqueueAssets(): void
@@ -103,27 +128,105 @@ class Altcha implements CaptchaProvider, CaptchaAssets, CaptchaBadge, CaptchaPri
         return is_string($payload) && $payload !== '' && self::validatePayload($payload);
     }
 
-    public static function createChallenge(): array
+    /**
+     * The saved level, or "normal" for anything else.
+     *
+     * @param mixed $value
+     */
+    public static function sanitizeDifficulty($value): string
     {
-        $salt = bin2hex(random_bytes(12));
-        $expires = time() + self::EXPIRATION_SECONDS;
-        $saltWithExpiry = $salt . '?expires=' . $expires;
+        return is_string($value) && isset(self::DIFFICULTIES[$value]) ? $value : self::DIFFICULTY_DEFAULT;
+    }
 
-        $secretNumber = random_int(1, self::MAX_NUMBER);
-        $challenge = hash('sha256', $saltWithExpiry . $secretNumber);
-        $signature = hash_hmac('sha256', $challenge, self::getKey());
+    /**
+     * The PBKDF2 cost and key prefix of the level chosen on the ALTCHA tab.
+     *
+     * @return array{cost: int, keyPrefix: string}
+     */
+    public static function difficulty(): array
+    {
+        return self::DIFFICULTIES[self::sanitizeDifficulty(get_option(self::OPTION_DIFFICULTY, self::DIFFICULTY_DEFAULT))];
+    }
+
+    /**
+     * Whether a difficulty gives parameters isWellFormed() accepts: a
+     * positive integer cost, and a non-empty lowercase hex prefix no longer
+     * than the derived key.
+     */
+    public static function isValidDifficulty(array $difficulty): bool
+    {
+        $cost   = $difficulty['cost'] ?? null;
+        $prefix = $difficulty['keyPrefix'] ?? null;
+
+        return is_int($cost) && $cost > 0
+            && is_string($prefix) && preg_match('/^[0-9a-f]{1,' . (self::KEY_LENGTH * 2) . '}$/D', $prefix) === 1;
+    }
+
+    /**
+     * A new challenge, signed with the site key so the browser cannot lower
+     * its difficulty or push back its expiry.
+     *
+     * @param array{cost: int, keyPrefix: string}|null $difficulty Defaults to difficulty().
+     * @throws \InvalidArgumentException When the difficulty would issue a challenge validatePayload() refuses.
+     */
+    public static function createChallenge(?array $difficulty = null): array
+    {
+        $difficulty ??= self::difficulty();
+
+        if (!self::isValidDifficulty($difficulty)) {
+            throw new \InvalidArgumentException('Invalid ALTCHA difficulty.');
+        }
+
+        $parameters = [
+            'algorithm' => self::ALGORITHM,
+            'cost'      => $difficulty['cost'],
+            'expiresAt' => time() + self::EXPIRATION_SECONDS,
+            'keyLength' => self::KEY_LENGTH,
+            'keyPrefix' => $difficulty['keyPrefix'],
+            'nonce'     => bin2hex(random_bytes(16)),
+            'salt'      => bin2hex(random_bytes(16)),
+        ];
 
         return [
-            'algorithm' => self::ALGORITHM,
-            'challenge' => $challenge,
-            'maxnumber' => self::MAX_NUMBER,
-            'salt'      => $saltWithExpiry,
-            'signature' => $signature,
+            'parameters' => $parameters,
+            'signature'  => self::sign($parameters),
         ];
     }
 
     /**
+     * The JSON ALTCHA signs: object keys sorted at every level, null values
+     * left out, slashes and Unicode unescaped like JavaScript's
+     * JSON.stringify ("PBKDF2/SHA-256" holds a slash).
+     */
+    public static function canonicalJson(array $value): string
+    {
+        return json_encode(self::sortKeys($value), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * The PBKDF2 key (raw bytes) for a counter, appended to the nonce as a
+     * big-endian uint32 like ALTCHA's PasswordBuffer does.
+     * Expects parameters already checked by isWellFormed() (hex nonce and salt, integer cost).
+     */
+    public static function deriveKey(array $parameters, int $counter): string
+    {
+        return hash_pbkdf2(
+            'sha256',
+            hex2bin($parameters['nonce']) . pack('N', $counter),
+            hex2bin($parameters['salt']),
+            $parameters['cost'],
+            $parameters['keyLength'],
+            true
+        );
+    }
+
+    /**
      * Check a solved challenge, and spend it so it cannot be sent again.
+     *
+     * The cheap checks come first (structure, expiry, signature, solution
+     * format). The challenge is then spent before the PBKDF2 step, right or
+     * wrong, so one signed challenge costs the server one key derivation at
+     * most, however many solutions a bot tries for it.
      */
     public static function validatePayload(string $payload): bool
     {
@@ -133,38 +236,33 @@ class Altcha implements CaptchaProvider, CaptchaAssets, CaptchaBadge, CaptchaPri
         $data = json_decode($decoded, true);
         if (!is_array($data)) return false;
 
-        $algorithm = $data['algorithm'] ?? null;
         $challenge = $data['challenge'] ?? null;
-        $number    = $data['number'] ?? null;
-        $salt      = $data['salt'] ?? null;
-        $signature = $data['signature'] ?? null;
+        $solution  = $data['solution'] ?? null;
+        if (!is_array($challenge) || !is_array($solution)) return false;
 
-        if (!is_string($algorithm) || !is_string($challenge) || !is_scalar($number) || !is_string($salt) || !is_string($signature)) return false;
-        if ($algorithm !== self::ALGORITHM) return false;
+        $parameters = $challenge['parameters'] ?? null;
+        $signature  = $challenge['signature'] ?? null;
+        if (!is_array($parameters) || !is_string($signature) || !self::isWellFormed($parameters)) return false;
 
-        // Every challenge this class issues carries its expiry in the salt
-        if (!preg_match('/\?expires=(\d+)/', $salt, $matches)) return false;
+        // Cheap checks first, so a forged or stale challenge costs no PBKDF2
+        if (time() > $parameters['expiresAt']) return false;
+        if (!hash_equals(self::sign($parameters), $signature)) return false;
 
-        $expires = (int) $matches[1];
-        if (time() > $expires) return false;
+        $counter    = $solution['counter'] ?? null;
+        $derivedKey = $solution['derivedKey'] ?? null;
+        if (!is_int($counter) || $counter < 0 || $counter > self::MAX_COUNTER) return false;
+        if (!is_string($derivedKey) || !preg_match('/^(?:[0-9a-f]{2})+$/D', $derivedKey)) return false;
 
-        // Verify challenge hash
-        $expectedChallenge = hash('sha256', $salt . $number);
-        if (!hash_equals($expectedChallenge, $challenge)) return false;
-
-        // Verify HMAC signature
-        $expectedSignature = hash_hmac('sha256', $challenge, self::getKey());
-        if (!hash_equals($expectedSignature, $signature)) return false;
-
-        // A solved challenge is good for one submission only. The marker
-        // lives until the challenge expires, after which the expiry check
-        // above rejects it anyway.
-        $marker = self::USED_PREFIX . $challenge;
+        // A challenge is good for one try only, spent before the costly step.
+        // The marker lives until the challenge expires, after which the
+        // expiry check above rejects it anyway.
+        $marker = self::USED_PREFIX . $parameters['nonce'];
         if (get_transient($marker)) return false;
+        set_transient($marker, 1, max(1, $parameters['expiresAt'] - time()));
 
-        set_transient($marker, 1, max(1, $expires - time()));
+        $expected = bin2hex(static::deriveKey($parameters, $counter));
 
-        return true;
+        return hash_equals($expected, $derivedKey) && str_starts_with($expected, $parameters['keyPrefix']);
     }
 
     /**
@@ -191,7 +289,26 @@ class Altcha implements CaptchaProvider, CaptchaAssets, CaptchaBadge, CaptchaPri
     public static function renderSettings(): void
     {
         $regenerated = ($_GET['lcmt_altcha_key'] ?? '') === 'regenerated';
+        $difficulty  = self::sanitizeDifficulty(get_option(self::OPTION_DIFFICULTY, self::DIFFICULTY_DEFAULT));
+        $levels      = [
+            'low'    => __('Light (fast, stops the simplest bots)', 'lcmt-dev-mailer'),
+            'normal' => __('Normal (recommended)', 'lcmt-dev-mailer'),
+            'high'   => __('High (slower on phones)', 'lcmt-dev-mailer'),
+        ];
         ?>
+        <tr>
+            <th scope="row"><label for="lcmt-altcha-difficulty"><?php esc_html_e('Difficulty', 'lcmt-dev-mailer'); ?></label></th>
+            <td>
+                <select id="lcmt-altcha-difficulty" name="<?= esc_attr(self::OPTION_DIFFICULTY) ?>" aria-describedby="lcmt-altcha-difficulty-description">
+                    <?php foreach ($levels as $level => $label): ?>
+                        <option value="<?= esc_attr($level) ?>" <?php selected($difficulty, $level); ?>><?= esc_html($label) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <p class="description" id="lcmt-altcha-difficulty-description">
+                    <?php esc_html_e('The time a visitor\'s browser spends proving it is not a bot, without them noticing. A higher level costs bots more but makes older phones wait a few seconds before sending.', 'lcmt-dev-mailer'); ?>
+                </p>
+            </td>
+        </tr>
         <tr>
             <th scope="row"><?php esc_html_e('ALTCHA key', 'lcmt-dev-mailer'); ?></th>
             <td>
@@ -276,5 +393,43 @@ class Altcha implements CaptchaProvider, CaptchaAssets, CaptchaBadge, CaptchaPri
     private static function generateKey(): string
     {
         return bin2hex(random_bytes(32));
+    }
+
+    private static function sign(array $parameters): string
+    {
+        return hash_hmac('sha256', self::canonicalJson($parameters), self::getKey());
+    }
+
+    /**
+     * Exactly the parameters this class issues, with the types it issues:
+     * an integer stays an integer in the canonical JSON, and a missing or
+     * extra key cannot slip through the signature check.
+     */
+    private static function isWellFormed(array $parameters): bool
+    {
+        $keys = array_keys($parameters);
+        sort($keys, SORT_STRING);
+
+        return $keys === self::PARAMETER_KEYS
+            && $parameters['algorithm'] === self::ALGORITHM
+            && self::isValidDifficulty($parameters)
+            && is_int($parameters['expiresAt'])
+            && $parameters['keyLength'] === self::KEY_LENGTH
+            && is_string($parameters['nonce']) && preg_match('/^[0-9a-f]{32}$/D', $parameters['nonce'])
+            && is_string($parameters['salt']) && preg_match('/^[0-9a-f]{32}$/D', $parameters['salt']);
+    }
+
+    /**
+     * Sort object keys at every level and drop null values, like ALTCHA's
+     * sortKeys(); lists keep their order.
+     */
+    private static function sortKeys(array $value): array
+    {
+        if (!array_is_list($value)) {
+            $value = array_filter($value, fn ($item) => $item !== null);
+            ksort($value, SORT_STRING);
+        }
+
+        return array_map(fn ($item) => is_array($item) ? self::sortKeys($item) : $item, $value);
     }
 }

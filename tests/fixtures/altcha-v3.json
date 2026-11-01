@@ -1,0 +1,21 @@
+{
+  "secret": "fixture-secret-not-used-anywhere",
+  "challenge": {
+    "parameters": {
+      "algorithm": "PBKDF2/SHA-256",
+      "cost": 10,
+      "expiresAt": 4102444800,
+      "keyLength": 32,
+      "keyPrefix": "0",
+      "nonce": "ab618bd04d2a85b129d7a67b669a0a30",
+      "salt": "4e381c611af40c2dea5fd01258a397b1"
+    },
+    "signature": "6e2376991fc4d54254e815562caf4bead87d133b9cccdd2100f84c341fcf9ce2"
+  },
+  "solution": {
+    "counter": 7,
+    "derivedKey": "07e3a39f6b9b9500e67b675f65f27a3d4317e6a31fdbc3c9b4de9da55f710c2b",
+    "time": 1.6
+  },
+  "payload": "eyJjaGFsbGVuZ2UiOnsicGFyYW1ldGVycyI6eyJhbGdvcml0aG0iOiJQQktERjIvU0hBLTI1NiIsImNvc3QiOjEwLCJleHBpcmVzQXQiOjQxMDI0NDQ4MDAsImtleUxlbmd0aCI6MzIsImtleVByZWZpeCI6IjAiLCJub25jZSI6ImFiNjE4YmQwNGQyYTg1YjEyOWQ3YTY3YjY2OWEwYTMwIiwic2FsdCI6IjRlMzgxYzYxMWFmNDBjMmRlYTVmZDAxMjU4YTM5N2IxIn0sInNpZ25hdHVyZSI6IjZlMjM3Njk5MWZjNGQ1NDI1NGU4MTU1NjJjYWY0YmVhZDg3ZDEzM2I5Y2NjZGQyMTAwZjg0YzM0MWZjZjljZTIifSwic29sdXRpb24iOnsiY291bnRlciI6NywiZGVyaXZlZEtleSI6IjA3ZTNhMzlmNmI5Yjk1MDBlNjdiNjc1ZjY1ZjI3YTNkNDMxN2U2YTMxZmRiYzNjOWI0ZGU5ZGE1NWY3MTBjMmIiLCJ0aW1lIjoxLjZ9fQ=="
+}
