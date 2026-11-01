@@ -15,8 +15,9 @@ echo \LcmtDevMailer\FormRenderer::render('contact');
 Both methods:
 1. Find the mail post by key
 2. Load `{theme}/forms/{key}.php`
-3. Wrap with `<form>` (or inject attributes into an existing `<form>` tag)
-4. Enqueue `form-handler.js`
+3. Place the spam protection widget (see "Spam protection widget" below), then append the loader overlay
+4. Wrap with `<form>` (or inject attributes into an existing `<form>` tag)
+5. Enqueue `form-handler.js`
 
 ### Form file convention
 
@@ -26,6 +27,16 @@ The developer creates `{theme}/forms/{key}.php` with the form markup.
 - If the file already has a `<form>` tag, the plugin injects `id`, `data-lcmt-endpoint`, and `data-lcmt-nonce` into it
 - Each input must have a `name` attribute matching the placeholder name
 - Add `required` on inputs that correspond to `[field*]` placeholders
+
+### Spam protection widget
+
+`FormRenderer::placeWidget($html, $widget)` (pure, tested) puts the markup of the template's protection (`Captcha::widget()`) in the form file's HTML:
+
+1. In place of the first `FormRenderer::CAPTCHA_SLOT` (`<!--lcmt-captcha-->`), printed by `<?php lcmt_mailer_captcha(); ?>` where the form file wants it; further slots are removed.
+2. Otherwise right before the first submit control: `<button>` without a `type` or with `type="submit"`, or `<input type="submit">` (any case, single, double or no quotes). `type="button"` / `"reset"` are skipped.
+3. Otherwise at the end of the markup.
+
+With no active protection the widget is empty and the slots are removed. Calling `lcmt_mailer_captcha()` is only needed to put the widget somewhere other than before the button; guard it with `function_exists()` in a theme that may run without the plugin or with a version older than 2.7.0. ALTCHA is always invisible (it solves its proof in the background), and Turnstile with the default appearance ("Only when Cloudflare needs the visitor") shows nothing unless Cloudflare asks for an interaction: the slot usually stays empty on screen. The widget keeps its `z-index` above the loader only if no wrapper between it and the `<form>` creates a stacking context of its own.
 
 ### Auto-generated template
 

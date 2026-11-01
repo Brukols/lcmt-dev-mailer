@@ -157,6 +157,23 @@ Write your HTML **without** the `<form>` tag — the plugin wraps it automatical
 
 You can also include a `<form>` tag yourself — the plugin will inject its `data-lcmt-endpoint` and `data-lcmt-nonce` attributes into it.
 
+### Spam protection widget
+
+The plugin puts the spam protection widget **right before the first submit button** (`<button>` without a type or with `type="submit"`, or `<input type="submit">`), or at the end when there is none. To choose another place, call `lcmt_mailer_captcha()` there:
+
+```php
+<textarea name="message" required></textarea>
+
+<?php if (function_exists('lcmt_mailer_captcha')) lcmt_mailer_captcha(); ?>
+
+<div class="actions">
+    <p data-lcmt-status></p>
+    <button type="submit">Send</button>
+</div>
+```
+
+Most of the time nothing shows there: ALTCHA is always invisible, and Turnstile set to *Only when Cloudflare needs the visitor* (the default) only shows a challenge when Cloudflare asks the visitor for an interaction. With *Always visible*, the Turnstile box shows at that place.
+
 ### Auto-generated template
 
 Click **Generate form template** in the admin sidebar to create the file with pre-built labels and inputs matching your placeholders.
@@ -218,7 +235,7 @@ Each solved challenge is accepted once, then refused until it expires (5 minutes
 2. In **Email templates → Spam protection**, section **Cloudflare Turnstile**, paste the **site key** and the **secret key**, then save. The secret key is never shown again: once saved, its field stays empty (it shows `xxxxxxxx`); leave it empty to keep the key, or tick **Forget the saved secret key** to remove it.
 3. Choose Turnstile on the email templates that need it (or keep it as the site default).
 
-The page shows a connection status for the keys. **Appearance** is *Only when interaction is needed* (default) or *Always visible*. If Cloudflare cannot be reached when a message arrives, the message is **refused** by default; the same page lets you accept it instead. Cloudflare's script is always loaded from `challenges.cloudflare.com`: if you add a Content-Security-Policy header, allow it in `script-src` and `frame-src`.
+The page shows a connection status for the keys. **Appearance** is *Only when Cloudflare needs the visitor* (default) or *Always visible*. If Cloudflare cannot be reached when a message arrives, the message is **refused** by default; the same page lets you accept it instead. Cloudflare's script is always loaded from `challenges.cloudflare.com`: if you add a Content-Security-Policy header, allow it in `script-src` and `frame-src`.
 
 ### Encrypted keys
 

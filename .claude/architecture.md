@@ -114,6 +114,7 @@ Core email sending engine.
 ### FormRenderer
 - `render($key)` / shortcode `[lcmt-form key="..."]`
 - Loads `{theme}/forms/{key}.php`
+- Places the spam protection widget with `placeWidget()`: in place of the `lcmt_mailer_captcha()` slot, else right before the first submit control, else at the end (see [Frontend](frontend.md#spam-protection-widget))
 - Wraps with `<form>` + `data-lcmt-endpoint` + `data-lcmt-nonce` (or injects into existing `<form>` tag)
 - Enqueues `form-handler.js` on first render
 - The options a public page reads (`Attribution::OPTION_WITHOUT_CONSENT`, `Captcha::OPTION`, `Altcha::OPTION_KEY`, the Turnstile options, `SubmissionSettings::OPTION_SPAM_DAYS`) are not autoloaded, so `lcmt-dev-mailer.php` fetches them in one query with `wp_prime_option_caches()` at `wp_enqueue_scripts` priority 0 (WP 6.4+, skipped below). Add any new option read on public pages to that list.
@@ -262,6 +263,7 @@ Every capability of the `mail` post type maps to `manage_options`, and the admin
 2a. Shortcode/PHP render:
     FormRenderer::render('contact')
     → loads theme/forms/contact.php
+    → places the spam protection widget (slot, else before the submit button)
     → wraps with <form data-lcmt-endpoint="...">
     → enqueues form-handler.js
 

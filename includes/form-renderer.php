@@ -9,6 +9,19 @@ if (!defined('ABSPATH')) {
 class FormRenderer
 {
     /**
+     * Where a form file wants the spam protection widget, printed by
+     * lcmt_mailer_captcha().
+     */
+    public const CAPTCHA_SLOT = '<!--lcmt-captcha-->';
+
+    /**
+     * Opening tag of a submit control: <button> without a type or with
+     * type="submit", or <input type="submit">, any quotes, any case.
+     */
+    private const SUBMIT_PATTERN = '/<button(?=[\s>\/])(?![^>]*(?<![\w-])type\s*=)[^>]*>'
+        . '|<(?:button|input)(?=[\s\/])[^>]*(?<![\w-])type\s*=\s*["\']?submit(?=["\'\s\/>])[^>]*>/i';
+
+    /**
      * Render a form by its mail key.
      *
      * Looks for the form file at: {theme}/forms/{key}.php
@@ -44,11 +57,11 @@ class FormRenderer
         include $formFile;
         $innerHtml = ob_get_clean();
 
+        // Auto-include the widget of the spam protection this template uses
+        $innerHtml = self::placeWidget($innerHtml, Captcha::widget($mailPost->ID));
+
         // Auto-include the plugin's loader overlay
         $innerHtml .= '<div class="lcmt-loader" aria-hidden="true"><div class="lcmt-loader__spinner"></div></div>';
-
-        // Auto-include the widget of the spam protection this template uses
-        $innerHtml .= Captcha::widget($mailPost->ID);
 
         // Check if developer already included a <form> tag
         if (preg_match('/<form[\s>]/i', $innerHtml)) {
@@ -68,6 +81,34 @@ class FormRenderer
         $html .= '</form>';
 
         return self::collapseWhitespace($html);
+    }
+
+    /**
+     * Put the spam protection widget in the form's markup: in place of the
+     * first CAPTCHA_SLOT (the others are removed), else right before the
+     * first submit control, else at the end.
+     *
+     * @param string $widget Empty when no protection is active.
+     */
+    public static function placeWidget(string $html, string $widget): string
+    {
+        $slot = strpos($html, self::CAPTCHA_SLOT);
+
+        if ($slot !== false) {
+            $html = substr_replace($html, $widget, $slot, strlen(self::CAPTCHA_SLOT));
+
+            return str_replace(self::CAPTCHA_SLOT, '', $html);
+        }
+
+        if ($widget === '') {
+            return $html;
+        }
+
+        if (preg_match(self::SUBMIT_PATTERN, $html, $match, PREG_OFFSET_CAPTURE)) {
+            return substr_replace($html, $widget, $match[0][1], 0);
+        }
+
+        return $html . $widget;
     }
 
     /**

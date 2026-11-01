@@ -29,6 +29,16 @@ function lcmt_mailer_asset_version(string $file): string
     return file_exists($path) ? substr(md5_file($path), 0, 8) : '0';
 }
 
+/**
+ * Mark where the spam protection widget goes, in a form file
+ * ({theme}/forms/{key}.php). Without it, the widget goes right before the
+ * first submit button.
+ */
+function lcmt_mailer_captcha(): void
+{
+    echo LcmtDevMailer\FormRenderer::CAPTCHA_SLOT;
+}
+
 require_once LCMT_MAILER_PATH . 'includes/post-type.php';
 require_once LCMT_MAILER_PATH . 'includes/meta-fields.php';
 require_once LCMT_MAILER_PATH . 'includes/field-parser.php';

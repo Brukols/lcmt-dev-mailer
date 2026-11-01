@@ -36,7 +36,7 @@ interface CaptchaProvider
     public static function registerRoutes(): void;
 
     /**
-     * Markup appended inside every rendered form.
+     * Markup placed inside every rendered form (FormRenderer::placeWidget()).
      */
     public static function widget(): string;
 
