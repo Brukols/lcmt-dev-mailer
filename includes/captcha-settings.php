@@ -66,24 +66,6 @@ class CaptchaSettings
         ]);
     }
 
-    /**
-     * The copy buttons of the provider rows, on this screen only.
-     */
-    public static function enqueue(string $hook): void
-    {
-        if ($hook !== PostType::SLUG . '_page_' . self::PAGE_SLUG) {
-            return;
-        }
-
-        wp_enqueue_script(
-            'lcmt-admin-captcha-settings',
-            LCMT_MAILER_URL . 'assets/dist/admin-captcha-settings.js',
-            [],
-            lcmt_mailer_asset_version('assets/dist/admin-captcha-settings.js'),
-            true
-        );
-    }
-
     public static function url(array $args = []): string
     {
         return add_query_arg(
@@ -162,8 +144,6 @@ class CaptchaSettings
 
                 <?php submit_button(); ?>
             </form>
-
-            <p class="screen-reader-text" role="status" aria-live="polite" data-lcmt-copy-status></p>
         </div>
 
         <script>

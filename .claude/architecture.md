@@ -62,7 +62,6 @@ lcmt-dev-mailer/
 │   │   ├── form-handler.js
 │   │   ├── captcha-altcha.js    # ALTCHA browser adapter (bundles `altcha`)
 │   │   ├── captcha-turnstile.js # Turnstile browser adapter (loads Cloudflare's api.js on first focus)
-│   │   ├── admin-captcha-settings.js # Spam protection page: shows the rows of the selected provider
 │   │   ├── lib/attribution.js   # Shared module (not built on its own)
 │   │   ├── lib/uninstall-prompt.js  # Deactivate-link flow (hold back, ask, store, follow once), tested under node
 │   │   ├── lib/deactivate-dialog.js # The <dialog>: checkbox, help line, Cancel/Deactivate, busy state, tested under node
@@ -153,7 +152,7 @@ Admin sidebar metabox with:
 - Providers come from the `lcmt_mailer_captcha_providers` filter (`id => class`; built in: `altcha`, `turnstile`), each implementing `CaptchaProvider`. A provider with front-end scripts also implements `CaptchaAssets` (`enqueueAssets()`), called once per page by `Captcha::widget()` the first time a protected form renders.
 - `Captcha::check($postId, $body)` is called by FormEndpoint and returns `PASSED`, `FAILED` or `UNAVAILABLE` (the provider's `verify()` threw `CaptchaUnavailable`: the verification service gave no answer). `Captcha::widget($postId)` is called by FormRenderer, `Captcha::registerRoutes()` on `rest_api_init` for every ready provider (two forms may use two protections).
 - Unavailable service: refused by default; `Captcha::OPTION_UNAVAILABLE` (`refuse` / `accept`) can let the message through.
-- Each provider prints its own settings rows (`renderSettings()`); the Spam protection page (`CaptchaSettings`, with `admin-captcha-settings.js`) shows every provider, each in its own form table under an `<h2>` with its label, since each mail template can pick any of them whatever the site default.
+- Each provider prints its own settings rows (`renderSettings()`); the Spam protection page (`CaptchaSettings`) shows every provider, each in its own form table under an `<h2>` with its label, since each mail template can pick any of them whatever the site default.
 
 ### Altcha
 - HMAC key: `ALTCHA_HMAC_KEY` constant if defined, otherwise the `lcmt_mailer_altcha_key` option, generated on first use (not autoloaded) and **stored encrypted** (`SecretBox`); a plain key saved by an older version is encrypted on first read. An unreadable key is regenerated silently (no email).
@@ -161,13 +160,13 @@ Admin sidebar metabox with:
 - A valid proof is spent: its challenge is stored in a `lcmt_altcha_used_{challenge}` transient until it expires, so it cannot be replayed.
 
 ### Turnstile
-- Keys: the `LCMT_MAILER_TURNSTILE_SITE_KEY` / `LCMT_MAILER_TURNSTILE_SECRET_KEY` constants win; otherwise the options `lcmt_mailer_turnstile_site_key` and `lcmt_mailer_turnstile_secret_key` (the secret encrypted, never printed back into the page; a "forget" checkbox removes it). `lcmt_mailer_turnstile_appearance` is `interaction-only` (default) or `always`.
-- `verify()` posts the token to `https://challenges.cloudflare.com/turnstile/v0/siteverify` (5 s timeout) and checks the answer's `action` (`lcmt_form`) and hostname; a transport error, an HTTP error or an unusable answer throws `CaptchaUnavailable`. The Spam protection page shows a connection status (`connected`, `invalid`, `unreachable`, cached in a transient) and the `define()` line to copy into `wp-config.php`.
+- Keys: the options `lcmt_mailer_turnstile_site_key` and `lcmt_mailer_turnstile_secret_key`, entered on the Spam protection page only (no `wp-config.php` constant). The secret is encrypted and never printed back into the page: once saved, its field only gets `placeholder="xxxxxxxx"` and "Saved. Leave empty to keep it."; an empty field keeps it, a "forget" checkbox removes it. `keySource()` returns `database`, `none` or, for the secret, `unreadable`. `lcmt_mailer_turnstile_appearance` is `interaction-only` (default) or `always`.
+- `verify()` posts the token to `https://challenges.cloudflare.com/turnstile/v0/siteverify` (5 s timeout) and checks the answer's `action` (`lcmt_form`) and hostname; a transport error, an HTTP error or an unusable answer throws `CaptchaUnavailable`. The Spam protection page shows a connection status (`connected`, `invalid`, `unreachable`, cached in a transient).
 - Cloudflare's `api.js` is never self-hosted: the browser adapter loads it from Cloudflare.
 
 ### SecretBox / UnreadableSecrets
 - `SecretBox` encrypts with libsodium secretbox; the key derives from `LCMT_MAILER_ENCRYPTION_KEY` when `wp-config.php` defines it, else from `AUTH_KEY` + `SECURE_AUTH_SALT`. Stored values start with `lcmt1:`. `readOption()` / `writeOption()` wrap the options; without sodium or keys, values are stored as they are (`canEncrypt()`).
-- When a stored value cannot be decrypted (security keys changed, database copied), the protection counts as not set up, `UnreadableSecrets::report()` records it in the `lcmt_mailer_unreadable_secrets` option and sends **one** email to `admin_email`; `UnreadableSecrets::notice()` shows an admin notice until the key is saved again (`clear()`). A provider declares the `wp-config.php` constant that replaces a stored key (`UnreadableSecrets::replacedByConstant($option, $constant)`, Turnstile does it in `registerHooks()`): once that constant is defined, `notice()` first calls `resolveReplaced()`, which clears the entry and deletes the stale stored copy, since the settings page no longer shows the field nor the forget checkbox.
+- When a stored value cannot be decrypted (security keys changed, database copied), the protection counts as not set up, `UnreadableSecrets::report()` records it in the `lcmt_mailer_unreadable_secrets` option and sends **one** email to `admin_email`; `UnreadableSecrets::notice()` shows an admin notice until the key is saved again (`clear()`). The Turnstile secret row keeps its field and its forget checkbox, so the admin can enter the key again or remove the unreadable copy.
 
 ### SubmissionData
 Pure helpers around the stored `fields` JSON: `snapshot()` freezes each submitted value with its field name and type (password fields are never stored, each value is cut to `MAX_VALUE_LENGTH` = 10 000 characters, multibyte-safe), `toPlaceholders()` rebuilds the placeholders for a resend, `containsEmail()` matches an exact value, `summary()` builds the line shown in lists. `PERSONAL_COLUMNS` (`fields`, `mail_error`, `user_agent`) lists what anonymization clears.

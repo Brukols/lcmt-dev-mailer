@@ -9,15 +9,12 @@ if (!defined('ABSPATH')) {
 /**
  * Cloudflare Turnstile.
  *
- * Each key comes from its wp-config.php constant when defined, otherwise from
- * an option. The secret key is kept encrypted in the database (see SecretBox);
- * the site key is public and stored as it is.
+ * Both keys are entered on the Spam protection page and stored as options.
+ * The secret key is kept encrypted (see SecretBox); the site key is public
+ * and stored as it is.
  */
 class Turnstile implements CaptchaProvider, CaptchaAssets
 {
-    public const CONST_SITE_KEY   = 'LCMT_MAILER_TURNSTILE_SITE_KEY';
-    public const CONST_SECRET_KEY = 'LCMT_MAILER_TURNSTILE_SECRET_KEY';
-
     public const OPTION_SITE_KEY   = 'lcmt_mailer_turnstile_site_key';
     public const OPTION_SECRET_KEY = 'lcmt_mailer_turnstile_secret_key';
     public const OPTION_APPEARANCE = 'lcmt_mailer_turnstile_appearance';
@@ -60,8 +57,6 @@ class Turnstile implements CaptchaProvider, CaptchaAssets
      */
     public static function registerHooks(): void
     {
-        UnreadableSecrets::replacedByConstant(self::OPTION_SECRET_KEY, self::CONST_SECRET_KEY);
-
         foreach ([self::OPTION_SITE_KEY, self::OPTION_SECRET_KEY] as $option) {
             add_action('update_option_' . $option, [self::class, 'forgetStatus']);
             add_action('add_option_' . $option, [self::class, 'forgetStatus']);
@@ -80,17 +75,14 @@ class Turnstile implements CaptchaProvider, CaptchaAssets
     }
 
     /**
-     * Where a key comes from: "constant", "database", "none", or for the
-     * secret only "unreadable" (stored, but it can no longer be decrypted).
+     * Whether a key is stored: "database", "none", or for the secret only
+     * "unreadable" (stored, but it can no longer be decrypted).
      *
      * @param string $which "site" or "secret".
      */
     public static function keySource(string $which): string
     {
-        $secret   = $which === 'secret';
-        $constant = $secret ? self::CONST_SECRET_KEY : self::CONST_SITE_KEY;
-
-        if (defined($constant) && constant($constant) !== '') return 'constant';
+        $secret = $which === 'secret';
 
         // The raw option: reading the secret through SecretBox::readOption()
         // would send the "unreadable" email from the settings page.
@@ -104,19 +96,11 @@ class Turnstile implements CaptchaProvider, CaptchaAssets
 
     public static function siteKey(): string
     {
-        if (self::keySource('site') === 'constant') {
-            return (string) constant(self::CONST_SITE_KEY);
-        }
-
         return (string) get_option(self::OPTION_SITE_KEY, '');
     }
 
     private static function secretKey(): string
     {
-        if (self::keySource('secret') === 'constant') {
-            return (string) constant(self::CONST_SECRET_KEY);
-        }
-
         return SecretBox::readOption(self::OPTION_SECRET_KEY, __('Cloudflare Turnstile secret key', 'lcmt-dev-mailer'));
     }
 
@@ -279,18 +263,11 @@ class Turnstile implements CaptchaProvider, CaptchaAssets
         return self::STATUS_INVALID;
     }
 
-    public static function constantLine(string $constant): string
-    {
-        $placeholder = $constant === self::CONST_SITE_KEY ? 'your-site-key' : 'your-secret-key';
-
-        return "define( '" . $constant . "', '" . $placeholder . "' );";
-    }
-
     public static function renderSettings(): void
     {
         $siteSource   = self::keySource('site');
         $secretSource = self::keySource('secret');
-        $ready        = $siteSource !== 'none' && in_array($secretSource, ['constant', 'database'], true);
+        $ready        = $siteSource !== 'none' && $secretSource === 'database';
         $appearance   = self::appearance();
         ?>
         <tr>
@@ -310,78 +287,43 @@ class Turnstile implements CaptchaProvider, CaptchaAssets
         <tr>
             <th scope="row"><label for="lcmt-turnstile-site-key"><?php esc_html_e('Site key', 'lcmt-dev-mailer'); ?></label></th>
             <td>
-                <?php if ($siteSource === 'constant'): ?>
-                    <p>
-                        <?php
-                        printf(
-                            /* translators: 1: constant name, 2: file name */
-                            esc_html__('Set by the %1$s constant in %2$s.', 'lcmt-dev-mailer'),
-                            '<code>' . esc_html(self::CONST_SITE_KEY) . '</code>',
-                            '<code>wp-config.php</code>'
-                        );
-                        ?>
-                    </p>
-                <?php else: ?>
-                    <input type="text" id="lcmt-turnstile-site-key" class="regular-text code"
-                           name="<?= esc_attr(self::OPTION_SITE_KEY) ?>"
-                           value="<?= esc_attr((string) get_option(self::OPTION_SITE_KEY, '')) ?>"
-                           autocomplete="off" spellcheck="false">
-                <?php endif; ?>
+                <input type="text" id="lcmt-turnstile-site-key" class="regular-text code"
+                       name="<?= esc_attr(self::OPTION_SITE_KEY) ?>"
+                       value="<?= esc_attr((string) get_option(self::OPTION_SITE_KEY, '')) ?>"
+                       autocomplete="off" spellcheck="false">
             </td>
         </tr>
         <tr>
             <th scope="row"><label for="lcmt-turnstile-secret-key"><?php esc_html_e('Secret key', 'lcmt-dev-mailer'); ?></label></th>
             <td>
-                <?php if ($secretSource === 'constant'): ?>
-                    <p>
-                        <?php
-                        printf(
-                            /* translators: 1: constant name, 2: file name */
-                            esc_html__('Set by the %1$s constant in %2$s.', 'lcmt-dev-mailer'),
-                            '<code>' . esc_html(self::CONST_SECRET_KEY) . '</code>',
-                            '<code>wp-config.php</code>'
-                        );
-                        ?>
+                <?php // Never print the secret back: a placeholder only says one is saved ?>
+                <input type="password" id="lcmt-turnstile-secret-key" class="regular-text code"
+                       name="<?= esc_attr(self::OPTION_SECRET_KEY) ?>"
+                       <?php if ($secretSource === 'database'): ?>placeholder="xxxxxxxx"<?php endif; ?>
+                       autocomplete="new-password" data-1p-ignore data-lpignore="true" spellcheck="false">
+
+                <?php if ($secretSource === 'unreadable'): ?>
+                    <p class="description">
+                        <?php esc_html_e('The saved key can no longer be read (WordPress security keys changed or database copied from another site). Enter it again.', 'lcmt-dev-mailer'); ?>
                     </p>
-                <?php else: ?>
-                    <input type="password" id="lcmt-turnstile-secret-key" class="regular-text code"
-                           name="<?= esc_attr(self::OPTION_SECRET_KEY) ?>" value=""
-                           autocomplete="new-password" data-1p-ignore data-lpignore="true" spellcheck="false">
+                <?php endif; ?>
 
-                    <?php if ($secretSource === 'unreadable'): ?>
-                        <p class="description">
-                            <?php esc_html_e('The saved key can no longer be read (WordPress security keys changed or database copied from another site). Enter it again.', 'lcmt-dev-mailer'); ?>
-                        </p>
-                    <?php endif; ?>
-
-                    <?php if ($secretSource !== 'none'): ?>
-                        <?php if ($secretSource === 'database'): ?>
-                            <p class="description"><?php esc_html_e('Saved in the database. Leave empty to keep it.', 'lcmt-dev-mailer'); ?></p>
-                        <?php endif; ?>
-                        <p>
-                            <label>
-                                <input type="checkbox" name="<?= esc_attr(self::FORGET_FIELD) ?>" value="1">
-                                <?php esc_html_e('Forget the saved secret key', 'lcmt-dev-mailer'); ?>
-                            </label>
-                        </p>
-                    <?php endif; ?>
-
-                    <?php if (!SecretBox::canEncrypt()): ?>
-                        <p class="description">
-                            <?php esc_html_e('Stored without encryption: this site has no WordPress security keys.', 'lcmt-dev-mailer'); ?>
-                        </p>
-                    <?php endif; ?>
-
+                <?php if ($secretSource !== 'none'): ?>
                     <?php if ($secretSource === 'database'): ?>
-                        <div class="notice notice-warning inline">
-                            <p><?php esc_html_e('A key in the database ends up in backups and copies of the database. Prefer adding this line to wp-config.php, then empty the field here:', 'lcmt-dev-mailer'); ?></p>
-                            <p>
-                                <code><?= esc_html(self::constantLine(self::CONST_SECRET_KEY)) ?></code>
-                                <button type="button" class="button" data-lcmt-copy="<?= esc_attr(self::constantLine(self::CONST_SECRET_KEY)) ?>"
-                                        data-copied="<?= esc_attr__('Copied', 'lcmt-dev-mailer') ?>"><?php esc_html_e('Copy', 'lcmt-dev-mailer'); ?></button>
-                            </p>
-                        </div>
+                        <p class="description"><?php esc_html_e('Saved. Leave empty to keep it.', 'lcmt-dev-mailer'); ?></p>
                     <?php endif; ?>
+                    <p>
+                        <label>
+                            <input type="checkbox" name="<?= esc_attr(self::FORGET_FIELD) ?>" value="1">
+                            <?php esc_html_e('Forget the saved secret key', 'lcmt-dev-mailer'); ?>
+                        </label>
+                    </p>
+                <?php endif; ?>
+
+                <?php if (!SecretBox::canEncrypt()): ?>
+                    <p class="description">
+                        <?php esc_html_e('Stored without encryption: this site has no WordPress security keys.', 'lcmt-dev-mailer'); ?>
+                    </p>
                 <?php endif; ?>
             </td>
         </tr>

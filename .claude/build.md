@@ -31,7 +31,6 @@ yarn install
 | `src/admin-uninstall.js`        | `dist/admin-uninstall.js`        | Admin    | Plugins screen: on deactivation, asks whether a later deletion deletes the messages |
 | `src/admin-stats.js`            | `dist/admin-stats.js`            | Admin    | Statistics page: Chart \| Table toggle of each box |
 | `src/admin-privacy-docs.js`     | `dist/admin-privacy-docs.js`     | Admin    | Data retention page: Copy buttons of the Privacy policy section |
-| `src/admin-captcha-settings.js` | `dist/admin-captcha-settings.js` | Admin    | Spam protection page: shows the rows of the selected provider |
 | `src/form-handler.js`           | `dist/form-handler.js`           | Frontend | Auto form submit, validation, fetch, goes through the adapter registry |
 | `src/captcha-altcha.js`         | `dist/captcha-altcha.js`         | Frontend | ALTCHA adapter (bundles `altcha`), only on pages with a form it protects |
 | `src/captcha-turnstile.js`      | `dist/captcha-turnstile.js`      | Frontend | Turnstile adapter, loads Cloudflare's `api.js` on the first focus in the form |

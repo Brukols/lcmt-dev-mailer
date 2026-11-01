@@ -16,18 +16,6 @@ class UnreadableSecrets
     public const OPTION = 'lcmt_mailer_unreadable_secrets';
     private const LOCK_PREFIX = 'lcmt_mailer_unreadable_mail_';
 
-    /** @var array<string, string> Option => constant that takes its place. */
-    private static array $constants = [];
-
-    /**
-     * Declare the wp-config.php constant that replaces a stored key: once it
-     * is defined, an unreadable copy of the key no longer matters.
-     */
-    public static function replacedByConstant(string $option, string $constant): void
-    {
-        self::$constants[$option] = $constant;
-    }
-
     public static function report(string $option, string $label): void
     {
         $list = self::all();
@@ -76,27 +64,9 @@ class UnreadableSecrets
         }
     }
 
-    /**
-     * Forget the keys now set by their constant, and delete the stored copy
-     * nobody can read any more (the settings page no longer offers to).
-     */
-    public static function resolveReplaced(): void
-    {
-        foreach (array_keys(self::all()) as $option) {
-            $constant = self::$constants[$option] ?? '';
-
-            if ($constant === '' || !defined($constant) || constant($constant) === '') continue;
-
-            delete_option($option);
-            self::clear($option);
-        }
-    }
-
     public static function notice(): void
     {
         if (!current_user_can('manage_options')) return;
-
-        self::resolveReplaced();
 
         $list = self::all();
         if ($list === []) return;

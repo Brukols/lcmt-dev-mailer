@@ -1,10 +1,7 @@
 <?php
 
 use LcmtDevMailer\SecretBox;
-use LcmtDevMailer\Turnstile;
 use LcmtDevMailer\UnreadableSecrets;
-use PHPUnit\Framework\Attributes\PreserveGlobalState;
-use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 
 class UnreadableSecretsTest extends TestCase
@@ -51,40 +48,5 @@ class UnreadableSecretsTest extends TestCase
         // Broken again later: a new mail is allowed
         UnreadableSecrets::report('opt_a', 'Key A');
         $this->assertCount(2, $GLOBALS['lcmt_test_mails']);
-    }
-
-    public function test_unreadable_entry_stays_while_no_constant_replaces_it(): void
-    {
-        UnreadableSecrets::replacedByConstant(Turnstile::OPTION_SECRET_KEY, Turnstile::CONST_SECRET_KEY);
-        $GLOBALS['lcmt_test_options'][Turnstile::OPTION_SECRET_KEY] = 'lcmt1:unreadable';
-        UnreadableSecrets::report(Turnstile::OPTION_SECRET_KEY, 'Turnstile secret');
-        UnreadableSecrets::report('opt_b', 'Key B');
-
-        UnreadableSecrets::resolveReplaced();
-
-        $this->assertSame(
-            [Turnstile::OPTION_SECRET_KEY => 'Turnstile secret', 'opt_b' => 'Key B'],
-            $GLOBALS['lcmt_test_options'][UnreadableSecrets::OPTION]
-        );
-        $this->assertSame('lcmt1:unreadable', $GLOBALS['lcmt_test_options'][Turnstile::OPTION_SECRET_KEY]);
-    }
-
-    #[RunInSeparateProcess]
-    #[PreserveGlobalState(false)]
-    public function test_unreadable_entry_is_cleared_once_the_constant_is_set(): void
-    {
-        UnreadableSecrets::replacedByConstant(Turnstile::OPTION_SECRET_KEY, Turnstile::CONST_SECRET_KEY);
-        $GLOBALS['lcmt_test_options'][Turnstile::OPTION_SECRET_KEY] = 'lcmt1:unreadable';
-        UnreadableSecrets::report(Turnstile::OPTION_SECRET_KEY, 'Turnstile secret');
-        UnreadableSecrets::report('opt_b', 'Key B');
-
-        define(Turnstile::CONST_SECRET_KEY, '1x0000000000000000000000000000000AA');
-        UnreadableSecrets::resolveReplaced();
-
-        // Only the replaced key is forgotten, with its stale copy and mail lock
-        $this->assertSame(['opt_b' => 'Key B'], $GLOBALS['lcmt_test_options'][UnreadableSecrets::OPTION]);
-        $this->assertArrayNotHasKey(Turnstile::OPTION_SECRET_KEY, $GLOBALS['lcmt_test_options']);
-        $this->assertArrayNotHasKey('lcmt_mailer_unreadable_mail_' . Turnstile::OPTION_SECRET_KEY, $GLOBALS['lcmt_test_options']);
-        $this->assertSame('constant', Turnstile::keySource('secret'));
     }
 }

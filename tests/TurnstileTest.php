@@ -4,6 +4,8 @@ use LcmtDevMailer\CaptchaUnavailable;
 use LcmtDevMailer\SecretBox;
 use LcmtDevMailer\Turnstile;
 use LcmtDevMailer\UnreadableSecrets;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 
 class TurnstileTest extends TestCase
@@ -199,12 +201,18 @@ class TurnstileTest extends TestCase
         $this->assertCount(1, $GLOBALS['lcmt_test_mails']);
     }
 
-    public function test_constant_line_uses_placeholder_not_the_key(): void
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_keys_only_come_from_the_database(): void
     {
-        $GLOBALS['lcmt_test_options'][Turnstile::OPTION_SECRET_KEY] = SecretBox::encrypt('real-secret');
+        // The wp-config.php constants of the 2.7.0 previews are no longer read
+        define('LCMT_MAILER_TURNSTILE_SITE_KEY', 'constant-site');
+        define('LCMT_MAILER_TURNSTILE_SECRET_KEY', 'constant-secret');
 
-        $this->assertSame("define( 'LCMT_MAILER_TURNSTILE_SECRET_KEY', 'your-secret-key' );", Turnstile::constantLine(Turnstile::CONST_SECRET_KEY));
-        $this->assertSame("define( 'LCMT_MAILER_TURNSTILE_SITE_KEY', 'your-site-key' );", Turnstile::constantLine(Turnstile::CONST_SITE_KEY));
+        $this->assertSame('none', Turnstile::keySource('site'));
+        $this->assertSame('none', Turnstile::keySource('secret'));
+        $this->assertSame('', Turnstile::siteKey());
+        $this->assertFalse(Turnstile::isReady());
     }
 
     public function test_widget_markup(): void
