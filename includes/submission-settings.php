@@ -67,7 +67,7 @@ class SubmissionSettings
 
         register_setting(self::GROUP, self::OPTION_SPAM_DAYS, [
             'type'              => 'integer',
-            'sanitize_callback' => static fn($value) => min(30, Retention::clampDays($value, 0, 30)),
+            'sanitize_callback' => static fn($value) => Retention::clampDays($value, 0, 30),
             'default'           => 30,
         ]);
 
@@ -221,7 +221,7 @@ class SubmissionSettings
                     <tr>
                         <th scope="row"><label for="lcmt-spam-days"><?php esc_html_e('Delete spam after', 'lcmt-dev-mailer'); ?></label></th>
                         <td>
-                            <input type="number" min="0" max="30" id="lcmt-spam-days"
+                            <input type="number" min="0" max="<?= (int) Retention::MAX_DAYS ?>" id="lcmt-spam-days"
                                    name="<?= esc_attr(self::OPTION_SPAM_DAYS) ?>" value="<?= esc_attr((string) $spamDays) ?>" class="small-text" />
                             <?php esc_html_e('days', 'lcmt-dev-mailer'); ?>
                             <p class="description"><?php esc_html_e('Deleted for good, without going through the trash. 0 keeps spam as long as other messages.', 'lcmt-dev-mailer'); ?></p>

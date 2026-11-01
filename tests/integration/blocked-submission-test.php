@@ -270,3 +270,18 @@ lcmt_it('a spam retention of 0 leaves spam to the normal retention', function ()
     lcmt_assert_true(lcmt_bs_exists($id), 'kept');
     lcmt_assert_same(0, SubmissionSettings::spamRetentionDays());
 });
+
+lcmt_it('a spam retention of 90 days keeps 60-day-old spam', function () {
+    lcmt_bs_reset();
+    update_option(SubmissionSettings::OPTION_DAYS, 3000);
+    update_option(SubmissionSettings::OPTION_SPAM_DAYS, 90);
+    $kept = lcmt_bs_row(60, 'spam');
+    $gone = lcmt_bs_row(91, 'spam');
+
+    lcmt_assert_same(90, SubmissionSettings::spamRetentionDays());
+    lcmt_assert_same('90', (string) sanitize_option(SubmissionSettings::OPTION_SPAM_DAYS, '90'));
+    Retention::run();
+
+    lcmt_assert_true(lcmt_bs_exists($kept), '60-day-old spam kept');
+    lcmt_assert_true(!lcmt_bs_exists($gone), '91-day-old spam deleted');
+});
