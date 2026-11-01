@@ -57,7 +57,7 @@ function flush() {
 }
 
 test('the widget language comes from <html lang> when Turnstile can take it', () => {
-  assert.equal(turnstileLanguage('fr-FR'), 'fr-FR');
+  assert.equal(turnstileLanguage('fr-FR'), 'fr-fr');
   assert.equal(turnstileLanguage('fr'), 'fr');
   assert.equal(turnstileLanguage('x-klingon'), 'auto');
   assert.equal(turnstileLanguage(''), 'auto');
@@ -83,6 +83,63 @@ test('does not load the API before the visitor enters the form', async () => {
   assert.equal(s.api.rendered.length, 0);
 });
 
+/** A window whose IntersectionObserver the test triggers by hand. */
+function viewportRoot() {
+  var root = { observers: [] };
+
+  root.IntersectionObserver = function (callback) {
+    var observer = { callback: callback, targets: [], disconnected: false };
+    observer.observe = function (el) { observer.targets.push(el); };
+    observer.disconnect = function () { observer.disconnected = true; };
+    root.observers.push(observer);
+    return observer;
+  };
+
+  return root;
+}
+
+test('an interaction-only widget does not watch the viewport', async () => {
+  var s = setup();
+  var root = viewportRoot();
+
+  bindLazyRender(new EventTarget(), fakeWidget(), s.adapter, root);
+  await flush();
+
+  assert.equal(root.observers.length, 0);
+  assert.equal(s.loads.count, 0);
+});
+
+test('an always visible widget renders once it scrolls into view, not before', async () => {
+  var s = setup();
+  var root = viewportRoot();
+  var widget = fakeWidget({ 'data-appearance': 'always' });
+
+  bindLazyRender(new EventTarget(), widget, s.adapter, root);
+  await flush();
+  assert.equal(s.loads.count, 0);
+
+  var observer = root.observers[0];
+  assert.deepEqual(observer.targets, [widget]);
+
+  observer.callback([{ isIntersecting: false }]);
+  await flush();
+  assert.equal(s.api.rendered.length, 0);
+
+  observer.callback([{ isIntersecting: true }]);
+  await flush();
+  assert.equal(s.api.rendered.length, 1);
+  assert.equal(observer.disconnected, true);
+});
+
+test('an always visible widget renders right away without IntersectionObserver', async () => {
+  var s = setup();
+
+  bindLazyRender(new EventTarget(), fakeWidget({ 'data-appearance': 'always' }), s.adapter, {});
+  await flush();
+
+  assert.equal(s.api.rendered.length, 1);
+});
+
 test('renders once on the first focusin, with response-field false and the data-* options', async () => {
   var s = setup();
   var form = new EventTarget();
@@ -102,7 +159,7 @@ test('renders once on the first focusin, with response-field false and the data-
   assert.equal(call.options.appearance, 'interaction-only');
   assert.equal(call.options['response-field'], false);
   assert.equal(call.options['refresh-expired'], 'auto');
-  assert.equal(call.options.language, 'fr-FR');
+  assert.equal(call.options.language, 'fr-fr');
   assert.equal(typeof call.options.callback, 'function');
   assert.equal(typeof call.options['expired-callback'], 'function');
   assert.equal(typeof call.options['error-callback'], 'function');

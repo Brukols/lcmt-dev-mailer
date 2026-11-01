@@ -33,7 +33,7 @@ yarn install
 | `src/admin-privacy-docs.js`     | `dist/admin-privacy-docs.js`     | Admin    | Data retention page: Copy buttons of the Privacy policy section |
 | `src/form-handler.js`           | `dist/form-handler.js`           | Frontend | Auto form submit, validation, fetch, goes through the adapter registry |
 | `src/captcha-altcha.js`         | `dist/captcha-altcha.js`         | Frontend | ALTCHA adapter (bundles `altcha`), only on pages with a form it protects |
-| `src/captcha-turnstile.js`      | `dist/captcha-turnstile.js`      | Frontend | Turnstile adapter, loads Cloudflare's `api.js` on the first focus in the form |
+| `src/captcha-turnstile.js`      | `dist/captcha-turnstile.js`      | Frontend | Turnstile adapter, loads Cloudflare's `api.js` on the first focus in the form (an `always` widget: when it scrolls into view) |
 | `src/attribution.js`            | `dist/attribution.js`            | Frontend | Remembers the landing page of the visit |
 
 `src/lib/` holds shared modules (`lib/attribution.js`, `lib/uninstall-prompt.js`, `lib/deactivate-dialog.js`, `lib/stats-view.js`, `lib/request-url.js`, `lib/form-success.js`, `lib/captcha/registry.js`, `lib/captcha/script-loader.js`, `lib/captcha/altcha-proof.js`, `lib/captcha/turnstile-widget.js`): imported by entry points, not emitted on their own since the build only globs `src/*.js`.

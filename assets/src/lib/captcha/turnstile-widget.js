@@ -3,7 +3,9 @@
  *
  * Cloudflare's api.js is only requested once the visitor enters a protected
  * form (or submits it without focusing a field), so a page that merely shows
- * a form never contacts Cloudflare. Each widget is rendered explicitly from
+ * a form never contacts Cloudflare. An "always" visible widget is the
+ * exception: it renders as soon as it scrolls into view, so it does not
+ * pop up and push the submit button while the visitor types. Each widget is rendered explicitly from
  * the data-* attributes of Turnstile::widget(), and its token is kept in
  * memory: with response-field false, Turnstile adds no hidden input, and the
  * form handler sends the token as the adapter's field.
@@ -13,10 +15,11 @@ export var API_URL = 'https://challenges.cloudflare.com/turnstile/v0/api.js?rend
 
 /**
  * The Turnstile language for an <html lang> value: a code like "fr" or
- * "fr-FR" as is, anything else left to Cloudflare ("auto").
+ * "fr-FR" in the lower case Turnstile expects ("fr-fr"), anything else left
+ * to Cloudflare ("auto").
  */
 export function turnstileLanguage(lang) {
-  return /^[a-z]{2,3}(-[A-Z]{2})?$/.test(lang || '') ? lang : 'auto';
+  return /^[a-z]{2,3}(-[A-Z]{2})?$/.test(lang || '') ? lang.toLowerCase() : 'auto';
 }
 
 /**
@@ -195,11 +198,30 @@ export function createTurnstileAdapter({ loadApi, timeoutMs = 30000 }) {
 }
 
 /**
- * Render the widget when the visitor first enters its form.
+ * Render the widget when the visitor first enters its form, or, for an
+ * "always" visible one, when it scrolls into view.
  */
-export function bindLazyRender(form, widget, adapter) {
-  form.addEventListener('focusin', function () {
+export function bindLazyRender(form, widget, adapter, root = typeof window !== 'undefined' ? window : {}) {
+  function render() {
     // A failure is reported by the submit, which tries again.
     adapter.render(widget).catch(function () {});
-  }, { once: true });
+  }
+
+  form.addEventListener('focusin', render, { once: true });
+
+  if (widget.getAttribute('data-appearance') !== 'always') return;
+
+  if (typeof root.IntersectionObserver !== 'function') {
+    render();
+    return;
+  }
+
+  var observer = new root.IntersectionObserver(function (entries) {
+    if (!entries.some(function (entry) { return entry.isIntersecting; })) return;
+
+    observer.disconnect();
+    render();
+  }, { rootMargin: '200px' });
+
+  observer.observe(widget);
 }

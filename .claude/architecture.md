@@ -61,7 +61,7 @@ lcmt-dev-mailer/
 │   │   ├── attribution.js       # Remembers the landing page of the visit
 │   │   ├── form-handler.js
 │   │   ├── captcha-altcha.js    # ALTCHA browser adapter (bundles `altcha`)
-│   │   ├── captcha-turnstile.js # Turnstile browser adapter (loads Cloudflare's api.js on first focus)
+│   │   ├── captcha-turnstile.js # Turnstile browser adapter (loads Cloudflare's api.js on first focus, or in view when `always`)
 │   │   ├── lib/attribution.js   # Shared module (not built on its own)
 │   │   ├── lib/uninstall-prompt.js  # Deactivate-link flow (hold back, ask, store, follow once), tested under node
 │   │   ├── lib/deactivate-dialog.js # The <dialog>: checkbox, help line, Cancel/Deactivate, busy state, tested under node
