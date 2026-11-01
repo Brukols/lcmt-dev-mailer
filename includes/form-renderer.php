@@ -17,9 +17,19 @@ class FormRenderer
     /**
      * Opening tag of a submit control: <button> without a type or with
      * type="submit", or <input type="submit">, any quotes, any case.
+     *
+     * The scan skips (SKIP/FAIL) comments, script/style/template/textarea
+     * elements and every other tag, and reads attributes as quoted runs, so
+     * a "<button>" or "type=submit" inside a comment, raw text or an
+     * attribute value is never taken for a control.
      */
-    private const SUBMIT_PATTERN = '/<button(?=[\s>\/])(?![^>]*(?<![\w-])type\s*=)[^>]*>'
-        . '|<(?:button|input)(?=[\s\/])[^>]*(?<![\w-])type\s*=\s*["\']?submit(?=["\'\s\/>])[^>]*>/i';
+    private const ATTRS = '(?:[^>"\']|"[^"]*"|\'[^\']*\')*';
+
+    private const SUBMIT_PATTERN = '/<!--[\s\S]*?-->(*SKIP)(*F)'
+        . '|<(script|style|template|textarea)\b[\s\S]*?<\/\1\s*>(*SKIP)(*F)'
+        . '|<button(?=[\s>\/])(?!' . self::ATTRS . '(?<![\w-])type\s*=)' . self::ATTRS . '>'
+        . '|<(?:button|input)(?=[\s\/])' . self::ATTRS . '(?<![\w-])type\s*=\s*(?<q>["\']?)submit\k<q>(?=[\s\/>])' . self::ATTRS . '>'
+        . '|<[a-z][^\s\/>]*' . self::ATTRS . '>(*SKIP)(*F)/i';
 
     /**
      * Render a form by its mail key.

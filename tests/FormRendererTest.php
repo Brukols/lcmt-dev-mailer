@@ -64,4 +64,42 @@ class FormRendererTest extends TestCase
         $this->assertSame('<input><button>Send</button>', FormRenderer::placeWidget('<input>' . FormRenderer::CAPTCHA_SLOT . '<button>Send</button>', ''));
         $this->assertSame('<input><button>Send</button>', FormRenderer::placeWidget('<input><button>Send</button>', ''));
     }
+
+    public function test_a_commented_out_button_is_skipped(): void
+    {
+        $this->assertSame(
+            '<!-- <button>old</button> --><input>' . self::W . '<button type="submit">Send</button>',
+            FormRenderer::placeWidget('<!-- <button>old</button> --><input><button type="submit">Send</button>', self::W)
+        );
+    }
+
+    public function test_buttons_inside_raw_text_elements_are_skipped(): void
+    {
+        foreach (['<textarea>use <button> here</textarea>', '<script>var b = "<button>";</script>', '<style>/* <button> */</style>', '<template><button>x</button></template>'] as $raw) {
+            $this->assertSame($raw . self::W . '<button>Send</button>', FormRenderer::placeWidget($raw . '<button>Send</button>', self::W), $raw);
+        }
+    }
+
+    public function test_a_button_inside_an_attribute_value_is_skipped(): void
+    {
+        $this->assertSame(
+            '<div data-tpl="<button>"></div>' . self::W . '<button>Send</button>',
+            FormRenderer::placeWidget('<div data-tpl="<button>"></div><button>Send</button>', self::W)
+        );
+    }
+
+    public function test_type_submit_inside_an_attribute_value_does_not_count(): void
+    {
+        // Not a submit control: its type is text
+        $this->assertSame(
+            '<input value="type=submit" type="text">' . self::W,
+            FormRenderer::placeWidget('<input value="type=submit" type="text">', self::W)
+        );
+
+        // No type of its own: a submit button
+        $this->assertSame(
+            '<p>x</p>' . self::W . '<button data-x="type=a">Send</button>',
+            FormRenderer::placeWidget('<p>x</p><button data-x="type=a">Send</button>', self::W)
+        );
+    }
 }
