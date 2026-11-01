@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-01T11:53:55+00:00\n"
+"POT-Creation-Date: 2026-11-01T12:15:04+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: lcmt-dev-mailer\n"
@@ -34,261 +34,280 @@ msgstr ""
 msgid "Amaury Lecomte"
 msgstr ""
 
-#: includes/admin-mail-sender.php:15
+#: includes/admin-mail-sender.php:23
 msgid "Actions & Usage"
 msgstr ""
 
-#: includes/admin-mail-sender.php:47
+#: includes/admin-mail-sender.php:55
 msgid "Language:"
 msgstr ""
 
-#: includes/admin-mail-sender.php:52
+#: includes/admin-mail-sender.php:60
 msgid "Shortcode:"
 msgstr ""
 
-#: includes/admin-mail-sender.php:64
+#: includes/admin-mail-sender.php:72
 msgid "Form fields:"
 msgstr ""
 
-#: includes/admin-mail-sender.php:67
+#: includes/admin-mail-sender.php:75
 msgid "name=\"\""
 msgstr ""
 
-#: includes/admin-mail-sender.php:68
+#: includes/admin-mail-sender.php:76
 #: includes/meta-fields.php:293
 msgid "Type"
 msgstr ""
 
-#: includes/admin-mail-sender.php:81
+#: includes/admin-mail-sender.php:89
 msgid "Use these as name=\"\" attributes on your form inputs."
 msgstr ""
 
-#: includes/admin-mail-sender.php:86
+#: includes/admin-mail-sender.php:94
 msgid "Form file:"
 msgstr ""
 
-#: includes/admin-mail-sender.php:92
+#: includes/admin-mail-sender.php:100
 msgid "missing"
 msgstr ""
 
-#: includes/admin-mail-sender.php:97
-#: includes/admin-mail-sender.php:171
+#: includes/admin-mail-sender.php:105
+#: includes/admin-mail-sender.php:179
 msgid "Generate form template"
 msgstr ""
 
-#: includes/admin-mail-sender.php:105
+#: includes/admin-mail-sender.php:113
 msgid "Save the post with a key to see usage info."
 msgstr ""
 
-#: includes/admin-mail-sender.php:110
+#: includes/admin-mail-sender.php:118
 msgid "Test email:"
 msgstr ""
 
-#: includes/admin-mail-sender.php:115
+#: includes/admin-mail-sender.php:123
 msgid "Test values:"
 msgstr ""
 
-#: includes/admin-mail-sender.php:131
-#: includes/admin-mail-sender.php:168
+#: includes/admin-mail-sender.php:139
+#: includes/admin-mail-sender.php:176
 msgid "Send Test Email"
 msgstr ""
 
-#: includes/admin-mail-sender.php:165
+#: includes/admin-mail-sender.php:173
 msgid "Please enter a recipient email."
 msgstr ""
 
-#: includes/admin-mail-sender.php:166
+#: includes/admin-mail-sender.php:174
 msgid "Please enter a valid email."
 msgstr ""
 
-#: includes/admin-mail-sender.php:167
+#: includes/admin-mail-sender.php:175
 msgid "Sending..."
 msgstr ""
 
-#: includes/admin-mail-sender.php:169
+#: includes/admin-mail-sender.php:177
 msgid "Connection error"
 msgstr ""
 
-#: includes/admin-mail-sender.php:170
+#: includes/admin-mail-sender.php:178
 msgid "Generating..."
 msgstr ""
 
-#: includes/admin-mail-sender.php:172
+#: includes/admin-mail-sender.php:180
 msgid "This will create the form template file. Continue?"
 msgstr ""
 
-#: includes/admin-mail-sender.php:184
-#: includes/admin-mail-sender.php:258
+#: includes/admin-mail-sender.php:192
+#: includes/admin-mail-sender.php:266
 msgid "Security check failed"
 msgstr ""
 
-#: includes/admin-mail-sender.php:188
-#: includes/admin-mail-sender.php:262
-#: includes/altcha.php:210
+#: includes/admin-mail-sender.php:196
+#: includes/admin-mail-sender.php:270
+#: includes/altcha.php:220
 msgid "Insufficient permissions"
 msgstr ""
 
-#: includes/admin-mail-sender.php:196
+#: includes/admin-mail-sender.php:204
 msgid "Email recipient is required"
 msgstr ""
 
-#: includes/admin-mail-sender.php:204
+#: includes/admin-mail-sender.php:212
 msgid "Invalid JSON in placeholders"
 msgstr ""
 
-#: includes/admin-mail-sender.php:210
-#: includes/admin-mail-sender.php:269
+#: includes/admin-mail-sender.php:218
+#: includes/admin-mail-sender.php:277
 msgid "Invalid mail post"
 msgstr ""
 
-#: includes/admin-mail-sender.php:216
-#: includes/admin-mail-sender.php:275
+#: includes/admin-mail-sender.php:224
+#: includes/admin-mail-sender.php:283
 msgid "No key found for this mail post"
 msgstr ""
 
-#: includes/admin-mail-sender.php:236
+#: includes/admin-mail-sender.php:244
 msgid "Could not build email for key: "
 msgstr ""
 
-#: includes/admin-mail-sender.php:244
+#: includes/admin-mail-sender.php:252
 msgid "Email sent successfully to "
 msgstr ""
 
-#: includes/admin-mail-sender.php:246
+#: includes/admin-mail-sender.php:254
 msgid "Failed to send email"
 msgstr ""
 
-#: includes/admin-mail-sender.php:249
+#: includes/admin-mail-sender.php:257
 msgid "Error: "
 msgstr ""
 
-#: includes/admin-mail-sender.php:282
+#: includes/admin-mail-sender.php:290
 msgid "File already exists: forms/"
 msgstr ""
 
-#: includes/admin-mail-sender.php:292
+#: includes/admin-mail-sender.php:300
 msgid "No fields found in the mail content. Add placeholders like [firstname*] first."
 msgstr ""
 
-#: includes/admin-mail-sender.php:306
+#: includes/admin-mail-sender.php:314
 msgid "Could not write file. Check directory permissions."
 msgstr ""
 
-#: includes/admin-mail-sender.php:309
+#: includes/admin-mail-sender.php:317
 msgid "Template created: forms/"
 msgstr ""
 
-#: includes/admin-mail-sender.php:355
+#: includes/admin-mail-sender.php:363
 msgid "Submit"
 msgstr ""
 
-#: includes/admin-mail-sender.php:369
+#: includes/admin-mail-sender.php:381
+msgid "Protection"
+msgstr ""
+
+#: includes/admin-mail-sender.php:384
 #: includes/meta-fields.php:45
 msgid "Key"
 msgstr ""
 
-#: includes/admin-mail-sender.php:370
+#: includes/admin-mail-sender.php:385
 msgid "Form file"
 msgstr ""
 
-#: includes/admin-mail-sender.php:371
+#: includes/admin-mail-sender.php:386
 msgid "Actions"
 msgstr ""
 
-#: includes/admin-mail-sender.php:393
+#: includes/admin-mail-sender.php:418
 msgid "Manage"
 msgstr ""
 
-#: includes/admin-mail-sender.php:407
+#: includes/admin-mail-sender.php:436
+msgid "Not protected"
+msgstr ""
+
+#. translators: %s: spam protection name
+#: includes/admin-mail-sender.php:446
+#, php-format
+msgid "%s — not set up"
+msgstr ""
+
+#. translators: %s: spam protection name
+#. translators: %s: name of the site-wide spam protection
+#: includes/admin-mail-sender.php:461
+#: includes/meta-fields.php:182
+#, php-format
+msgid "Site default (%s)"
+msgstr ""
+
+#: includes/admin-mail-sender.php:494
 msgid "Tip:"
 msgstr ""
 
-#: includes/admin-mail-sender.php:407
+#: includes/admin-mail-sender.php:494
 msgid "You can send test emails directly from the edit page using the \"Actions & Usage\" panel on the right."
 msgstr ""
 
-#: includes/altcha.php:170
-#: includes/altcha.php:230
-#: includes/altcha.php:244
+#: includes/altcha.php:180
+#: includes/altcha.php:240
+#: includes/altcha.php:254
 msgid "ALTCHA key"
 msgstr ""
 
 #. translators: %1$s: constant name, %2$s: file name
-#. translators: 1: constant name, 2: file name
-#: includes/altcha.php:177
-#: includes/turnstile.php:318
-#: includes/turnstile.php:340
+#: includes/altcha.php:187
 #, php-format
 msgid "Set by the %1$s constant in %2$s."
 msgstr ""
 
-#: includes/altcha.php:184
+#: includes/altcha.php:194
 msgid "Generated automatically and stored in the database. Nothing to configure."
 msgstr ""
 
-#: includes/altcha.php:188
+#: includes/altcha.php:198
 msgid "Generate a new key? A visitor who opened a form in the last five minutes will have to submit it again."
 msgstr ""
 
-#: includes/altcha.php:189
+#: includes/altcha.php:199
 msgid "Generate a new key"
 msgstr ""
 
-#: includes/altcha.php:192
+#: includes/altcha.php:202
 msgid "New key generated."
 msgstr ""
 
-#: includes/altcha.php:196
+#: includes/altcha.php:206
 msgid "Only needed if the key may have leaked, from a copied database for instance."
 msgstr ""
 
 #: includes/captcha-settings.php:21
 #: includes/captcha-settings.php:22
-#: includes/captcha-settings.php:101
+#: includes/captcha-settings.php:83
 #: includes/meta-fields.php:176
 msgid "Spam protection"
 msgstr ""
 
-#: includes/captcha-settings.php:111
+#: includes/captcha-settings.php:93
 msgid "Site default protection"
 msgstr ""
 
-#: includes/captcha-settings.php:116
+#: includes/captcha-settings.php:98
 #: includes/meta-fields.php:173
 #: includes/meta-fields.php:185
 #: includes/meta-fields.php:225
 msgid "None"
 msgstr ""
 
-#: includes/captcha-settings.php:124
+#: includes/captcha-settings.php:106
 msgid "Each email template can override it with its own Spam protection setting."
 msgstr ""
 
-#: includes/captcha-settings.php:126
+#: includes/captcha-settings.php:108
 msgid "Forms accept any submission, including from bots."
 msgstr ""
 
-#: includes/captcha-settings.php:132
+#: includes/captcha-settings.php:114
 msgid "If the verification service does not answer"
 msgstr ""
 
-#: includes/captcha-settings.php:136
+#: includes/captcha-settings.php:118
 msgid "Refuse the message (recommended)"
 msgstr ""
 
-#: includes/captcha-settings.php:138
+#: includes/captcha-settings.php:120
 msgid "Accept it"
 msgstr ""
 
-#: includes/captcha-settings.php:144
+#: includes/captcha-settings.php:126
 msgid "Blocked messages"
 msgstr ""
 
-#: includes/captcha-settings.php:148
+#: includes/captcha-settings.php:130
 msgid "Keep blocked messages in Received messages → Spam"
 msgstr ""
 
-#: includes/captcha-settings.php:150
+#: includes/captcha-settings.php:132
 msgid "Never emailed. If a real visitor was blocked, open the message, take it out of Spam with \"Mark as unread\", then use \"Send the email again\"."
 msgstr ""
 
@@ -409,7 +428,7 @@ msgid "Unknown form."
 msgstr ""
 
 #: includes/form-endpoint.php:80
-#: includes/form-renderer.php:115
+#: includes/form-renderer.php:156
 msgid "Security verification failed. Please try again."
 msgstr ""
 
@@ -426,11 +445,11 @@ msgstr ""
 msgid "Your message could not be sent. Please try again later or contact us by email."
 msgstr ""
 
-#: includes/form-renderer.php:113
+#: includes/form-renderer.php:154
 msgid "Please fill in all required fields."
 msgstr ""
 
-#: includes/form-renderer.php:114
+#: includes/form-renderer.php:155
 #: includes/settings.php:384
 msgid "An error occurred."
 msgstr ""
@@ -478,12 +497,6 @@ msgstr ""
 
 #: includes/meta-fields.php:87
 msgid "They appear under Email templates → Received messages, and are anonymized or deleted after the retention period set there."
-msgstr ""
-
-#. translators: %s: name of the site-wide spam protection
-#: includes/meta-fields.php:182
-#, php-format
-msgid "Site default (%s)"
 msgstr ""
 
 #: includes/meta-fields.php:191
@@ -1061,7 +1074,6 @@ msgstr ""
 #: includes/submission-settings.php:321
 #: includes/submission-settings.php:341
 #: includes/submission-settings.php:356
-#: includes/turnstile.php:381
 msgid "Copy"
 msgstr ""
 
@@ -1071,7 +1083,6 @@ msgstr ""
 
 #: includes/submission-settings.php:341
 #: includes/submission-settings.php:356
-#: includes/turnstile.php:381
 msgid "Copied"
 msgstr ""
 
@@ -1092,7 +1103,7 @@ msgid "Sender"
 msgstr ""
 
 #: includes/submissions-list-table.php:34
-#: includes/turnstile.php:389
+#: includes/turnstile.php:341
 msgid "Status"
 msgstr ""
 
@@ -1393,82 +1404,78 @@ msgstr ""
 msgid "Mark as unread"
 msgstr ""
 
-#: includes/turnstile.php:120
+#: includes/turnstile.php:114
 msgid "Cloudflare Turnstile secret key"
 msgstr ""
 
-#: includes/turnstile.php:297
+#: includes/turnstile.php:284
 msgid "Cloudflare setup"
 msgstr ""
 
 #. translators: %s: link to the Cloudflare dashboard
-#: includes/turnstile.php:303
+#: includes/turnstile.php:290
 #, php-format
 msgid "Create a widget in the Cloudflare dashboard (%s), list the hostnames of this site (production and staging), then copy both keys here."
 msgstr ""
 
-#: includes/turnstile.php:304
+#: includes/turnstile.php:291
 msgid "Turnstile, Add widget"
 msgstr ""
 
-#: includes/turnstile.php:311
+#: includes/turnstile.php:298
 msgid "Site key"
 msgstr ""
 
-#: includes/turnstile.php:333
+#: includes/turnstile.php:307
 msgid "Secret key"
 msgstr ""
 
-#: includes/turnstile.php:353
+#: includes/turnstile.php:317
 msgid "The saved key can no longer be read (WordPress security keys changed or database copied from another site). Enter it again."
 msgstr ""
 
-#: includes/turnstile.php:359
-msgid "Saved in the database. Leave empty to keep it."
+#: includes/turnstile.php:323
+msgid "Saved. Leave empty to keep it."
 msgstr ""
 
-#: includes/turnstile.php:364
+#: includes/turnstile.php:328
 msgid "Forget the saved secret key"
 msgstr ""
 
-#: includes/turnstile.php:371
+#: includes/turnstile.php:335
 msgid "Stored without encryption: this site has no WordPress security keys."
 msgstr ""
 
-#: includes/turnstile.php:377
-msgid "A key in the database ends up in backups and copies of the database. Prefer adding this line to wp-config.php, then empty the field here:"
-msgstr ""
-
-#: includes/turnstile.php:397
+#: includes/turnstile.php:349
 msgid "Cloudflare accepts the keys."
 msgstr ""
 
-#: includes/turnstile.php:400
+#: includes/turnstile.php:352
 msgid "Cloudflare refuses the secret key."
 msgstr ""
 
-#: includes/turnstile.php:403
+#: includes/turnstile.php:355
 msgid "Cloudflare could not be reached."
 msgstr ""
 
-#: includes/turnstile.php:406
+#: includes/turnstile.php:358
 msgid "Add both keys to protect forms with Turnstile."
 msgstr ""
 
-#: includes/turnstile.php:413
+#: includes/turnstile.php:365
 msgid "Appearance"
 msgstr ""
 
-#: includes/turnstile.php:417
+#: includes/turnstile.php:369
 msgid "Only when Cloudflare needs the visitor (recommended)"
 msgstr ""
 
-#: includes/turnstile.php:420
+#: includes/turnstile.php:372
 msgid "Always visible"
 msgstr ""
 
 #. translators: 1-2: site key and secret key that always pass, 3-4: site key and secret key that always fail
-#: includes/turnstile.php:427
+#: includes/turnstile.php:379
 #, php-format
 msgid "To test, Cloudflare publishes keys: site key %1$s with secret key %2$s always passes; site key %3$s with secret key %4$s always fails."
 msgstr ""
@@ -1506,13 +1513,13 @@ msgid "Deactivate"
 msgstr ""
 
 #. translators: %s: site name
-#: includes/unreadable-secrets.php:46
+#: includes/unreadable-secrets.php:34
 #, php-format
 msgid "[%s] A spam protection key can no longer be read"
 msgstr ""
 
 #. translators: 1: site name, 2: key label, 3: settings page URL
-#: includes/unreadable-secrets.php:52
+#: includes/unreadable-secrets.php:40
 #, php-format
 msgid ""
 "The spam protection key \"%2$s\" stored on %1$s can no longer be read. The WordPress security keys have probably changed, or the database was copied from another site.\n"
@@ -1523,11 +1530,11 @@ msgid ""
 msgstr ""
 
 #. translators: %s: comma-separated key names
-#: includes/unreadable-secrets.php:110
+#: includes/unreadable-secrets.php:80
 #, php-format
 msgid "LCMT Mailer can no longer read these spam protection keys: %s. The forms that use them are not protected by them."
 msgstr ""
 
-#: includes/unreadable-secrets.php:114
+#: includes/unreadable-secrets.php:84
 msgid "Open the Spam protection page"
 msgstr ""
