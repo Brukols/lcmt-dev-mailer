@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { API_URL, createTurnstileAdapter, bindLazyRender, apiLoader } from '../../assets/src/lib/captcha/turnstile-widget.js';
+import { API_URL, createTurnstileAdapter, bindLazyRender, apiLoader, turnstileLanguage } from '../../assets/src/lib/captcha/turnstile-widget.js';
 
 /**
  * A turnstile stand-in: records render/reset calls, and the test drives the
@@ -55,6 +55,14 @@ function setup(timeoutMs) {
 function flush() {
   return new Promise(function (resolve) { setTimeout(resolve, 0); });
 }
+
+test('the widget language comes from <html lang> when Turnstile can take it', () => {
+  assert.equal(turnstileLanguage('fr-FR'), 'fr-FR');
+  assert.equal(turnstileLanguage('fr'), 'fr');
+  assert.equal(turnstileLanguage('x-klingon'), 'auto');
+  assert.equal(turnstileLanguage(''), 'auto');
+  assert.equal(turnstileLanguage(undefined), 'auto');
+});
 
 test('the adapter has the turnstile id and field', () => {
   var adapter = setup().adapter;

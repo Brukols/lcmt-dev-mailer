@@ -12,6 +12,14 @@
 export var API_URL = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=lcmtTurnstileReady';
 
 /**
+ * The Turnstile language for an <html lang> value: a code like "fr" or
+ * "fr-FR" as is, anything else left to Cloudflare ("auto").
+ */
+export function turnstileLanguage(lang) {
+  return /^[a-z]{2,3}(-[A-Z]{2})?$/.test(lang || '') ? lang : 'auto';
+}
+
+/**
  * A loadApi() that appends api.js once per page and resolves with
  * window.turnstile when Cloudflare calls window.lcmtTurnstileReady().
  */
@@ -85,7 +93,7 @@ export function createTurnstileAdapter({ loadApi, timeoutMs = 30000 }) {
       // No hidden input: the form handler would send it as a form field.
       'response-field': false,
       'refresh-expired': 'auto',
-      language: (doc.documentElement && doc.documentElement.lang) || 'auto',
+      language: turnstileLanguage(doc.documentElement && doc.documentElement.lang),
       callback: function (token) {
         state.token = token;
         state.failed = false;
