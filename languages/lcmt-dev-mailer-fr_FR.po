@@ -214,8 +214,8 @@ msgstr "Clé ALTCHA"
 #. translators: %1$s: constant name, %2$s: file name
 #. translators: 1: constant name, 2: file name
 #: includes/altcha.php:177
-#: includes/turnstile.php:317
-#: includes/turnstile.php:339
+#: includes/turnstile.php:318
+#: includes/turnstile.php:340
 #, php-format
 msgid "Set by the %1$s constant in %2$s."
 msgstr "Définie par la constante %1$s dans %2$s."
@@ -248,8 +248,12 @@ msgid "Spam protection"
 msgstr "Protection anti-spam"
 
 #: includes/captcha-settings.php:111
-msgid "Protection"
-msgstr "Protection"
+msgid "Site default protection"
+msgstr "Protection par défaut du site"
+
+#: includes/captcha-settings.php:124
+msgid "Each email template can override it with its own Spam protection setting."
+msgstr "Chaque modèle d'e-mail peut la remplacer par son propre réglage « Protection anti-spam »."
 
 #: includes/captcha-settings.php:116
 #: includes/meta-fields.php:173
@@ -258,7 +262,7 @@ msgstr "Protection"
 msgid "None"
 msgstr "Aucune"
 
-#: includes/captcha-settings.php:125
+#: includes/captcha-settings.php:126
 msgid "Forms accept any submission, including from bots."
 msgstr "Les formulaires acceptent tous les envois, y compris ceux des robots."
 
@@ -971,7 +975,7 @@ msgstr "Affichage"
 #: includes/submission-settings.php:321
 #: includes/submission-settings.php:341
 #: includes/submission-settings.php:356
-#: includes/turnstile.php:380
+#: includes/turnstile.php:381
 msgid "Copy"
 msgstr "Copier"
 
@@ -981,7 +985,7 @@ msgstr "Recommandé"
 
 #: includes/submission-settings.php:341
 #: includes/submission-settings.php:356
-#: includes/turnstile.php:380
+#: includes/turnstile.php:381
 msgid "Copied"
 msgstr "Copié"
 
@@ -1002,7 +1006,7 @@ msgid "Sender"
 msgstr "Expéditeur"
 
 #: includes/submissions-list-table.php:34
-#: includes/turnstile.php:388
+#: includes/turnstile.php:389
 msgid "Status"
 msgstr "Statut"
 
@@ -1327,30 +1331,29 @@ msgstr "Désactivation…"
 msgid "Deactivate"
 msgstr "Désactiver"
 
-#: includes/captcha-settings.php:135
+#: includes/captcha-settings.php:132
 msgid "If the verification service does not answer"
 msgstr "Si le service de vérification ne répond pas"
 
-#: includes/captcha-settings.php:139
+#: includes/captcha-settings.php:136
 msgid "Refuse the message (recommended)"
 msgstr "Refuser le message (recommandé)"
 
-#: includes/captcha-settings.php:141
+#: includes/captcha-settings.php:138
 msgid "Accept it"
 msgstr "L'accepter"
 
-#: includes/captcha-settings.php:147
+#: includes/captcha-settings.php:144
 msgid "Blocked messages"
 msgstr "Messages bloqués"
 
-#: includes/captcha-settings.php:151
+#: includes/captcha-settings.php:148
 msgid "Keep blocked messages in Received messages → Spam"
 msgstr "Conserver les messages bloqués dans Messages reçus → Spam"
 
-#: includes/captcha-settings.php:153
-msgid "Never emailed. Mark one as not spam, then resend it, if a real visitor was blocked."
-msgstr ""
-"Jamais envoyés par e-mail. Si un vrai visiteur a été bloqué, retirez son message du spam, puis renvoyez-le."
+#: includes/captcha-settings.php:150
+msgid "Never emailed. If a real visitor was blocked, open the message, take it out of Spam with \"Mark as unread\", then use \"Send the email again\"."
+msgstr "Jamais envoyés par e-mail. Si un vrai visiteur a été bloqué, ouvrez son message, retirez-le du spam avec « Marquer comme non lu », puis utilisez « Renvoyer l'e-mail »."
 
 #. translators: %s: name of the site-wide spam protection
 #: includes/meta-fields.php:182
@@ -1426,100 +1429,100 @@ msgstr ""
 msgid "Blocked by the spam protection."
 msgstr "Bloqué par la protection anti-spam."
 
-#: includes/turnstile.php:118
+#: includes/turnstile.php:120
 msgid "Cloudflare Turnstile secret key"
 msgstr "Clé secrète Cloudflare Turnstile"
 
-#: includes/turnstile.php:296
+#: includes/turnstile.php:297
 msgid "Cloudflare setup"
 msgstr "Configuration de Cloudflare"
 
 #. translators: %s: link to the Cloudflare dashboard
-#: includes/turnstile.php:302
+#: includes/turnstile.php:303
 #, php-format
 msgid "Create a widget in the Cloudflare dashboard (%s), list the hostnames of this site (production and staging), then copy both keys here."
 msgstr ""
 "Créez un widget dans le tableau de bord Cloudflare (%s), indiquez les noms de domaine de ce site (production et préproduction), puis copiez les deux clés ici."
 
-#: includes/turnstile.php:303
+#: includes/turnstile.php:304
 msgid "Turnstile, Add widget"
 msgstr "Turnstile, Ajouter un widget"
 
-#: includes/turnstile.php:310
+#: includes/turnstile.php:311
 msgid "Site key"
 msgstr "Clé du site"
 
-#: includes/turnstile.php:332
+#: includes/turnstile.php:333
 msgid "Secret key"
 msgstr "Clé secrète"
 
-#: includes/turnstile.php:352
+#: includes/turnstile.php:353
 msgid "The saved key can no longer be read (WordPress security keys changed or database copied from another site). Enter it again."
 msgstr ""
 "La clé enregistrée n'est plus lisible (clés de sécurité WordPress modifiées ou base de données copiée depuis un autre site). Saisissez-la à nouveau."
 
-#: includes/turnstile.php:358
+#: includes/turnstile.php:359
 msgid "Saved in the database. Leave empty to keep it."
 msgstr ""
 "Enregistrée dans la base de données. Laissez vide pour la conserver."
 
-#: includes/turnstile.php:363
+#: includes/turnstile.php:364
 msgid "Forget the saved secret key"
 msgstr "Oublier la clé secrète enregistrée"
 
-#: includes/turnstile.php:370
+#: includes/turnstile.php:371
 msgid "Stored without encryption: this site has no WordPress security keys."
 msgstr ""
 "Stockée sans chiffrement : ce site n'a pas de clés de sécurité WordPress."
 
-#: includes/turnstile.php:376
+#: includes/turnstile.php:377
 msgid "A key in the database ends up in backups and copies of the database. Prefer adding this line to wp-config.php, then empty the field here:"
 msgstr ""
 "Une clé en base de données se retrouve dans les sauvegardes et les copies de la base. Préférez ajouter cette ligne à wp-config.php, puis videz le champ ici :"
 
-#: includes/turnstile.php:396
+#: includes/turnstile.php:397
 msgid "Cloudflare accepts the keys."
 msgstr "Cloudflare accepte les clés."
 
-#: includes/turnstile.php:399
+#: includes/turnstile.php:400
 msgid "Cloudflare refuses the secret key."
 msgstr "Cloudflare refuse la clé secrète."
 
-#: includes/turnstile.php:402
+#: includes/turnstile.php:403
 msgid "Cloudflare could not be reached."
 msgstr "Cloudflare est injoignable."
 
-#: includes/turnstile.php:405
+#: includes/turnstile.php:406
 msgid "Add both keys to protect forms with Turnstile."
 msgstr "Ajoutez les deux clés pour protéger les formulaires avec Turnstile."
 
-#: includes/turnstile.php:412
+#: includes/turnstile.php:413
 msgid "Appearance"
 msgstr "Apparence"
 
-#: includes/turnstile.php:416
+#: includes/turnstile.php:417
 msgid "Only when Cloudflare needs the visitor (recommended)"
 msgstr "Uniquement lorsque Cloudflare sollicite le visiteur (recommandé)"
 
-#: includes/turnstile.php:419
+#: includes/turnstile.php:420
 msgid "Always visible"
 msgstr "Toujours visible"
 
 #. translators: 1-2: site key and secret key that always pass, 3-4: site key and secret key that always fail
-#: includes/turnstile.php:426
+#: includes/turnstile.php:427
 #, php-format
 msgid "To test, Cloudflare publishes keys: site key %1$s with secret key %2$s always passes; site key %3$s with secret key %4$s always fails."
 msgstr ""
 "Pour tester, Cloudflare publie des clés : la clé de site %1$s avec la clé secrète %2$s réussit toujours ; la clé de site %3$s avec la clé secrète %4$s échoue toujours."
 
 #. translators: %s: site name
-#: includes/unreadable-secrets.php:34
+#: includes/unreadable-secrets.php:46
 #, php-format
 msgid "[%s] A spam protection key can no longer be read"
 msgstr "[%s] Une clé de protection anti-spam n'est plus lisible"
 
 #. translators: 1: site name, 2: key label, 3: settings page URL
-#: includes/unreadable-secrets.php:40
+#: includes/unreadable-secrets.php:52
 #, php-format
 msgid ""
 "The spam protection key \"%2$s\" stored on %1$s can no longer be read. The WordPress security keys have probably changed, or the database was copied from another site.\n"
@@ -1535,12 +1538,12 @@ msgstr ""
 "Saisissez-la à nouveau ici : %3$s"
 
 #. translators: %s: comma-separated key names
-#: includes/unreadable-secrets.php:80
+#: includes/unreadable-secrets.php:110
 #, php-format
 msgid "LCMT Mailer can no longer read these spam protection keys: %s. The forms that use them are not protected by them."
 msgstr ""
 "LCMT Mailer ne peut plus lire ces clés de protection anti-spam : %s. Les formulaires qui les utilisent ne sont pas protégés par elles."
 
-#: includes/unreadable-secrets.php:84
+#: includes/unreadable-secrets.php:114
 msgid "Open the Spam protection page"
 msgstr "Ouvrir la page Protection anti-spam"

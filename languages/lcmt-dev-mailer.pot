@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-01T11:38:06+00:00\n"
+"POT-Creation-Date: 2026-11-01T11:53:55+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: lcmt-dev-mailer\n"
@@ -216,8 +216,8 @@ msgstr ""
 #. translators: %1$s: constant name, %2$s: file name
 #. translators: 1: constant name, 2: file name
 #: includes/altcha.php:177
-#: includes/turnstile.php:317
-#: includes/turnstile.php:339
+#: includes/turnstile.php:318
+#: includes/turnstile.php:340
 #, php-format
 msgid "Set by the %1$s constant in %2$s."
 msgstr ""
@@ -250,7 +250,7 @@ msgid "Spam protection"
 msgstr ""
 
 #: includes/captcha-settings.php:111
-msgid "Protection"
+msgid "Site default protection"
 msgstr ""
 
 #: includes/captcha-settings.php:116
@@ -260,32 +260,36 @@ msgstr ""
 msgid "None"
 msgstr ""
 
-#: includes/captcha-settings.php:125
+#: includes/captcha-settings.php:124
+msgid "Each email template can override it with its own Spam protection setting."
+msgstr ""
+
+#: includes/captcha-settings.php:126
 msgid "Forms accept any submission, including from bots."
 msgstr ""
 
-#: includes/captcha-settings.php:135
+#: includes/captcha-settings.php:132
 msgid "If the verification service does not answer"
 msgstr ""
 
-#: includes/captcha-settings.php:139
+#: includes/captcha-settings.php:136
 msgid "Refuse the message (recommended)"
 msgstr ""
 
-#: includes/captcha-settings.php:141
+#: includes/captcha-settings.php:138
 msgid "Accept it"
 msgstr ""
 
-#: includes/captcha-settings.php:147
+#: includes/captcha-settings.php:144
 msgid "Blocked messages"
 msgstr ""
 
-#: includes/captcha-settings.php:151
+#: includes/captcha-settings.php:148
 msgid "Keep blocked messages in Received messages → Spam"
 msgstr ""
 
-#: includes/captcha-settings.php:153
-msgid "Never emailed. Mark one as not spam, then resend it, if a real visitor was blocked."
+#: includes/captcha-settings.php:150
+msgid "Never emailed. If a real visitor was blocked, open the message, take it out of Spam with \"Mark as unread\", then use \"Send the email again\"."
 msgstr ""
 
 #: includes/channel-classifier.php:104
@@ -1057,7 +1061,7 @@ msgstr ""
 #: includes/submission-settings.php:321
 #: includes/submission-settings.php:341
 #: includes/submission-settings.php:356
-#: includes/turnstile.php:380
+#: includes/turnstile.php:381
 msgid "Copy"
 msgstr ""
 
@@ -1067,7 +1071,7 @@ msgstr ""
 
 #: includes/submission-settings.php:341
 #: includes/submission-settings.php:356
-#: includes/turnstile.php:380
+#: includes/turnstile.php:381
 msgid "Copied"
 msgstr ""
 
@@ -1088,7 +1092,7 @@ msgid "Sender"
 msgstr ""
 
 #: includes/submissions-list-table.php:34
-#: includes/turnstile.php:388
+#: includes/turnstile.php:389
 msgid "Status"
 msgstr ""
 
@@ -1389,82 +1393,82 @@ msgstr ""
 msgid "Mark as unread"
 msgstr ""
 
-#: includes/turnstile.php:118
+#: includes/turnstile.php:120
 msgid "Cloudflare Turnstile secret key"
 msgstr ""
 
-#: includes/turnstile.php:296
+#: includes/turnstile.php:297
 msgid "Cloudflare setup"
 msgstr ""
 
 #. translators: %s: link to the Cloudflare dashboard
-#: includes/turnstile.php:302
+#: includes/turnstile.php:303
 #, php-format
 msgid "Create a widget in the Cloudflare dashboard (%s), list the hostnames of this site (production and staging), then copy both keys here."
 msgstr ""
 
-#: includes/turnstile.php:303
+#: includes/turnstile.php:304
 msgid "Turnstile, Add widget"
 msgstr ""
 
-#: includes/turnstile.php:310
+#: includes/turnstile.php:311
 msgid "Site key"
 msgstr ""
 
-#: includes/turnstile.php:332
+#: includes/turnstile.php:333
 msgid "Secret key"
 msgstr ""
 
-#: includes/turnstile.php:352
+#: includes/turnstile.php:353
 msgid "The saved key can no longer be read (WordPress security keys changed or database copied from another site). Enter it again."
 msgstr ""
 
-#: includes/turnstile.php:358
+#: includes/turnstile.php:359
 msgid "Saved in the database. Leave empty to keep it."
 msgstr ""
 
-#: includes/turnstile.php:363
+#: includes/turnstile.php:364
 msgid "Forget the saved secret key"
 msgstr ""
 
-#: includes/turnstile.php:370
+#: includes/turnstile.php:371
 msgid "Stored without encryption: this site has no WordPress security keys."
 msgstr ""
 
-#: includes/turnstile.php:376
+#: includes/turnstile.php:377
 msgid "A key in the database ends up in backups and copies of the database. Prefer adding this line to wp-config.php, then empty the field here:"
 msgstr ""
 
-#: includes/turnstile.php:396
+#: includes/turnstile.php:397
 msgid "Cloudflare accepts the keys."
 msgstr ""
 
-#: includes/turnstile.php:399
+#: includes/turnstile.php:400
 msgid "Cloudflare refuses the secret key."
 msgstr ""
 
-#: includes/turnstile.php:402
+#: includes/turnstile.php:403
 msgid "Cloudflare could not be reached."
 msgstr ""
 
-#: includes/turnstile.php:405
+#: includes/turnstile.php:406
 msgid "Add both keys to protect forms with Turnstile."
 msgstr ""
 
-#: includes/turnstile.php:412
+#: includes/turnstile.php:413
 msgid "Appearance"
 msgstr ""
 
-#: includes/turnstile.php:416
+#: includes/turnstile.php:417
 msgid "Only when Cloudflare needs the visitor (recommended)"
 msgstr ""
 
-#: includes/turnstile.php:419
+#: includes/turnstile.php:420
 msgid "Always visible"
 msgstr ""
 
 #. translators: 1-2: site key and secret key that always pass, 3-4: site key and secret key that always fail
-#: includes/turnstile.php:426
+#: includes/turnstile.php:427
 #, php-format
 msgid "To test, Cloudflare publishes keys: site key %1$s with secret key %2$s always passes; site key %3$s with secret key %4$s always fails."
 msgstr ""
@@ -1502,13 +1506,13 @@ msgid "Deactivate"
 msgstr ""
 
 #. translators: %s: site name
-#: includes/unreadable-secrets.php:34
+#: includes/unreadable-secrets.php:46
 #, php-format
 msgid "[%s] A spam protection key can no longer be read"
 msgstr ""
 
 #. translators: 1: site name, 2: key label, 3: settings page URL
-#: includes/unreadable-secrets.php:40
+#: includes/unreadable-secrets.php:52
 #, php-format
 msgid ""
 "The spam protection key \"%2$s\" stored on %1$s can no longer be read. The WordPress security keys have probably changed, or the database was copied from another site.\n"
@@ -1519,11 +1523,11 @@ msgid ""
 msgstr ""
 
 #. translators: %s: comma-separated key names
-#: includes/unreadable-secrets.php:80
+#: includes/unreadable-secrets.php:110
 #, php-format
 msgid "LCMT Mailer can no longer read these spam protection keys: %s. The forms that use them are not protected by them."
 msgstr ""
 
-#: includes/unreadable-secrets.php:84
+#: includes/unreadable-secrets.php:114
 msgid "Open the Spam protection page"
 msgstr ""

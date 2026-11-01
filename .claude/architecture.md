@@ -153,7 +153,7 @@ Admin sidebar metabox with:
 - Providers come from the `lcmt_mailer_captcha_providers` filter (`id => class`; built in: `altcha`, `turnstile`), each implementing `CaptchaProvider`. A provider with front-end scripts also implements `CaptchaAssets` (`enqueueAssets()`), called once per page by `Captcha::widget()` the first time a protected form renders.
 - `Captcha::check($postId, $body)` is called by FormEndpoint and returns `PASSED`, `FAILED` or `UNAVAILABLE` (the provider's `verify()` threw `CaptchaUnavailable`: the verification service gave no answer). `Captcha::widget($postId)` is called by FormRenderer, `Captcha::registerRoutes()` on `rest_api_init` for every ready provider (two forms may use two protections).
 - Unavailable service: refused by default; `Captcha::OPTION_UNAVAILABLE` (`refuse` / `accept`) can let the message through.
-- Each provider prints its own settings rows, tagged `data-captcha-provider="{id}"` so the Spam protection page (`CaptchaSettings`, with `admin-captcha-settings.js`) only shows the selected one.
+- Each provider prints its own settings rows (`renderSettings()`); the Spam protection page (`CaptchaSettings`, with `admin-captcha-settings.js`) shows every provider, each in its own form table under an `<h2>` with its label, since each mail template can pick any of them whatever the site default.
 
 ### Altcha
 - HMAC key: `ALTCHA_HMAC_KEY` constant if defined, otherwise the `lcmt_mailer_altcha_key` option, generated on first use (not autoloaded) and **stored encrypted** (`SecretBox`); a plain key saved by an older version is encrypted on first read. An unreadable key is regenerated silently (no email).

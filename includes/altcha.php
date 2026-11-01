@@ -166,7 +166,7 @@ class Altcha implements CaptchaProvider, CaptchaAssets
     {
         $regenerated = ($_GET['lcmt_altcha_key'] ?? '') === 'regenerated';
         ?>
-        <tr data-captcha-provider="<?= esc_attr(self::id()) ?>">
+        <tr>
             <th scope="row"><?php esc_html_e('ALTCHA key', 'lcmt-dev-mailer'); ?></th>
             <td>
                 <?php if (self::isKeyFromConfig()): ?>

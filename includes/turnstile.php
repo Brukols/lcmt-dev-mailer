@@ -290,9 +290,8 @@ class Turnstile implements CaptchaProvider, CaptchaAssets
         $secretSource = self::keySource('secret');
         $ready        = $siteSource !== 'none' && in_array($secretSource, ['constant', 'database'], true);
         $appearance   = self::appearance();
-        $provider     = esc_attr(self::id());
         ?>
-        <tr data-captcha-provider="<?= $provider ?>">
+        <tr>
             <th scope="row"><?php esc_html_e('Cloudflare setup', 'lcmt-dev-mailer'); ?></th>
             <td>
                 <p>
@@ -306,7 +305,7 @@ class Turnstile implements CaptchaProvider, CaptchaAssets
                 </p>
             </td>
         </tr>
-        <tr data-captcha-provider="<?= $provider ?>">
+        <tr>
             <th scope="row"><label for="lcmt-turnstile-site-key"><?php esc_html_e('Site key', 'lcmt-dev-mailer'); ?></label></th>
             <td>
                 <?php if ($siteSource === 'constant'): ?>
@@ -328,7 +327,7 @@ class Turnstile implements CaptchaProvider, CaptchaAssets
                 <?php endif; ?>
             </td>
         </tr>
-        <tr data-captcha-provider="<?= $provider ?>">
+        <tr>
             <th scope="row"><label for="lcmt-turnstile-secret-key"><?php esc_html_e('Secret key', 'lcmt-dev-mailer'); ?></label></th>
             <td>
                 <?php if ($secretSource === 'constant'): ?>
@@ -384,7 +383,7 @@ class Turnstile implements CaptchaProvider, CaptchaAssets
                 <?php endif; ?>
             </td>
         </tr>
-        <tr data-captcha-provider="<?= $provider ?>">
+        <tr>
             <th scope="row"><?php esc_html_e('Status', 'lcmt-dev-mailer'); ?></th>
             <td>
                 <?php
@@ -408,7 +407,7 @@ class Turnstile implements CaptchaProvider, CaptchaAssets
                 <div class="notice <?= esc_attr($class) ?> inline" style="margin:0;"><p><?= esc_html($message) ?></p></div>
             </td>
         </tr>
-        <tr data-captcha-provider="<?= $provider ?>">
+        <tr>
             <th scope="row"><label for="lcmt-turnstile-appearance"><?php esc_html_e('Appearance', 'lcmt-dev-mailer'); ?></label></th>
             <td>
                 <select id="lcmt-turnstile-appearance" name="<?= esc_attr(self::OPTION_APPEARANCE) ?>">

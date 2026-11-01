@@ -50,8 +50,8 @@ interface CaptchaProvider
     /**
      * Print the provider's own rows of the settings table.
      *
-     * Each row must carry data-captcha-provider="{id}" so it only shows
-     * while the provider is selected.
+     * Always shown, under the provider's label: each mail template can pick
+     * any provider, whatever the site default.
      */
     public static function renderSettings(): void;
 }

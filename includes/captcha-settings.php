@@ -108,7 +108,7 @@ class CaptchaSettings
                 <table class="form-table">
                     <tr>
                         <th scope="row">
-                            <label for="lcmt-captcha"><?php esc_html_e('Protection', 'lcmt-dev-mailer'); ?></label>
+                            <label for="lcmt-captcha"><?php esc_html_e('Site default protection', 'lcmt-dev-mailer'); ?></label>
                         </th>
                         <td>
                             <select id="lcmt-captcha" name="<?= esc_attr(Captcha::OPTION) ?>">
@@ -121,15 +121,12 @@ class CaptchaSettings
                                     </option>
                                 <?php endforeach; ?>
                             </select>
-                            <p class="description" data-captcha-provider="<?= esc_attr(Captcha::NONE) ?>">
+                            <p class="description"><?php esc_html_e('Each email template can override it with its own Spam protection setting.', 'lcmt-dev-mailer'); ?></p>
+                            <p class="description" data-lcmt-captcha-none>
                                 <?php esc_html_e('Forms accept any submission, including from bots.', 'lcmt-dev-mailer'); ?>
                             </p>
                         </td>
                     </tr>
-
-                    <?php foreach (Captcha::providers() as $provider) {
-                        $provider::renderSettings();
-                    } ?>
 
                     <tr>
                         <th scope="row"><?php esc_html_e('If the verification service does not answer', 'lcmt-dev-mailer'); ?></th>
@@ -150,10 +147,18 @@ class CaptchaSettings
                                 <input type="checkbox" name="<?= esc_attr(Captcha::OPTION_KEEP_BLOCKED) ?>" value="1" <?php checked(get_option(Captcha::OPTION_KEEP_BLOCKED, '1'), '1'); ?> />
                                 <?php esc_html_e('Keep blocked messages in Received messages → Spam', 'lcmt-dev-mailer'); ?>
                             </label>
-                            <p class="description"><?php esc_html_e('Never emailed. Mark one as not spam, then resend it, if a real visitor was blocked.', 'lcmt-dev-mailer'); ?></p>
+                            <p class="description"><?php esc_html_e('Never emailed. If a real visitor was blocked, open the message, take it out of Spam with "Mark as unread", then use "Send the email again".', 'lcmt-dev-mailer'); ?></p>
                         </td>
                     </tr>
                 </table>
+
+                <?php // Every provider, whatever the site default: a template may pick any of them ?>
+                <?php foreach (Captcha::providers() as $provider): ?>
+                    <h2><?= esc_html($provider::label()) ?></h2>
+                    <table class="form-table">
+                        <?php $provider::renderSettings(); ?>
+                    </table>
+                <?php endforeach; ?>
 
                 <?php submit_button(); ?>
             </form>
@@ -164,16 +169,15 @@ class CaptchaSettings
         <script>
             (function () {
                 var select = document.getElementById('lcmt-captcha');
+                var none = document.querySelector('[data-lcmt-captcha-none]');
 
-                // Only show the settings of the selected protection
-                function toggleRows() {
-                    document.querySelectorAll('[data-captcha-provider]').forEach(function (row) {
-                        row.style.display = row.getAttribute('data-captcha-provider') === select.value ? '' : 'none';
-                    });
+                // Only warn about unprotected forms while "None" is selected
+                function toggleNone() {
+                    none.style.display = select.value === <?= wp_json_encode(Captcha::NONE) ?> ? '' : 'none';
                 }
 
-                select.addEventListener('change', toggleRows);
-                toggleRows();
+                select.addEventListener('change', toggleNone);
+                toggleNone();
             })();
         </script>
         <?php
