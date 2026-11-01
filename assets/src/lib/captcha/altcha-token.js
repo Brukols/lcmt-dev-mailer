@@ -3,7 +3,9 @@
  */
 import { expiresSoon } from './altcha-proof';
 
-var TIMEOUT_MS = 30000;
+// The widget itself gives up after 90 s; an older phone may need a good part
+// of a minute at the High difficulty.
+var TIMEOUT_MS = 60000;
 
 /**
  * Resolve with the proof of the widget's next `verified` event, reject on its
