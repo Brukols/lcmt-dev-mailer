@@ -17,8 +17,15 @@ class Altcha implements CaptchaProvider, CaptchaAssets, CaptchaBadge, CaptchaPri
     public const OPTION_KEY = 'lcmt_mailer_altcha_key';
     public const REGENERATE_ACTION = 'lcmt_mailer_regenerate_altcha_key';
 
-    private const ALGORITHM = 'SHA-256';
-    private const MAX_NUMBER = 100000;
+    // ALTCHA v2 protocol: the browser looks for a counter whose PBKDF2 key,
+    // derived from the nonce and the counter, starts with keyPrefix.
+    private const ALGORITHM = 'PBKDF2/SHA-256';
+    private const KEY_LENGTH = 32;
+    private const MAX_COUNTER = 0xFFFFFFFF; // the counter is packed as a uint32
+    // Until the difficulty setting comes: PBKDF2 iterations per try, and a
+    // two-hex-digit prefix (1 try in 256 on average).
+    private const DEFAULT_DIFFICULTY = ['cost' => 5000, 'keyPrefix' => '00'];
+    private const PARAMETER_KEYS = ['algorithm', 'cost', 'expiresAt', 'keyLength', 'keyPrefix', 'nonce', 'salt'];
     private const EXPIRATION_SECONDS = 300; // 5 minutes
     private const USED_PREFIX = 'lcmt_altcha_used_';
 
@@ -107,23 +114,56 @@ class Altcha implements CaptchaProvider, CaptchaAssets, CaptchaBadge, CaptchaPri
         return is_string($payload) && $payload !== '' && self::validatePayload($payload);
     }
 
-    public static function createChallenge(): array
+    /**
+     * A new challenge, signed with the site key so the browser cannot lower
+     * its difficulty or push back its expiry.
+     *
+     * @param array{cost: int, keyPrefix: string}|null $difficulty
+     */
+    public static function createChallenge(?array $difficulty = null): array
     {
-        $salt = bin2hex(random_bytes(12));
-        $expires = time() + self::EXPIRATION_SECONDS;
-        $saltWithExpiry = $salt . '?expires=' . $expires;
+        $difficulty ??= self::DEFAULT_DIFFICULTY;
 
-        $secretNumber = random_int(1, self::MAX_NUMBER);
-        $challenge = hash('sha256', $saltWithExpiry . $secretNumber);
-        $signature = hash_hmac('sha256', $challenge, self::getKey());
+        $parameters = [
+            'algorithm' => self::ALGORITHM,
+            'cost'      => (int) $difficulty['cost'],
+            'expiresAt' => time() + self::EXPIRATION_SECONDS,
+            'keyLength' => self::KEY_LENGTH,
+            'keyPrefix' => strtolower($difficulty['keyPrefix']),
+            'nonce'     => bin2hex(random_bytes(16)),
+            'salt'      => bin2hex(random_bytes(16)),
+        ];
 
         return [
-            'algorithm' => self::ALGORITHM,
-            'challenge' => $challenge,
-            'maxnumber' => self::MAX_NUMBER,
-            'salt'      => $saltWithExpiry,
-            'signature' => $signature,
+            'parameters' => $parameters,
+            'signature'  => self::sign($parameters),
         ];
+    }
+
+    /**
+     * The JSON ALTCHA signs: object keys sorted at every level, null values
+     * left out, slashes and Unicode unescaped like JavaScript's
+     * JSON.stringify ("PBKDF2/SHA-256" holds a slash).
+     */
+    public static function canonicalJson(array $value): string
+    {
+        return json_encode(self::sortKeys($value), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * The PBKDF2 key (raw bytes) for a counter, appended to the nonce as a
+     * big-endian uint32 like ALTCHA's PasswordBuffer does.
+     */
+    public static function deriveKey(array $parameters, int $counter): string
+    {
+        return hash_pbkdf2(
+            'sha256',
+            hex2bin($parameters['nonce']) . pack('N', $counter),
+            hex2bin($parameters['salt']),
+            $parameters['cost'],
+            $parameters['keyLength'],
+            true
+        );
     }
 
     /**
@@ -137,36 +177,33 @@ class Altcha implements CaptchaProvider, CaptchaAssets, CaptchaBadge, CaptchaPri
         $data = json_decode($decoded, true);
         if (!is_array($data)) return false;
 
-        $algorithm = $data['algorithm'] ?? null;
         $challenge = $data['challenge'] ?? null;
-        $number    = $data['number'] ?? null;
-        $salt      = $data['salt'] ?? null;
-        $signature = $data['signature'] ?? null;
+        $solution  = $data['solution'] ?? null;
+        if (!is_array($challenge) || !is_array($solution)) return false;
 
-        if (!is_string($algorithm) || !is_string($challenge) || !is_scalar($number) || !is_string($salt) || !is_string($signature)) return false;
-        if ($algorithm !== self::ALGORITHM) return false;
+        $parameters = $challenge['parameters'] ?? null;
+        $signature  = $challenge['signature'] ?? null;
+        if (!is_array($parameters) || !is_string($signature) || !self::isWellFormed($parameters)) return false;
 
-        // Every challenge this class issues carries its expiry in the salt
-        if (!preg_match('/\?expires=(\d+)/', $salt, $matches)) return false;
+        // Cheap checks first, so a forged or stale challenge costs no PBKDF2
+        if (time() > $parameters['expiresAt']) return false;
+        if (!hash_equals(self::sign($parameters), $signature)) return false;
 
-        $expires = (int) $matches[1];
-        if (time() > $expires) return false;
-
-        // Verify challenge hash
-        $expectedChallenge = hash('sha256', $salt . $number);
-        if (!hash_equals($expectedChallenge, $challenge)) return false;
-
-        // Verify HMAC signature
-        $expectedSignature = hash_hmac('sha256', $challenge, self::getKey());
-        if (!hash_equals($expectedSignature, $signature)) return false;
+        $counter    = $solution['counter'] ?? null;
+        $derivedKey = $solution['derivedKey'] ?? null;
+        if (!is_int($counter) || $counter < 0 || $counter > self::MAX_COUNTER) return false;
+        if (!is_string($derivedKey) || !preg_match('/^(?:[0-9a-f]{2})+$/D', $derivedKey)) return false;
 
         // A solved challenge is good for one submission only. The marker
         // lives until the challenge expires, after which the expiry check
         // above rejects it anyway.
-        $marker = self::USED_PREFIX . $challenge;
+        $marker = self::USED_PREFIX . $parameters['nonce'];
         if (get_transient($marker)) return false;
 
-        set_transient($marker, 1, max(1, $expires - time()));
+        $expected = bin2hex(static::deriveKey($parameters, $counter));
+        if (!hash_equals($expected, $derivedKey) || !str_starts_with($expected, $parameters['keyPrefix'])) return false;
+
+        set_transient($marker, 1, max(1, $parameters['expiresAt'] - time()));
 
         return true;
     }
@@ -280,5 +317,44 @@ class Altcha implements CaptchaProvider, CaptchaAssets, CaptchaBadge, CaptchaPri
     private static function generateKey(): string
     {
         return bin2hex(random_bytes(32));
+    }
+
+    private static function sign(array $parameters): string
+    {
+        return hash_hmac('sha256', self::canonicalJson($parameters), self::getKey());
+    }
+
+    /**
+     * Exactly the parameters this class issues, with the types it issues:
+     * an integer stays an integer in the canonical JSON, and a missing or
+     * extra key cannot slip through the signature check.
+     */
+    private static function isWellFormed(array $parameters): bool
+    {
+        $keys = array_keys($parameters);
+        sort($keys, SORT_STRING);
+
+        return $keys === self::PARAMETER_KEYS
+            && $parameters['algorithm'] === self::ALGORITHM
+            && is_int($parameters['cost']) && $parameters['cost'] > 0
+            && is_int($parameters['expiresAt'])
+            && $parameters['keyLength'] === self::KEY_LENGTH
+            && is_string($parameters['keyPrefix']) && preg_match('/^[0-9a-f]{1,64}$/D', $parameters['keyPrefix'])
+            && is_string($parameters['nonce']) && preg_match('/^[0-9a-f]{32}$/D', $parameters['nonce'])
+            && is_string($parameters['salt']) && preg_match('/^[0-9a-f]{32}$/D', $parameters['salt']);
+    }
+
+    /**
+     * Sort object keys at every level and drop null values, like ALTCHA's
+     * sortKeys(); lists keep their order.
+     */
+    private static function sortKeys(array $value): array
+    {
+        if (!array_is_list($value)) {
+            $value = array_filter($value, fn ($item) => $item !== null);
+            ksort($value, SORT_STRING);
+        }
+
+        return array_map(fn ($item) => is_array($item) ? self::sortKeys($item) : $item, $value);
     }
 }
