@@ -11,7 +11,7 @@
     "esbuild": "^0.28.2"
   },
   "dependencies": {
-    "altcha": "^2.3.0",
+    "altcha": "^3.5.0",
     "node-snackbar": "^0.1.16"
   }
 }
