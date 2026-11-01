@@ -429,7 +429,7 @@ Sites pick up new versions from Dashboard → Updates, like any wordpress.org pl
 The plugin uses esbuild to minify JS assets.
 
 ```bash
-nvm use 20
+nvm use 26
 yarn install
 yarn build    # one-time build
 yarn watch    # watch mode

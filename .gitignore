@@ -4,6 +4,9 @@ node_modules/
 # PHPUnit result cache.
 .phpunit.cache/
 
+# JS tests bundled by `yarn test:js`.
+.cache/
+
 # Build output stays tracked: WordPress installs the plugin by copying it,
 # there is no build step on the server.
 
