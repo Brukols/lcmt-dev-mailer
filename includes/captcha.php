@@ -78,15 +78,29 @@ class Captcha
     }
 
     /**
-     * The provider protecting a mail template, when it is ready.
+     * The provider protecting a mail template, when it is ready. A template
+     * choice that is not ready falls back to the site default's provider,
+     * if that one is ready; "none" always means no protection.
      *
      * @return class-string<CaptchaProvider>|null
      */
     public static function activeFor(int $postId): ?string
     {
-        $provider = self::providers()[self::selectedIdFor($postId)] ?? null;
+        $providers = self::providers();
+        $id        = self::selectedIdFor($postId);
+        $provider  = $providers[$id] ?? null;
 
-        return $provider && $provider::isReady() ? $provider : null;
+        if ($provider && $provider::isReady()) {
+            return $provider;
+        }
+
+        if ($id === self::NONE) {
+            return null;
+        }
+
+        $default = $providers[self::selectedId()] ?? null;
+
+        return $default && $default::isReady() ? $default : null;
     }
 
     /**

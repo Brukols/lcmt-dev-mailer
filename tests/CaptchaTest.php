@@ -44,6 +44,19 @@ class FakeCaptchaProvider implements CaptchaProvider
     public static function renderSettings(): void {}
 }
 
+class UnreadyCaptchaProvider extends FakeCaptchaProvider
+{
+    public static function id(): string
+    {
+        return 'unready';
+    }
+
+    public static function isReady(): bool
+    {
+        return false;
+    }
+}
+
 class CaptchaTest extends TestCase
 {
     protected function setUp(): void
@@ -54,6 +67,7 @@ class CaptchaTest extends TestCase
             'lcmt_mailer_captcha_providers' => [
                 'altcha' => \LcmtDevMailer\Altcha::class,
                 'fake'   => FakeCaptchaProvider::class,
+                'unready' => UnreadyCaptchaProvider::class,
             ],
         ];
         FakeCaptchaProvider::$result = true;
@@ -120,5 +134,22 @@ class CaptchaTest extends TestCase
         $this->assertSame('none', Captcha::sanitizeForMail('none'));
         $this->assertSame('fake', Captcha::sanitizeForMail('fake'));
         $this->assertSame('', Captcha::sanitizeForMail('<x>'));
+    }
+
+    public function test_unready_template_choice_falls_back_to_ready_site_default(): void
+    {
+        $GLOBALS['lcmt_test_options'][Captcha::OPTION] = 'fake';
+        $this->setMeta('unready');
+
+        $this->assertSame(FakeCaptchaProvider::class, Captcha::activeFor(7));
+    }
+
+    public function test_unready_template_choice_and_unready_default_give_no_protection(): void
+    {
+        $GLOBALS['lcmt_test_options'][Captcha::OPTION] = 'unready';
+        $this->setMeta('unready');
+
+        $this->assertNull(Captcha::activeFor(7));
+        $this->assertSame(Captcha::PASSED, Captcha::check(7, []));
     }
 }

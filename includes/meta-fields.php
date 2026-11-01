@@ -184,14 +184,11 @@ class MetaFields
             )) . '</option>';
         echo '<option value="' . esc_attr(Captcha::NONE) . '" ' . selected($stored, Captcha::NONE, false) . '>' . esc_html__('None', 'lcmt-dev-mailer') . '</option>';
 
-        $notReady = false;
-
         foreach ($providers as $id => $provider) {
             $label = $provider::label();
 
             if (!$provider::isReady()) {
                 $label .= ' — ' . __('not set up', 'lcmt-dev-mailer');
-                $notReady = true;
             }
 
             echo '<option value="' . esc_attr($id) . '" ' . selected($stored, $id, false) . '>' . esc_html($label) . '</option>';
@@ -200,7 +197,10 @@ class MetaFields
         echo '</select>';
         echo '<p class="description">' . esc_html__('Blocks automated submissions of this form.', 'lcmt-dev-mailer');
 
-        if ($notReady) {
+        $selectedProvider = $providers[Captcha::selectedIdFor($post->ID)] ?? null;
+        $defaultProvider  = $providers[$defaultId] ?? null;
+
+        if (($selectedProvider && !$selectedProvider::isReady()) || ($defaultProvider && !$defaultProvider::isReady())) {
             echo ' <a href="' . esc_url(CaptchaSettings::url()) . '">' . esc_html__('Set up a protection', 'lcmt-dev-mailer') . '</a>';
         }
 
