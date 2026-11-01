@@ -2,6 +2,8 @@
 
 use LcmtDevMailer\SecretBox;
 use LcmtDevMailer\UnreadableSecrets;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 
 class SecretBoxTest extends TestCase
@@ -42,10 +44,8 @@ class SecretBoxTest extends TestCase
         $this->assertNull(SecretBox::decrypt('plain'));
     }
 
-    /**
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function test_other_salts_cannot_decrypt(): void
     {
         $stored = SecretBox::encrypt('s3cret');
@@ -56,10 +56,8 @@ class SecretBoxTest extends TestCase
         $this->assertNull(SecretBox::decrypt($stored));
     }
 
-    /**
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function test_constant_key_wins_over_salts(): void
     {
         define('LCMT_MAILER_ENCRYPTION_KEY', 'another-key-source');

@@ -21,7 +21,8 @@ class UnreadableSecretsTest extends TestCase
         $this->assertCount(1, $GLOBALS['lcmt_test_mails']);
         $mail = $GLOBALS['lcmt_test_mails'][0];
         $this->assertSame('admin@example.test', $mail['to']);
-        $this->assertStringContainsString('Test site', $mail['subject']);
+        $this->assertStringContainsString('Test & site', $mail['subject']);
+        $this->assertStringContainsString('Test & site', $mail['message']);
         $this->assertStringContainsString('Key A', $mail['message']);
         $this->assertStringContainsString('lcmt-mailer-spam-protection', $mail['message']);
     }

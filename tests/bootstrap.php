@@ -55,7 +55,12 @@ function delete_option($name)
 
 function get_bloginfo($show = '')
 {
-    return 'Test site';
+    return 'Test &amp; site';
+}
+
+function wp_specialchars_decode($text, $quoteStyle = ENT_NOQUOTES)
+{
+    return htmlspecialchars_decode((string) $text, $quoteStyle);
 }
 
 function wp_mail($to, $subject, $message)

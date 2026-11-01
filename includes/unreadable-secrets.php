@@ -26,7 +26,8 @@ class UnreadableSecrets
         // send a single email.
         if (!add_option(self::LOCK_PREFIX . $option, time(), '', false)) return;
 
-        $siteName = get_bloginfo('name');
+        // get_bloginfo() returns HTML-escaped text; this mail is plain text
+        $siteName = wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES);
 
         $subject = sprintf(
             /* translators: %s: site name */
