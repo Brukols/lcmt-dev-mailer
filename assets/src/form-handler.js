@@ -16,20 +16,21 @@
 import Snackbar from 'node-snackbar';
 import 'node-snackbar/dist/snackbar.min.css';
 import './form-handler.css';
-import 'altcha';
 import { formContext } from './lib/attribution';
 import { requestUrl } from './lib/request-url';
 import { handleSuccess } from './lib/form-success';
+import { captchaToken, resetCaptcha } from './lib/captcha/registry';
+import { scriptBase, adapterLoader } from './lib/captcha/script-loader';
 
 (function () {
   'use strict';
 
   var SUBMITTING_CLASS = 'lcmt-form--submitting';
 
-  // A proof this close to its expiry is solved again before sending, so it
-  // does not expire on its way to the server.
-  var CAPTCHA_EXPIRY_MARGIN_MS = 30000;
-  var CAPTCHA_TIMEOUT_MS = 30000;
+  // Each spam protection has its own captcha-{id}.js next to this file. A
+  // page from a full-page cache may lack the one its form needs: the form
+  // then loads it from here (see lib/captcha/script-loader.js).
+  var loadCaptchaAdapter = adapterLoader(scriptBase(document.currentScript && document.currentScript.src), document);
 
   // ── Alert ──
 
@@ -129,84 +130,6 @@ import { handleSuccess } from './lib/form-success';
     form.classList.remove(SUBMITTING_CLASS);
   }
 
-  // ── Spam protection (ALTCHA) ──
-
-  /**
-   * Whether an ALTCHA proof is expired or about to be.
-   *
-   * The widget solves a new challenge when the current one expires, but its
-   * timer stands still while the computer sleeps and slows down in a hidden
-   * tab, so a visitor coming back can hold a proof the server will refuse.
-   */
-  function captchaExpiresSoon(payload) {
-    try {
-      var salt = JSON.parse(atob(payload)).salt || '';
-      var match = /[?&]expires=(\d+)/.exec(salt);
-
-      return !match || Number(match[1]) * 1000 - Date.now() < CAPTCHA_EXPIRY_MARGIN_MS;
-    } catch (err) {
-      return true;
-    }
-  }
-
-  /**
-   * Start the widget over and resolve with the proof of a new challenge.
-   */
-  function solveCaptcha(widget) {
-    return new Promise(function (resolve, reject) {
-      var timer = setTimeout(function () { done(); reject(new Error('ALTCHA timed out')); }, CAPTCHA_TIMEOUT_MS);
-
-      function onVerified(e) {
-        done();
-        resolve(e.detail && e.detail.payload);
-      }
-
-      function onStateChange(e) {
-        if (e.detail && e.detail.state === 'error') {
-          done();
-          reject(new Error('ALTCHA failed'));
-        }
-      }
-
-      function done() {
-        clearTimeout(timer);
-        widget.removeEventListener('verified', onVerified);
-        widget.removeEventListener('statechange', onStateChange);
-      }
-
-      widget.addEventListener('verified', onVerified);
-      widget.addEventListener('statechange', onStateChange);
-      widget.reset();
-      widget.verify();
-    });
-  }
-
-  /**
-   * Resolve with a proof the server will accept, or null without a widget.
-   */
-  function captchaPayload(form) {
-    var widget = form.querySelector('altcha-widget');
-
-    if (!widget) return Promise.resolve(null);
-
-    var input = form.querySelector('input[name="altcha"]');
-    var payload = input ? input.value : '';
-
-    if (payload && !captchaExpiresSoon(payload)) return Promise.resolve(payload);
-
-    return solveCaptcha(widget);
-  }
-
-  /**
-   * The server spends a proof as soon as it reads it, even when it then
-   * refuses a field, so every answer needs a new one.
-   */
-  function resetCaptcha(form) {
-    var widget = form.querySelector('altcha-widget');
-
-    if (widget && typeof widget.reset === 'function') widget.reset();
-  }
-
   // ── Form binding ──
 
   function init() {
@@ -217,15 +140,6 @@ import { handleSuccess } from './lib/form-success';
   }
 
   function bindForm(form) {
-    // Cache-bust the ALTCHA challenge URL to prevent stale cached responses
-    var altchaWidget = form.querySelector('altcha-widget');
-    if (altchaWidget) {
-      var url = altchaWidget.getAttribute('challengeurl');
-      if (url) {
-        altchaWidget.setAttribute('challengeurl', url + (url.indexOf('?') === -1 ? '?' : '&') + 't=' + Date.now());
-      }
-    }
-
     // The hidden ALTCHA widget keeps a required checkbox that its reset
     // unchecks after each answer: left to the browser, that invisible field
     // blocks every later submit before this handler runs. Required fields
@@ -289,13 +203,13 @@ import { handleSuccess } from './lib/form-success';
       // stays busy so it is not sent a second time on the way.
       var redirecting = false;
 
-      captchaPayload(form)
+      captchaToken(form, window, undefined, loadCaptchaAdapter)
         .catch(function (err) {
           captchaFailed = true;
           throw err;
         })
-        .then(function (payload) {
-          if (payload) data['altcha'] = payload;
+        .then(function (captcha) {
+          if (captcha) data[captcha.field] = captcha.token;
           data['_context'] = formContext(startedAt);
 
           return fetch(requestUrl(endpoint, window.lcmtMailerFront), {
@@ -310,7 +224,7 @@ import { handleSuccess } from './lib/form-success';
         })
         .then(function (res) { return res.json(); })
         .then(function (res) {
-          resetCaptcha(form);
+          resetCaptcha(form, window);
 
           if (res.success) {
             // lcmt:success listeners still see the values the visitor sent.
@@ -344,7 +258,7 @@ import { handleSuccess } from './lib/form-success';
         .catch(function () {
           var i18n = (window.lcmtMailerFront && window.lcmtMailerFront.i18n) || {};
 
-          resetCaptcha(form);
+          resetCaptcha(form, window);
           showAlert(captchaFailed
             ? i18n.captchaFailed || 'Security verification failed. Please try again.'
             : i18n.genericError || 'An error occurred.', 'error');

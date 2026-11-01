@@ -147,4 +147,17 @@ class AltchaTest extends TestCase
 
         $this->assertTrue(SecretBox::isEncrypted($GLOBALS['lcmt_test_options'][Altcha::OPTION_KEY]));
     }
+
+    public function test_widget_names_its_adapter(): void
+    {
+        $widget = Altcha::widget();
+
+        $this->assertStringStartsWith('<altcha-widget data-lcmt-captcha="altcha" ', $widget);
+        $this->assertStringContainsString('challengeurl="https://example.test/wp-json/lcmt-mailer/v1/altcha/challenge"', $widget);
+    }
+
+    public function test_altcha_loads_its_own_script(): void
+    {
+        $this->assertTrue(is_subclass_of(Altcha::class, \LcmtDevMailer\CaptchaAssets::class));
+    }
 }

@@ -38,7 +38,7 @@ The "Generate form template" button in the admin creates `forms/{key}.php` with:
 
 ## form-handler.js
 
-Vanilla JS (no dependencies), auto-loaded when a form is rendered. Located at `assets/src/form-handler.js`.
+Vanilla JS (no jQuery), auto-loaded when a form is rendered. Located at `assets/src/form-handler.js`.
 
 ### How it works
 
@@ -47,10 +47,20 @@ Vanilla JS (no dependencies), auto-loaded when a form is rendered. Located at `a
 3. On submit:
    - Collects all `[name]` inputs
    - Validates `required` inputs and `type="email"` inputs client-side
-   - Makes sure the ALTCHA proof is still valid: when it is missing or expires within 30 s (the widget's own refresh timer stops while the computer sleeps), the widget solves a new challenge before sending
+   - Asks the form's spam protection for a token (see "Spam protection adapters" below); the ALTCHA adapter keeps the current proof unless it is missing or expires within 30 s (the widget's own refresh timer stops while the computer sleeps), else solves a new challenge before sending
    - Sends `fetch POST` with JSON body to the endpoint; on a multilingual site (`lcmtMailerFront.lang` set from `pll_current_language()`), `lib/request-url.js` adds `?lang=<slug>` so the answer and the mail use the page language
    - Handles success/error states: on success, fires `lcmt:success` on the form, then goes to the form's confirmation page when the answer has a `redirect` URL, else shows the success message and resets the form (see below)
-   - Resets the ALTCHA widget after every answer: the server spends a proof as soon as it reads it, even when it then refuses a field, so a corrected form needs a new one
+   - Resets the spam protection after every answer: the server spends a token as soon as it reads it, even when it then refuses a field, so a corrected form needs a new one
+
+### Spam protection adapters
+
+Each protection has its own script, `assets/src/captcha-{id}.js` (built to `assets/dist/`), enqueued by its PHP provider's `enqueueAssets()` (`CaptchaAssets`) only on pages with a form it guards. `form-handler.js` knows no provider: it goes through `lib/captcha/registry.js`.
+
+- **Contract** (`CaptchaAdapter`): `id` (same as the PHP provider), `field` (body key the server reads the token from), `token(widget) → Promise<string>`, `reset(widget)` (called after every server answer). `defineAdapter()` checks it (TypeError naming the missing member) and returns a frozen copy.
+- **Registration:** `registerAdapter(adapter)` stores it in `window.lcmtMailerCaptchas[id]` and fires `lcmt:captcha-ready` (`detail.id`) on `document`, so the separate bundles share it.
+- **Widget:** the form's `[data-lcmt-captcha="{id}"]` element, or a legacy `<altcha-widget>` without the attribute (id `altcha`).
+- **On submit**, `captchaToken(form, window, timeoutMs, loadAdapter)` waits up to 30 s for an adapter not registered yet. A full-page cache can serve HTML rendered before the adapters, without the `<script>` of `captcha-{id}.js`: `loadAdapter(id)` (`lib/captcha/script-loader.js`) is then called once per id and appends `<script src="{dist}/captcha-{id}.js" defer>`, `{dist}` being the folder of `form-handler.js` (`document.currentScript`).
+- **ALTCHA** (`captcha-altcha.js`): bundles `altcha`, cache-busts each widget's `challengeurl` on load, and registers `{ id: 'altcha', field: 'altcha' }` on the next task (the widget mounts a microtask after its element is defined).
 
 ### Success event and confirmation page
 

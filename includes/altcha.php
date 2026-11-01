@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
  * The HMAC key comes from the ALTCHA_HMAC_KEY constant when wp-config.php
  * defines it, otherwise from an option generated on first use.
  */
-class Altcha implements CaptchaProvider
+class Altcha implements CaptchaProvider, CaptchaAssets
 {
     public const OPTION_KEY = 'lcmt_mailer_altcha_key';
     public const REGENERATE_ACTION = 'lcmt_mailer_regenerate_altcha_key';
@@ -56,7 +56,18 @@ class Altcha implements CaptchaProvider
         // handler waits for the proof behind its loader instead.
         $strings = wp_json_encode(['waitAlert' => '']);
 
-        return '<altcha-widget challengeurl="' . esc_attr($challengeUrl) . '" auto="onfocus" strings="' . esc_attr($strings) . '" hidefooter style="display:none;"></altcha-widget>';
+        return '<altcha-widget data-lcmt-captcha="altcha" challengeurl="' . esc_attr($challengeUrl) . '" auto="onfocus" strings="' . esc_attr($strings) . '" hidefooter style="display:none;"></altcha-widget>';
+    }
+
+    public static function enqueueAssets(): void
+    {
+        wp_enqueue_script(
+            'lcmt-captcha-altcha',
+            LCMT_MAILER_URL . 'assets/dist/captcha-altcha.js',
+            [],
+            lcmt_mailer_asset_version('assets/dist/captcha-altcha.js'),
+            ['in_footer' => true, 'strategy' => 'defer']
+        );
     }
 
     public static function verify(array $body): bool

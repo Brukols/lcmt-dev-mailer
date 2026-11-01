@@ -141,6 +141,11 @@ function home_url($path = '')
     return 'https://example.test' . $path;
 }
 
+function wp_json_encode($data)
+{
+    return json_encode($data);
+}
+
 function wp_parse_url($url, $component = -1)
 {
     return parse_url($url, $component);
