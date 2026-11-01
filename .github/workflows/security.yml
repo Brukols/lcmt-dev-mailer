@@ -27,7 +27,7 @@ jobs:
             # Official image (hub.docker.com/r/semgrep/semgrep), pinned by digest; update it like the other actions
             image: semgrep/semgrep:1.181.0@sha256:81474464c1f07483ba0682a44787fd93c91397419762a04abe2bafaae396304b
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7
               with:
                   fetch-depth: 0
             - name: Scan
@@ -46,7 +46,7 @@ jobs:
         if: github.event_name != 'pull_request'
         runs-on: ubuntu-24.04
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7
             - uses: actions/setup-node@v4
               with:
                   node-version: "20"
