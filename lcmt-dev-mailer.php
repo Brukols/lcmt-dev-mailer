@@ -4,7 +4,7 @@
  * Plugin Name: LCMT Mailer
  * Plugin URI: https://github.com/Brukols/lcmt-dev-mailer
  * Description: Developer-oriented mail engine. Create mail templates in WP admin, auto-generates REST endpoints, form rendering, validation and TypeScript types.
- * Version: 2.7.0
+ * Version: 2.8.0
  * Author: Amaury Lecomte
  * Author URI:
  * Text Domain: lcmt-dev-mailer
