@@ -12,7 +12,7 @@ Same setup as the sites that use the plugin (ori, insho, twin-3d), 2026-11-01. E
 | Claude Security | A review of a branch before merging (`/claude-security`, "Scan changes") | On request | Report in `CLAUDE-SECURITY-<date>/` (git-ignored) |
 
 ## Rules
-- **Bundled packages end up in `assets/dist`**, which is tracked: after a Dependabot PR on a `dependencies` package, rebuild (`nvm use 20 && yarn build`), run `yarn test:js`, and commit `assets/dist` with it.
+- **Bundled packages end up in `assets/dist`**, which is tracked: after a Dependabot PR on a `dependencies` package, rebuild (`nvm use 26 && yarn build`), run `yarn test:js`, and commit `assets/dist` with it.
 - **esbuild is not audited by the blocking job**: it only runs on the computer and in CI. Dependabot updates it.
 - **Semgrep image pinned by version and digest** (official image, Docker Hub org `semgrep`), the same as the sites. Update both together after the usual checks.
 - **False positive**: `// nosemgrep: <rule id>` on the line, with the reason in a comment nearby. Never a global exclusion.

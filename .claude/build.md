@@ -3,7 +3,7 @@
 ## Setup
 
 ```bash
-nvm use 20
+nvm use 26
 yarn install
 ```
 

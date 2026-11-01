@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "esbuild assets/src/*.js --bundle --minify --target=es2018 --outdir=assets/dist",
-    "test:js": "rm -rf node_modules/.cache/lcmt-js-tests && esbuild tests/js/*.test.js --bundle --platform=node --format=cjs --external:esbuild --outdir=node_modules/.cache/lcmt-js-tests && node --test node_modules/.cache/lcmt-js-tests/*.js",
+    "test:js": "rm -rf .cache/js-tests && esbuild tests/js/*.test.js --bundle --platform=node --format=cjs --external:esbuild --outdir=.cache/js-tests && node --test .cache/js-tests/*.js",
     "watch": "esbuild assets/src/*.js --bundle --minify --target=es2018 --outdir=assets/dist --watch"
   },
   "devDependencies": {
