@@ -81,6 +81,17 @@ class SecretBox
      * encrypted in place; one that cannot be read is reported and comes back
      * empty, so the caller can generate or ask for a new one.
      */
+    /**
+     * Whether an option holds an encrypted value that can no longer be
+     * decrypted. Reads the raw option only: reports nothing, writes nothing.
+     */
+    public static function isUnreadable(string $option): bool
+    {
+        $stored = (string) get_option($option, '');
+
+        return $stored !== '' && self::isEncrypted($stored) && self::decrypt($stored) === null;
+    }
+
     public static function readOption(string $option, string $label, bool $report = true): string
     {
         $stored = (string) get_option($option, '');

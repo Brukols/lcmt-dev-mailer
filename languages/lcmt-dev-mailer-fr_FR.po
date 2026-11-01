@@ -193,15 +193,15 @@ msgstr "Fichier formulaire"
 msgid "Actions"
 msgstr "Actions"
 
-#: includes/admin-mail-sender.php:418
+#: includes/admin-mail-sender.php:419
 msgid "Manage"
 msgstr "Gérer"
 
-#: includes/admin-mail-sender.php:505
+#: includes/admin-mail-sender.php:508
 msgid "Tip:"
 msgstr "Astuce :"
 
-#: includes/admin-mail-sender.php:505
+#: includes/admin-mail-sender.php:508
 msgid "You can send test emails directly from the edit page using the \"Actions & Usage\" panel on the right."
 msgstr "Vous pouvez envoyer des emails de test directement depuis la page d'édition en utilisant le panneau \"Actions & Utilisation\" sur la droite."
 
@@ -239,27 +239,27 @@ msgstr "Utile uniquement si la clé a pu fuiter, par exemple depuis une copie de
 
 #: includes/captcha-settings.php:25
 #: includes/captcha-settings.php:26
-#: includes/captcha-settings.php:135
+#: includes/captcha-settings.php:149
 #: includes/meta-fields.php:176
 msgid "Spam protection"
 msgstr "Protection anti-spam"
 
-#: includes/captcha-settings.php:195
+#: includes/captcha-settings.php:211
 msgid "Site default protection"
 msgstr "Protection par défaut du site"
 
-#: includes/captcha-settings.php:208
+#: includes/captcha-settings.php:224
 msgid "Each email template can override it with its own Spam protection setting."
 msgstr "Chaque modèle d'e-mail peut la remplacer par son propre réglage « Protection anti-spam »."
 
-#: includes/captcha-settings.php:200
+#: includes/captcha-settings.php:216
 #: includes/meta-fields.php:173
 #: includes/meta-fields.php:185
 #: includes/meta-fields.php:228
 msgid "None"
 msgstr "Aucune"
 
-#: includes/captcha-settings.php:210
+#: includes/captcha-settings.php:226
 msgid "Forms accept any submission, including from bots."
 msgstr "Les formulaires acceptent tous les envois, y compris ceux des robots."
 
@@ -380,7 +380,7 @@ msgid "Unknown form."
 msgstr "Formulaire inconnu."
 
 #: includes/form-endpoint.php:80
-#: includes/form-renderer.php:156
+#: includes/form-renderer.php:166
 msgid "Security verification failed. Please try again."
 msgstr "La vérification de sécurité a échoué. Veuillez réessayer."
 
@@ -397,11 +397,11 @@ msgstr "Certains champs sont invalides ou manquants. Veuillez vérifier et rées
 msgid "Your message could not be sent. Please try again later or contact us by email."
 msgstr "Votre message n'a pas pu être envoyé. Merci de réessayer plus tard ou de nous contacter par e-mail."
 
-#: includes/form-renderer.php:154
+#: includes/form-renderer.php:164
 msgid "Please fill in all required fields."
 msgstr "Veuillez remplir tous les champs obligatoires."
 
-#: includes/form-renderer.php:155
+#: includes/form-renderer.php:165
 #: includes/settings.php:384
 msgid "An error occurred."
 msgstr "Une erreur est survenue."
@@ -1001,7 +1001,7 @@ msgid "Sender"
 msgstr "Expéditeur"
 
 #: includes/submissions-list-table.php:34
-#: includes/turnstile.php:368
+#: includes/turnstile.php:373
 msgid "Status"
 msgstr "Statut"
 
@@ -1326,33 +1326,33 @@ msgstr "Désactivation…"
 msgid "Deactivate"
 msgstr "Désactiver"
 
-#: includes/captcha-settings.php:216
+#: includes/captcha-settings.php:232
 msgid "If the verification service does not answer"
 msgstr "Si le service de vérification ne répond pas"
 
-#: includes/captcha-settings.php:220
+#: includes/captcha-settings.php:236
 msgid "Refuse the message (recommended)"
 msgstr "Refuser le message (recommandé)"
 
-#: includes/captcha-settings.php:222
+#: includes/captcha-settings.php:238
 msgid "Accept it"
 msgstr "L'accepter"
 
-#: includes/captcha-settings.php:228
+#: includes/captcha-settings.php:244
 msgid "Blocked messages"
 msgstr "Messages bloqués"
 
-#: includes/captcha-settings.php:232
+#: includes/captcha-settings.php:248
 msgid "Keep blocked messages in Received messages → Spam"
 msgstr "Conserver les messages bloqués dans Messages reçus → Spam"
 
-#: includes/captcha-settings.php:234
+#: includes/captcha-settings.php:250
 msgid "Never emailed. If a real visitor was blocked, open the message, take it out of Spam with \"Mark as unread\", then use \"Send the email again\"."
 msgstr "Jamais envoyés par e-mail. Si un vrai visiteur a été bloqué, ouvrez son message, retirez-le du spam avec « Marquer comme non lu », puis utilisez « Renvoyer l'e-mail »."
 
 #. translators: %s: spam protection name
 #. translators: %s: name of the site-wide spam protection
-#: includes/admin-mail-sender.php:472
+#: includes/admin-mail-sender.php:475
 #: includes/meta-fields.php:182
 #, php-format
 msgid "Site default (%s)"
@@ -1420,74 +1420,75 @@ msgstr "Bloqué car le service de vérification n'a pas répondu : probablement 
 msgid "Blocked by the spam protection."
 msgstr "Bloqué par la protection anti-spam."
 
+#: includes/turnstile.php:66
 #: includes/turnstile.php:141
 msgid "Cloudflare Turnstile secret key"
 msgstr "Clé secrète Cloudflare Turnstile"
 
-#: includes/turnstile.php:311
+#: includes/turnstile.php:316
 msgid "Cloudflare setup"
 msgstr "Configuration de Cloudflare"
 
 #. translators: %s: link to the Cloudflare dashboard
-#: includes/turnstile.php:317
+#: includes/turnstile.php:322
 #, php-format
 msgid "Create a widget in the Cloudflare dashboard (%s), list the hostnames of this site (production and staging), then copy both keys here."
 msgstr "Créez un widget dans le tableau de bord Cloudflare (%s), indiquez les noms de domaine de ce site (production et préproduction), puis copiez les deux clés ici."
 
-#: includes/turnstile.php:318
+#: includes/turnstile.php:323
 msgid "Turnstile, Add widget"
 msgstr "Turnstile, Ajouter un widget"
 
-#: includes/turnstile.php:325
+#: includes/turnstile.php:330
 msgid "Site key"
 msgstr "Clé du site"
 
-#: includes/turnstile.php:334
+#: includes/turnstile.php:339
 msgid "Secret key"
 msgstr "Clé secrète"
 
-#: includes/turnstile.php:344
+#: includes/turnstile.php:349
 msgid "The saved key can no longer be read (WordPress security keys changed or database copied from another site). Enter it again."
 msgstr "La clé enregistrée n'est plus lisible (clés de sécurité WordPress modifiées ou base de données copiée depuis un autre site). Saisissez-la à nouveau."
 
-#: includes/turnstile.php:355
+#: includes/turnstile.php:360
 msgid "Forget the saved secret key"
 msgstr "Oublier la clé secrète enregistrée"
 
-#: includes/turnstile.php:362
+#: includes/turnstile.php:367
 msgid "Stored without encryption: this site has no WordPress security keys."
 msgstr "Stockée sans chiffrement : ce site n'a pas de clés de sécurité WordPress."
 
-#: includes/turnstile.php:376
+#: includes/turnstile.php:381
 msgid "Cloudflare accepts the keys."
 msgstr "Cloudflare accepte les clés."
 
-#: includes/turnstile.php:379
+#: includes/turnstile.php:384
 msgid "Cloudflare refuses the secret key."
 msgstr "Cloudflare refuse la clé secrète."
 
-#: includes/turnstile.php:382
+#: includes/turnstile.php:387
 msgid "Cloudflare could not be reached."
 msgstr "Cloudflare est injoignable."
 
-#: includes/turnstile.php:385
+#: includes/turnstile.php:390
 msgid "Add both keys to protect forms with Turnstile."
 msgstr "Ajoutez les deux clés pour protéger les formulaires avec Turnstile."
 
-#: includes/turnstile.php:392
+#: includes/turnstile.php:397
 msgid "Appearance"
 msgstr "Apparence"
 
-#: includes/turnstile.php:396
+#: includes/turnstile.php:401
 msgid "Only when Cloudflare needs the visitor (recommended)"
 msgstr "Uniquement lorsque Cloudflare sollicite le visiteur (recommandé)"
 
-#: includes/turnstile.php:399
+#: includes/turnstile.php:404
 msgid "Always visible"
 msgstr "Toujours visible"
 
 #. translators: 1-2: site key and secret key that always pass, 3-4: site key and secret key that always fail
-#: includes/turnstile.php:406
+#: includes/turnstile.php:411
 #, php-format
 msgid "To test, Cloudflare publishes keys: site key %1$s with secret key %2$s always passes; site key %3$s with secret key %4$s always fails."
 msgstr "Pour tester, Cloudflare publie des clés : la clé de site %1$s avec la clé secrète %2$s réussit toujours ; la clé de site %3$s avec la clé secrète %4$s échoue toujours."
@@ -1528,22 +1529,22 @@ msgstr "Ouvrir la page Protection anti-spam"
 msgid "Protection"
 msgstr "Protection"
 
-#: includes/admin-mail-sender.php:436
+#: includes/admin-mail-sender.php:439
 msgid "Not protected"
 msgstr "Non protégé"
 
 #. translators: %s: spam protection name
-#: includes/admin-mail-sender.php:446
+#: includes/admin-mail-sender.php:449
 #, php-format
 msgid "%s — not set up"
 msgstr "%s — non configurée"
 
-#: includes/turnstile.php:350
+#: includes/turnstile.php:355
 msgid "Saved. Leave empty to keep it."
 msgstr "Enregistrée. Laissez vide pour la conserver."
 
 #. translators: 1: spam protection the template chose, 2: site default protection used instead
-#: includes/admin-mail-sender.php:457
+#: includes/admin-mail-sender.php:460
 #, php-format
 msgid "%1$s — not set up (using %2$s)"
 msgstr "%1$s — non configurée (%2$s utilisée à la place)"
@@ -1564,27 +1565,27 @@ msgstr "Pour protéger nos formulaires contre les envois automatisés (spam, rob
 msgid "This processing is based on our legitimate interest in securing our site and protecting it against abuse (Article 6(1)(f) of the GDPR)."
 msgstr "Ce traitement repose sur notre intérêt légitime à sécuriser notre site et à le protéger contre les abus (article 6.1.f du RGPD)."
 
-#: includes/captcha-settings.php:101
+#: includes/captcha-settings.php:115
 msgid "Active"
 msgstr "Active"
 
-#: includes/captcha-settings.php:103
+#: includes/captcha-settings.php:117
 msgid "Ready, not used"
 msgstr "Prête, non utilisée"
 
-#: includes/captcha-settings.php:105
+#: includes/captcha-settings.php:119
 msgid "Key unreadable"
 msgstr "Clé illisible"
 
-#: includes/captcha-settings.php:107
+#: includes/captcha-settings.php:121
 msgid "Not set up"
 msgstr "Non configurée"
 
-#: includes/captcha-settings.php:139
+#: includes/captcha-settings.php:153
 msgid "Spam protection sections"
 msgstr "Sections de la protection anti-spam"
 
-#: includes/captcha-settings.php:141
+#: includes/captcha-settings.php:155
 msgid "General"
 msgstr "Général"
 

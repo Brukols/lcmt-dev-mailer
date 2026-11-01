@@ -45,6 +45,14 @@ class Captcha
     public const UNAVAILABLE = 'unavailable';
 
     /**
+     * isReady() of each provider, kept for the request: a page may resolve
+     * many templates, and Turnstile decrypts its secret to answer.
+     *
+     * @var array<string, bool>
+     */
+    private static array $ready = [];
+
+    /**
      * Providers whose assets were already enqueued on this page.
      *
      * @var string[]
@@ -112,7 +120,7 @@ class Captcha
         $id        = self::selectedIdFor($postId);
         $provider  = $providers[$id] ?? null;
 
-        if ($provider && $provider::isReady()) {
+        if ($provider && self::isReady($provider)) {
             return $provider;
         }
 
@@ -122,7 +130,68 @@ class Captcha
 
         $default = $providers[self::selectedId()] ?? null;
 
-        return $default && $default::isReady() ? $default : null;
+        return $default && self::isReady($default) ? $default : null;
+    }
+
+    /**
+     * A provider's isReady(), asked once per request.
+     *
+     * @param class-string<CaptchaProvider> $provider
+     */
+    public static function isReady(string $provider): bool
+    {
+        return self::$ready[$provider] ??= $provider::isReady();
+    }
+
+    /**
+     * Forget the readiness kept for the request (hooked on every option change).
+     */
+    public static function forgetReady(): void
+    {
+        self::$ready = [];
+    }
+
+    /**
+     * Encrypted keys of a provider that can no longer be decrypted, from
+     * the raw options: no report, no email.
+     *
+     * @param class-string<CaptchaProvider> $provider
+     * @return array<string, string> Option => label.
+     */
+    public static function unreadableSecrets(string $provider): array
+    {
+        if (!is_subclass_of($provider, CaptchaSecrets::class)) return [];
+
+        return array_filter(
+            $provider::secretOptions(),
+            static fn($option) => SecretBox::isUnreadable((string) $option),
+            ARRAY_FILTER_USE_KEY
+        );
+    }
+
+    /**
+     * A form of this template is really used (rendered or submitted): report
+     * the unreadable keys of the providers it relies on (its choice and the
+     * site default), and clear the reports of the keys that read fine again.
+     */
+    public static function useSecrets(int $postId): void
+    {
+        $providers = self::providers();
+        $involved  = array_filter([$providers[self::selectedIdFor($postId)] ?? null, $providers[self::selectedId()] ?? null]);
+
+        foreach (array_unique($involved) as $provider) {
+            if (!is_subclass_of($provider, CaptchaSecrets::class)) continue;
+
+            $unreadable = self::unreadableSecrets($provider);
+
+            foreach ($provider::secretOptions() as $option => $label) {
+                if (isset($unreadable[$option])) {
+                    UnreadableSecrets::report($option, $label);
+                } elseif (UnreadableSecrets::has($option)) {
+                    UnreadableSecrets::clear($option);
+                }
+            }
+        }
     }
 
     /**
@@ -139,7 +208,7 @@ class Captcha
         $used      = [];
 
         $default = $providers[self::selectedId()] ?? null;
-        if ($default && $default::isReady()) {
+        if ($default && self::isReady($default)) {
             $used[] = $default;
         }
 
@@ -167,16 +236,12 @@ class Captcha
             return self::STATUS_NOT_SET_UP;
         }
 
-        // First, since reading a key is what records it as unreadable
-        $ready = $provider::isReady();
-
-        if (is_subclass_of($provider, CaptchaSecrets::class)) {
-            foreach ($provider::secretOptions() as $option) {
-                if (UnreadableSecrets::has($option)) return self::STATUS_UNREADABLE;
-            }
+        // From the raw options: computing a status records and mails nothing
+        if (self::unreadableSecrets($provider) !== []) {
+            return self::STATUS_UNREADABLE;
         }
 
-        if (!$ready) {
+        if (!self::isReady($provider)) {
             return self::STATUS_NOT_SET_UP;
         }
 
@@ -188,7 +253,7 @@ class Captcha
      */
     private static function publishedMailIds(): array
     {
-        return array_map('intval', get_posts([
+        $ids = array_map('intval', get_posts([
             'post_type'   => PostType::SLUG,
             'post_status' => 'publish',
             'numberposts' => -1,
@@ -196,6 +261,11 @@ class Captcha
             // Every language: Polylang would keep the current one only
             'lang'        => '',
         ]));
+
+        // One query for the spam protection meta of every template
+        update_meta_cache('post', $ids);
+
+        return $ids;
     }
 
     /**
@@ -205,7 +275,7 @@ class Captcha
     public static function registerRoutes(): void
     {
         foreach (self::providers() as $provider) {
-            if ($provider::isReady()) {
+            if (self::isReady($provider)) {
                 $provider::registerRoutes();
             }
         }
@@ -213,6 +283,8 @@ class Captcha
 
     public static function widget(int $postId): string
     {
+        self::useSecrets($postId);
+
         $provider = self::activeFor($postId);
 
         if (!$provider) {
@@ -236,6 +308,8 @@ class Captcha
      */
     public static function check(int $postId, array $body): string
     {
+        self::useSecrets($postId);
+
         $provider = self::activeFor($postId);
 
         if (!$provider) {

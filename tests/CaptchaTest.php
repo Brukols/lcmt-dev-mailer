@@ -61,6 +61,7 @@ class CaptchaTest extends TestCase
 {
     protected function setUp(): void
     {
+        \LcmtDevMailer\Captcha::forgetReady();
         $GLOBALS['lcmt_test_options']   = [Captcha::OPTION => 'altcha'];
         $GLOBALS['lcmt_test_post_meta'] = [];
         $GLOBALS['lcmt_test_filters']   = [

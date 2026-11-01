@@ -14,6 +14,7 @@ class CaptchaInUseTest extends TestCase
 {
     protected function setUp(): void
     {
+        \LcmtDevMailer\Captcha::forgetReady();
         $GLOBALS['lcmt_test_options']    = [Captcha::OPTION => 'altcha', Altcha::OPTION_KEY => SecretBox::encrypt('hmac')];
         $GLOBALS['lcmt_test_transients'] = [];
         $GLOBALS['lcmt_test_post_meta']  = [];

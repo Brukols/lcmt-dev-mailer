@@ -396,7 +396,8 @@ class AdminMailSender
                     '<span class="lcmt-protection%s"><span class="dashicons %s" style="color:%s" aria-hidden="true"></span> %s</span>',
                     $badge['muted'] ? ' lcmt-protection--muted' : '',
                     esc_attr($badge['icon']),
-                    esc_attr($badge['color']),
+                    // A provider's color goes into style: hex only
+                    esc_attr(sanitize_hex_color($badge['color']) ?: self::NEUTRAL_COLOR),
                     esc_html($badge['label'])
                 );
                 break;
@@ -423,7 +424,9 @@ class AdminMailSender
     /**
      * What the "Protection" column shows for a mail template: the provider
      * that protects it, the site default it follows, a provider that is not
-     * set up (with the site default used instead, if any), or no protection. The label is not escaped.
+     * set up (with the site default used instead, if any), or no protection.
+     *
+     * Labels are raw; escape on output.
      *
      * @return array{icon: string, color: string, label: string, muted: bool}
      */

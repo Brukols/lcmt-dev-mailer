@@ -187,7 +187,7 @@ class MetaFields
         foreach ($providers as $id => $provider) {
             $label = $provider::label();
 
-            if (!$provider::isReady()) {
+            if (!Captcha::isReady($provider)) {
                 $label .= ' — ' . __('not set up', 'lcmt-dev-mailer');
             }
 
@@ -200,7 +200,7 @@ class MetaFields
         $selectedProvider = $providers[Captcha::selectedIdFor($post->ID)] ?? null;
         $defaultProvider  = $providers[$defaultId] ?? null;
 
-        $unready = $selectedProvider && !$selectedProvider::isReady() ? $selectedProvider : ($defaultProvider && !$defaultProvider::isReady() ? $defaultProvider : null);
+        $unready = $selectedProvider && !Captcha::isReady($selectedProvider) ? $selectedProvider : ($defaultProvider && !Captcha::isReady($defaultProvider) ? $defaultProvider : null);
 
         if ($unready) {
             // Straight to the tab of the provider to set up

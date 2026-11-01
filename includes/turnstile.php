@@ -63,7 +63,7 @@ class Turnstile implements CaptchaProvider, CaptchaAssets, CaptchaBadge, Captcha
 
     public static function secretOptions(): array
     {
-        return [self::OPTION_SECRET_KEY];
+        return [self::OPTION_SECRET_KEY => __('Cloudflare Turnstile secret key', 'lcmt-dev-mailer')];
     }
 
     public static function privacyText(): string
@@ -141,9 +141,14 @@ class Turnstile implements CaptchaProvider, CaptchaAssets, CaptchaBadge, Captcha
         return SecretBox::readOption(self::OPTION_SECRET_KEY, __('Cloudflare Turnstile secret key', 'lcmt-dev-mailer'));
     }
 
+    /**
+     * From the raw options, without reading the secret through SecretBox:
+     * an unreadable secret counts as not set up, and is only reported when
+     * a form actually uses Turnstile (Captcha::useSecrets()).
+     */
     public static function isReady(): bool
     {
-        return self::siteKey() !== '' && self::secretKey() !== '';
+        return self::siteKey() !== '' && self::keySource('secret') === 'database';
     }
 
     public static function registerRoutes(): void

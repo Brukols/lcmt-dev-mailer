@@ -120,6 +120,11 @@ add_action('admin_init', ['LcmtDevMailer\\Settings', 'registerSettings']);
 add_action('admin_menu', ['LcmtDevMailer\\CaptchaSettings', 'addSubmenu']);
 add_action('admin_init', ['LcmtDevMailer\\CaptchaSettings', 'registerSettings']);
 LcmtDevMailer\Turnstile::registerHooks();
+// A provider's readiness is kept for the request until an option changes
+foreach (['added_option', 'updated_option', 'deleted_option'] as $lcmtOptionHook) {
+    add_action($lcmtOptionHook, ['LcmtDevMailer\\Captcha', 'forgetReady']);
+}
+unset($lcmtOptionHook);
 add_action('admin_init', ['LcmtDevMailer\\SubmissionSettings', 'registerSettings']);
 add_action('admin_post_' . LcmtDevMailer\SubmissionSettings::PURGE_ACTION, ['LcmtDevMailer\\SubmissionSettings', 'handlePurgeNow']);
 add_action('admin_enqueue_scripts', ['LcmtDevMailer\\StatsPage', 'enqueue']);

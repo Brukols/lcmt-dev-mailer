@@ -109,3 +109,37 @@ lcmt_it('captcha settings: inUseIds reads the published mail templates', functio
     lcmt_assert_same(Captcha::STATUS_ACTIVE, Captcha::status('turnstile', Captcha::inUseIds()), 'turnstile active');
     lcmt_assert_same(Captcha::STATUS_UNUSED, Captcha::status('altcha', Captcha::inUseIds()), 'altcha unused');
 });
+
+lcmt_it('captcha settings: statuses, the column and the policy record no unreadable key; a real use does', function () {
+    $mails = 0;
+    $count = static function () use (&$mails) {
+        $mails++;
+
+        return true; // never sent
+    };
+    add_filter('pre_wp_mail', $count);
+
+    try {
+        delete_option(\LcmtDevMailer\UnreadableSecrets::OPTION);
+        delete_option('lcmt_mailer_unreadable_mail_' . Turnstile::OPTION_SECRET_KEY);
+        update_option(Captcha::OPTION, 'turnstile');
+        update_option(Turnstile::OPTION_SITE_KEY, '1x00000000000000000000AA');
+        update_option(Turnstile::OPTION_SECRET_KEY, 'lcmt1:' . base64_encode(str_repeat('x', 60)));
+
+        $post = wp_insert_post(['post_type' => 'mail', 'post_status' => 'publish', 'post_title' => 'it unreadable']);
+
+        lcmt_assert_same(Captcha::STATUS_UNREADABLE, Captcha::status('turnstile', Captcha::inUseIds()), 'status');
+        \LcmtDevMailer\AdminMailSender::protectionBadge($post);
+        \LcmtDevMailer\Privacy::policyText();
+
+        lcmt_assert_same(false, get_option(\LcmtDevMailer\UnreadableSecrets::OPTION), 'nothing recorded');
+        lcmt_assert_same(0, $mails, 'no email');
+
+        Captcha::useSecrets($post);
+
+        lcmt_assert_true(\LcmtDevMailer\UnreadableSecrets::has(Turnstile::OPTION_SECRET_KEY), 'recorded on use');
+        lcmt_assert_same(1, $mails, 'one email');
+    } finally {
+        remove_filter('pre_wp_mail', $count);
+    }
+});

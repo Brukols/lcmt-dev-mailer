@@ -187,18 +187,17 @@ class TurnstileTest extends TestCase
         $this->assertArrayNotHasKey(UnreadableSecrets::OPTION, $GLOBALS['lcmt_test_options']);
     }
 
-    public function test_unreadable_secret_is_not_ready_and_reported(): void
+    public function test_unreadable_secret_is_not_ready_and_checking_reports_nothing(): void
     {
         $GLOBALS['lcmt_test_options'][Turnstile::OPTION_SITE_KEY]   = 'site';
         $GLOBALS['lcmt_test_options'][Turnstile::OPTION_SECRET_KEY] = 'lcmt1:' . base64_encode(str_repeat('x', 60));
 
         $this->assertSame('unreadable', Turnstile::keySource('secret'));
-        // Looking at the source alone neither reports nor mails
-        $this->assertSame([], $GLOBALS['lcmt_test_mails']);
-
         $this->assertFalse(Turnstile::isReady());
-        $this->assertArrayHasKey(Turnstile::OPTION_SECRET_KEY, $GLOBALS['lcmt_test_options'][UnreadableSecrets::OPTION]);
-        $this->assertCount(1, $GLOBALS['lcmt_test_mails']);
+
+        // Only a real use reports it (CaptchaStatusTest)
+        $this->assertArrayNotHasKey(UnreadableSecrets::OPTION, $GLOBALS['lcmt_test_options']);
+        $this->assertSame([], $GLOBALS['lcmt_test_mails']);
     }
 
     #[RunInSeparateProcess]

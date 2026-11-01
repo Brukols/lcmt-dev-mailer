@@ -98,15 +98,19 @@ interface CaptchaPrivacy
 }
 
 /**
- * A provider that stores encrypted keys: the Spam protection page reads its
- * status as "Key unreadable" while one of them is listed in UnreadableSecrets.
+ * A provider that stores keys encrypted with SecretBox. Its status reads
+ * "Key unreadable" while one of them can no longer be decrypted, and a real
+ * use of the provider (form render, verification) reports such a key to
+ * UnreadableSecrets, or clears the report once the key reads fine again.
+ * isReady() must stay free of side effects: it is also called to compute
+ * statuses, the templates list and the privacy policy.
  */
 interface CaptchaSecrets
 {
     /**
-     * Names of the options holding its encrypted keys.
+     * Its encrypted keys: option name => label shown to the admin.
      *
-     * @return string[]
+     * @return array<string, string>
      */
     public static function secretOptions(): array;
 }

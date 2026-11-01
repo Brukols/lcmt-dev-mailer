@@ -86,7 +86,21 @@ class CaptchaSettings
     {
         $tab = isset($_GET['tab']) ? sanitize_key(wp_unslash((string) $_GET['tab'])) : '';
 
-        return isset(Captcha::providers()[$tab]) ? $tab : self::TAB_GENERAL;
+        return in_array($tab, self::providerTabs(), true) ? $tab : self::TAB_GENERAL;
+    }
+
+    /**
+     * Provider ids that get a tab: a sanitize_key() slug other than "general",
+     * since the id goes into ?tab= and the settings group name.
+     *
+     * @return string[]
+     */
+    public static function providerTabs(): array
+    {
+        return array_values(array_filter(
+            array_keys(Captcha::providers()),
+            static fn($id) => is_string($id) && sanitize_key($id) === $id && $id !== self::TAB_GENERAL
+        ));
     }
 
     /**
@@ -140,16 +154,18 @@ class CaptchaSettings
                 <a href="<?= esc_url(self::tabUrl(self::TAB_GENERAL)) ?>" class="nav-tab<?= $tab === self::TAB_GENERAL ? ' nav-tab-active' : '' ?>"<?= $tab === self::TAB_GENERAL ? ' aria-current="page"' : '' ?>>
                     <?php esc_html_e('General', 'lcmt-dev-mailer'); ?>
                 </a>
-                <?php foreach ($providers as $id => $provider): ?>
+                <?php foreach (self::providerTabs() as $id): ?>
                     <?php
-                    $badge = self::statusBadge(Captcha::status($id, $inUse));
+                    $provider = $providers[$id];
+                    $badge    = self::statusBadge(Captcha::status($id, $inUse));
+                    $color    = sanitize_hex_color($badge['color']) ?: '#50575e';
                     $icon  = is_subclass_of($provider, CaptchaBadge::class) ? $provider::icon() : '';
                     ?>
                     <a href="<?= esc_url(self::tabUrl($id)) ?>" class="nav-tab<?= $tab === $id ? ' nav-tab-active' : '' ?>"<?= $tab === $id ? ' aria-current="page"' : '' ?>>
                         <?= esc_html($provider::label()) ?>
-                        <span class="lcmt-tab-status" style="border-color:<?= esc_attr($badge['color']) ?>">
+                        <span class="lcmt-tab-status" style="border-color:<?= esc_attr($color) ?>">
                             <?php if ($icon !== ''): ?>
-                                <span class="dashicons <?= esc_attr($icon) ?>" style="color:<?= esc_attr($badge['color']) ?>" aria-hidden="true"></span>
+                                <span class="dashicons <?= esc_attr($icon) ?>" style="color:<?= esc_attr($color) ?>" aria-hidden="true"></span>
                             <?php endif; ?>
                             <?= esc_html($badge['label']) ?>
                         </span>
@@ -271,7 +287,7 @@ class CaptchaSettings
     public static function tabForSecret(string $option): string
     {
         foreach (Captcha::providers() as $id => $provider) {
-            if (is_subclass_of($provider, CaptchaSecrets::class) && in_array($option, $provider::secretOptions(), true)) {
+            if (is_subclass_of($provider, CaptchaSecrets::class) && array_key_exists($option, $provider::secretOptions())) {
                 return $id;
             }
         }
