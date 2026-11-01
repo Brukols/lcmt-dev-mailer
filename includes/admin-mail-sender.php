@@ -423,7 +423,7 @@ class AdminMailSender
     /**
      * What the "Protection" column shows for a mail template: the provider
      * that protects it, the site default it follows, a provider that is not
-     * set up, or no protection. The label is not escaped.
+     * set up (with the site default used instead, if any), or no protection. The label is not escaped.
      *
      * @return array{icon: string, color: string, label: string, muted: bool}
      */
@@ -448,11 +448,22 @@ class AdminMailSender
             ];
         }
 
+        if ($providers[$id] !== $active) {
+            // The template's choice is not set up: show the gap and what protects the form instead
+            return [
+                'icon'  => 'dashicons-warning',
+                'color' => '#dba617',
+                /* translators: 1: spam protection the template chose, 2: site default protection used instead */
+                'label' => sprintf(__('%1$s — not set up (using %2$s)', 'lcmt-dev-mailer'), $providers[$id]::label(), $active::label()),
+                'muted' => false,
+            ];
+        }
+
         $badge  = is_subclass_of($active, CaptchaBadge::class);
         $choice = (string) get_post_meta($postId, MetaFields::FIELD_CAPTCHA, true);
 
-        // No choice of its own, or a choice not set up: the site default protects it
-        $inherited = !isset($providers[$choice]) || $providers[$choice] !== $active;
+        // No choice of its own: the site default protects it
+        $inherited = !isset($providers[$choice]);
 
         return [
             'icon'  => $badge ? $active::icon() : self::NEUTRAL_ICON,

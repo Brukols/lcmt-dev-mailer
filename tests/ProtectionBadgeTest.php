@@ -100,7 +100,8 @@ class ProtectionBadgeTest extends TestCase
     {
         $this->choose('turnstile');
 
-        $this->assertSame(self::badge('dashicons-shield-alt', '#2271b1', 'Site default (ALTCHA)', true), AdminMailSender::protectionBadge(self::POST));
+        // The gap shows, with what actually protects the form
+        $this->assertSame(self::badge('dashicons-warning', '#dba617', 'Cloudflare Turnstile — not set up (using ALTCHA)'), AdminMailSender::protectionBadge(self::POST));
     }
 
     public function test_not_set_up_and_nothing_active(): void

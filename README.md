@@ -217,7 +217,7 @@ The plugin adds these classes to the `<form>` during submission:
 
 Two protections are built in: **ALTCHA** (no account, proof of work in the visitor's browser) and **Cloudflare Turnstile** (free Cloudflare account, mostly invisible to visitors). Set them up in **Email templates → Spam protection**; the protection selected there is the **site default**.
 
-**Per form.** Each email template has a **Spam protection** select: *Site default*, *None* or a provider. A contact form can use Turnstile while another form stays on ALTCHA or is left unprotected. A choice whose provider is not set up yet falls back to the site default's provider; *None* always means no protection. The **Protection** column of the email templates list shows what protects each form: the provider, the site default it follows (in grey), a provider that is not set up yet (orange warning) or *Not protected* (red). Each page only loads the scripts of the protections its forms use, and Cloudflare is only contacted once a visitor enters a Turnstile form.
+**Per form.** Each email template has a **Spam protection** select: *Site default*, *None* or a provider. A contact form can use Turnstile while another form stays on ALTCHA or is left unprotected. A choice whose provider is not set up yet falls back to the site default's provider; *None* always means no protection. The **Protection** column of the email templates list shows what protects each form: the provider, the site default it follows (in grey), a provider that is not set up yet (orange warning, with the protection used instead, if any) or *Not protected* (red). Each page only loads the scripts of the protections its forms use, and Cloudflare is only contacted once a visitor enters a Turnstile form.
 
 ### ALTCHA
 
