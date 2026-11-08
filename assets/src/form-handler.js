@@ -18,6 +18,7 @@ import 'node-snackbar/dist/snackbar.min.css';
 import './form-handler.css';
 import { formContext } from './lib/attribution';
 import { requestUrl } from './lib/request-url';
+import { fieldValue } from './lib/field-value';
 import { handleSuccess } from './lib/form-success';
 import { captchaToken, resetCaptcha } from './lib/captcha/registry';
 import { scriptBase, adapterLoader } from './lib/captcha/script-loader';
@@ -172,7 +173,8 @@ import { scriptBase, adapterLoader } from './lib/captcha/script-loader';
       for (var i = 0; i < inputs.length; i++) {
         var input = inputs[i];
         var name = input.name;
-        var value = (input.value || '').trim();
+        // An unticked box counts as empty, see lib/field-value.js.
+        var value = fieldValue(input, inputs);
 
         if (input.required && !value) {
           markFieldError(input);
