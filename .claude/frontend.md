@@ -51,13 +51,15 @@ The "Generate form template" button in the admin creates `forms/{key}.php` with:
 
 Vanilla JS (no jQuery), auto-loaded when a form is rendered. Located at `assets/src/form-handler.js`.
 
+Its settings and strings (`lcmtMailerFront`: alert colors, page language, translated messages) are attached with `wp_localize_script()` in `FormRenderer::registerAssets()`, when the script is registered, not when a form is rendered: a theme may enqueue the script itself (to get the stylesheet into the head), and the strings must come with it whichever way it is enqueued. `tests/integration/front-assets-test.php` covers it.
+
 ### How it works
 
 1. On DOMContentLoaded, discovers all elements with `[data-lcmt-endpoint]`
 2. Binds a `submit` event listener to each form
 3. On submit:
    - Collects all `[name]` inputs
-   - Validates `required` inputs and `type="email"` inputs client-side
+   - Validates `required` inputs and `type="email"` inputs client-side. A checkbox or radio button counts only when checked (`lib/field-value.js`): an unticked consent box is empty, so a required one blocks the submit and the server refuses it too
    - Asks the form's spam protection for a token (see "Spam protection adapters" below); the ALTCHA adapter keeps the current proof unless it is missing or expires within 30 s (the widget's own refresh timer stops while the computer sleeps), else solves a new challenge before sending
    - Sends `fetch POST` with JSON body to the endpoint; on a multilingual site (`lcmtMailerFront.lang` set from `pll_current_language()`), `lib/request-url.js` adds `?lang=<slug>` so the answer and the mail use the page language
    - Handles success/error states: on success, fires `lcmt:success` on the form, then goes to the form's confirmation page when the answer has a `redirect` URL, else shows the success message and resets the form (see below)

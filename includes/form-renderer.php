@@ -124,6 +124,12 @@ class FormRenderer
     /**
      * Register assets early (called on wp_enqueue_scripts).
      * Assets are only enqueued when a form is actually rendered.
+     *
+     * The script's settings and strings are attached here, with the
+     * registration, rather than when a form is rendered: a theme that
+     * enqueues the script itself, to get the stylesheet into the head, would
+     * otherwise get a script without them (English fallbacks, no page
+     * language). They are only printed when the script is.
      */
     public static function registerAssets(): void
     {
@@ -141,6 +147,18 @@ class FormRenderer
             lcmt_mailer_asset_version('assets/dist/form-handler.js'),
             true
         );
+
+        wp_localize_script('lcmt-form-handler', 'lcmtMailerFront', [
+            'colors' => Settings::getAlertColors(),
+            'textColors' => Settings::getAlertTextColors(),
+            // The page language, sent back as `lang` so the answer and the mail use it.
+            'lang' => function_exists('pll_current_language') ? (string) pll_current_language() : '',
+            'i18n' => [
+                'requiredFields' => __('Please fill in all required fields.', 'lcmt-dev-mailer'),
+                'genericError'   => __('An error occurred.', 'lcmt-dev-mailer'),
+                'captchaFailed'  => __('Security verification failed. Please try again.', 'lcmt-dev-mailer'),
+            ],
+        ]);
     }
 
     /**
@@ -154,18 +172,6 @@ class FormRenderer
 
         wp_enqueue_style('lcmt-form-handler');
         wp_enqueue_script('lcmt-form-handler');
-
-        wp_localize_script('lcmt-form-handler', 'lcmtMailerFront', [
-            'colors' => Settings::getAlertColors(),
-            'textColors' => Settings::getAlertTextColors(),
-            // The page language, sent back as `lang` so the answer and the mail use it.
-            'lang' => function_exists('pll_current_language') ? (string) pll_current_language() : '',
-            'i18n' => [
-                'requiredFields' => __('Please fill in all required fields.', 'lcmt-dev-mailer'),
-                'genericError'   => __('An error occurred.', 'lcmt-dev-mailer'),
-                'captchaFailed'  => __('Security verification failed. Please try again.', 'lcmt-dev-mailer'),
-            ],
-        ]);
     }
 
     /**
