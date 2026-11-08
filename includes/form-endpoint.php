@@ -177,7 +177,7 @@ class FormEndpoint
 
         $response = [
             'success' => true,
-            'message' => Settings::getSuccessMessage(),
+            'message' => SuccessMessage::forForm($post, $key),
         ];
 
         // The form's confirmation page, in the submission language: the

@@ -137,19 +137,31 @@ class Settings
     }
 
     /**
-     * The message returned to the browser after a successful submission.
-     *
-     * Falls back to the translated default when the site has not set one.
+     * The site's message after a successful submission, shown by the forms
+     * that have none of their own: the setting, else the translated default.
      */
-    public static function getSuccessMessage(): string
+    public static function siteSuccessMessage(): string
     {
         $message = trim((string) get_option(self::OPTION_SUCCESS_MESSAGE, ''));
 
-        if ($message === '') {
-            $message = __('Email sent successfully.', 'lcmt-dev-mailer');
-        }
+        return $message !== '' ? $message : __('Email sent successfully.', 'lcmt-dev-mailer');
+    }
 
-        return (string) apply_filters('lcmt_mailer_success_message', $message);
+    /**
+     * The site's message after a successful submission. A form's own message
+     * is read with SuccessMessage::forForm(), which the REST endpoint uses.
+     */
+    public static function getSuccessMessage(): string
+    {
+        /**
+         * Filters the message returned to the browser after a successful
+         * submission.
+         *
+         * @param string        $message The form's own message, else the site's.
+         * @param string        $key     The form key ('' outside a submission).
+         * @param \WP_Post|null $post    The mail post (null outside a submission).
+         */
+        return (string) apply_filters('lcmt_mailer_success_message', self::siteSuccessMessage(), '', null);
     }
 
     /**
@@ -267,7 +279,7 @@ class Settings
                                    class="large-text"
                                    placeholder="<?= esc_attr__('Email sent successfully.', 'lcmt-dev-mailer') ?>" />
                             <p class="description">
-                                <?php esc_html_e('Shown to the visitor after a successful submission. Leave empty to use the default.', 'lcmt-dev-mailer'); ?>
+                                <?php esc_html_e('Shown to the visitor after a successful submission, by the forms that have no message of their own. Leave empty to use the default.', 'lcmt-dev-mailer'); ?>
                             </p>
                         </td>
                     </tr>

@@ -51,6 +51,16 @@ add_filter('lcmt_mailer_user_language', function ($language, $email) {
 
 Used in: `Mailer::maybeTranslateForRecipient()` — subject and content come from the translation picked by `MailLanguage::pick()`. A resend from the admin runs inside `RequestLanguage::using()` with the stored language of the message.
 
+### `lcmt_mailer_date_format`
+The PHP date format of the `date` fields in the mails (subject and content). Default: the site's `date_format` option. Arguments: `string $format, \WP_Post $post`. A value that is not a valid `YYYY-MM-DD` date, or an empty format, leaves the value as sent; received messages keep the raw value.
+
+Used in: `DateValue::mailFormat()`, called by `Mailer::buildForm()` (so a resend from Received messages formats it too).
+
+### `lcmt_mailer_success_message`
+The message a visitor reads after a successful submission through the REST endpoint. Default: the form's **Success message** (`_lcmt_mail_success_message`), from its published Polylang translation in the submission language when that one has a message, else the site's message (`Settings::OPTION_SUCCESS_MESSAGE`), else *Email sent successfully.* Arguments: `string $message, string $key, ?\WP_Post $post`; `$key` is `''` and `$post` `null` when `Settings::getSuccessMessage()` (the site's message) is called outside a submission.
+
+Used in: `SuccessMessage::forForm()`, called by `FormEndpoint::handle()`; the result is the `message` key of the 200 answer, unless a confirmation page takes the visitor elsewhere.
+
 ### `lcmt_mailer_confirmation_url`
 The URL a visitor is sent to after a successful submission through the REST endpoint. Default: the permalink of the form's **Confirmation page** (`_lcmt_mail_confirmation_page`), in the submission language when Polylang has a published translation of it, else `''`. Return `''` to show the success message instead. The filter runs on every successful submission, so it can also add a redirect to a form that has no confirmation page.
 

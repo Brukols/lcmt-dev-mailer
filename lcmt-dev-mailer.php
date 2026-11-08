@@ -47,6 +47,8 @@ require_once LCMT_MAILER_PATH . 'includes/template-loader.php';
 require_once LCMT_MAILER_PATH . 'includes/request-language.php';
 require_once LCMT_MAILER_PATH . 'includes/mail-language.php';
 require_once LCMT_MAILER_PATH . 'includes/confirmation-page.php';
+require_once LCMT_MAILER_PATH . 'includes/success-message.php';
+require_once LCMT_MAILER_PATH . 'includes/date-value.php';
 require_once LCMT_MAILER_PATH . 'includes/mailer.php';
 require_once LCMT_MAILER_PATH . 'includes/form-renderer.php';
 require_once LCMT_MAILER_PATH . 'includes/form-endpoint.php';

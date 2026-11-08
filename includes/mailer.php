@@ -141,10 +141,17 @@ class Mailer
         // A field "phone" with type "tel" can appear as: [phone], [phone*], [phone tel], [phone* tel]
         $normalized = [];
         $parsedFields = FieldParser::parse($to, $replyTo, $subject, $content);
+        $dateFormat   = DateValue::mailFormat($post);
 
         foreach ($placeholders as $k => $v) {
             $v    = is_scalar($v) ? (string) $v : '';
             $bare = trim($k, '[]* ');
+
+            // A date reads in the site's format rather than YYYY-MM-DD.
+            if (($parsedFields[$bare]['type'] ?? '') === 'date') {
+                $v = DateValue::format($v, $dateFormat);
+            }
+
             $normalized['[' . $bare . ']']  = $v;
             $normalized['[' . $bare . '*]'] = $v;
 

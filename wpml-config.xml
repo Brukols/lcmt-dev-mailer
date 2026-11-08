@@ -6,6 +6,7 @@
     <custom-fields>
         <custom-field action="translate">_lcmt_mail_subject</custom-field>
         <custom-field action="translate">_lcmt_mail_content</custom-field>
+        <custom-field action="translate">_lcmt_mail_success_message</custom-field>
         <custom-field action="copy">_lcmt_mail_key</custom-field>
         <custom-field action="copy">_lcmt_mail_to</custom-field>
         <custom-field action="copy">_lcmt_mail_reply_to</custom-field>

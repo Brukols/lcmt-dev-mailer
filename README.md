@@ -113,6 +113,10 @@ A `tel` value holds 6 to 20 digits, an optional leading `+`, and any spaces, dot
 - `404` — Unknown form key
 - `500` — Email sending failed. The visitor is told so, to try again later or write by email, since the site owner may never open the admin. When the form saves its messages, the message is still in Received messages, with the failure banner and **Send the email again**.
 
+### Success message
+
+Each mail post has an optional **Success message** (stored in the `_lcmt_mail_success_message` meta): the text shown to the visitor after a successful submission of this form, the `message` key of the REST answer. Left empty, the form shows the site's message, set in **Email templates → Settings** (or the default, *Email sent successfully.*). With Polylang, the message of the form's published translation in the submission language is used when it has one. A [confirmation page](#confirmation-page) still takes the visitor elsewhere instead, and the [`lcmt_mailer_success_message`](#lcmt_mailer_success_message) filter can change the text.
+
 ### Confirmation page
 
 Each mail post has an optional **Confirmation page** (a select of the published pages, **None** by default, stored in the `_lcmt_mail_confirmation_page` meta). When one is set, a successful submission takes the visitor to that page instead of showing the success message:
@@ -316,7 +320,7 @@ The messages sent through our forms are kept for [lcmt-retention-period], then [
 
 Works with Polylang (3.8 or later); without a multilingual plugin nothing changes. **WPML only gets the declarations** of `wpml-config.xml` (what is translatable): answering and sending in the page language, `[submissionLanguage]` and the Language column need Polylang. With WPML (or Polylang deactivated), the oldest mail post of a key, the source, is sent.
 
-- **What is translatable** is declared in `wpml-config.xml`, read by Polylang and WPML: the `mail` post type is translatable, its subject and content are translated, its key, To, Reply-To, "save the messages" setting and confirmation page are copied to new translations, and the success message (Settings) is a translatable option.
+- **What is translatable** is declared in `wpml-config.xml`, read by Polylang and WPML: the `mail` post type is translatable, its subject, content and success message are translated, its key, To, Reply-To, "save the messages" setting and confirmation page are copied to new translations, and the site's success message (Settings) is a translatable option.
 - **Forms answer in the page language**: the form script sends the page language with each submission (`lang`), and the validation and error messages come back in that language.
 - **Mails are sent in the page language** when the mail post has a **published** translation in it whose placeholders are the same as the source mail's. Otherwise (no translation, a draft, or a translation that lost, renamed or retyped a placeholder) the mail of the default language is sent, and a placeholder mismatch is logged with `error_log`.
 - **Translate mail posts like any post**, by hand or with a translation plugin. Keep the placeholders identical, names and types (`[fullname*]` stays `[fullname*]`, `[phone]` does not become `[phone tel]`), only the text around it changes): the form, its validation and the received messages always follow the default-language mail.
@@ -373,6 +377,28 @@ add_filter('lcmt_mailer_user_language', function ($language, $email) {
     return get_user_preferred_language($email) ?: $language;
 }, 10, 2);
 ```
+
+### `lcmt_mailer_date_format`
+
+The format of the `date` fields in the mails. A date field submits `YYYY-MM-DD` (the format of `<input type="date">`); the mail shows it in the site's date format (Settings → General), with translated month names. A value that is not a valid date is left as sent.
+
+```php
+add_filter('lcmt_mailer_date_format', function (string $format, \WP_Post $post) {
+    return 'd/m/Y';
+}, 10, 2);
+```
+
+### `lcmt_mailer_success_message`
+
+The message shown to the visitor after a successful submission (the `message` key of the REST answer). Defaults to the form's own [success message](#success-message), else the site's.
+
+```php
+add_filter('lcmt_mailer_success_message', function (string $message, string $key, ?\WP_Post $post) {
+    return $key === 'quote' ? $message . ' ' . __('A copy is on its way to your inbox.', 'my-theme') : $message;
+}, 10, 3);
+```
+
+`$key` is `''` and `$post` `null` when `Settings::getSuccessMessage()` is called outside a submission.
 
 ### `lcmt_mailer_confirmation_url`
 

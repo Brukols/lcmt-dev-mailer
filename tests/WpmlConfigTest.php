@@ -45,6 +45,11 @@ class WpmlConfigTest extends TestCase
         $this->assertContains('_lcmt_mail_content', $translated);
     }
 
+    public function test_the_form_success_message_is_translated(): void
+    {
+        $this->assertContains(MetaFields::FIELD_SUCCESS_MESSAGE, $this->fields('translate'));
+    }
+
     public function test_technical_fields_are_copied(): void
     {
         $copied = $this->fields('copy');
@@ -67,6 +72,6 @@ class WpmlConfigTest extends TestCase
             $this->assertContains($name, $constants, $name . ' is not a MetaFields constant');
         }
 
-        $this->assertCount(8, array_merge($this->fields('translate'), $this->fields('copy')));
+        $this->assertCount(9, array_merge($this->fields('translate'), $this->fields('copy')));
     }
 }

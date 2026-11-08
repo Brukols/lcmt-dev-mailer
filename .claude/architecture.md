@@ -7,13 +7,15 @@ lcmt-dev-mailer/
 ├── lcmt-dev-mailer.php          # Bootstrap: defines constants, requires files, registers hooks
 ├── includes/
 │   ├── post-type.php            # PostType — registers the `mail` CPT
-│   ├── meta-fields.php          # MetaFields — native WP meta box (key, to, subject, content, confirmation page, spam protection) + syntax reference panel
+│   ├── meta-fields.php          # MetaFields — native WP meta box (key, to, subject, content, success message, confirmation page, spam protection) + syntax reference panel
 │   ├── field-parser.php         # FieldParser — parses [field* type] placeholders from content
 │   ├── field-validator.php      # FieldValidator — sanitizes submitted values and checks them by type
 │   ├── template-loader.php      # TemplateLoader — loads mail-base.php with theme override support
 │   ├── request-language.php     # RequestLanguage — submission language (Polylang), locale switch of the REST request
 │   ├── mail-language.php        # MailLanguage — picks the translated subject/content or the source mail
 │   ├── confirmation-page.php    # ConfirmationPage — URL a visitor is sent to after a successful submission
+│   ├── success-message.php      # SuccessMessage — message shown after a successful submission: the form's, else the site's
+│   ├── date-value.php           # DateValue — `date` fields in the mails, in the site's date format (`lcmt_mailer_date_format`)
 │   ├── mailer.php               # Mailer — core email engine (lookup by key, placeholder replacement, wp_mail)
 │   ├── form-renderer.php        # FormRenderer — renders forms via shortcode or PHP, enqueues frontend JS
 │   ├── form-endpoint.php        # FormEndpoint — REST API endpoint with auto-validation and sending
@@ -44,7 +46,7 @@ lcmt-dev-mailer/
 │   ├── stats-page.php           # StatsPage — Statistics page: charts and Chart | Table toggle
 │   ├── uninstaller.php          # Uninstaller — what deleting the plugin removes, and the dialog that asks
 │   └── updater.php              # Updater — Plugin Update Checker wired to the GitHub releases
-├── wpml-config.xml              # What Polylang/WPML translate: `mail` posts, subject/content, copied fields, success message
+├── wpml-config.xml              # What Polylang/WPML translate: `mail` posts, subject/content/success message, copied fields, site success message
 ├── uninstall.php                # Unschedules the purge; drops the table and options only if asked (Uninstaller)
 ├── tests/                       # unit/ JS / integration tests (see Build)
 ├── lib/
@@ -67,6 +69,7 @@ lcmt-dev-mailer/
 │   │   ├── lib/deactivate-dialog.js # The <dialog>: checkbox, help line, Cancel/Deactivate, busy state, tested under node
 │   │   ├── lib/stats-view.js    # Chart | Table state and localStorage persistence, tested under node
 │   │   ├── lib/request-url.js   # REST URL of a form, with the page language as `lang`, tested under node
+│   │   ├── lib/field-value.js   # Value a control submits: an unticked checkbox or radio is empty, tested under node
 │   │   └── lib/form-success.js  # `lcmt:success` event, then confirmation page or success message, tested under node
 │   └── dist/                    # Minified output (esbuild)
 └── package.json                 # Build config (esbuild)
@@ -85,6 +88,7 @@ Native WordPress meta box with these fields:
 - `_lcmt_mail_subject` — email subject, supports placeholders
 - `_lcmt_mail_content` — email body (WYSIWYG), supports placeholders with type syntax
 - `_lcmt_mail_store_submissions` — `'1'` / `'0'`, whether received messages are saved (on when absent)
+- `_lcmt_mail_success_message` (`FIELD_SUCCESS_MESSAGE`) — optional message shown after a successful submission of this form (textarea, the site's message as placeholder); deleted when saved empty, so the site's message (`Settings::siteSuccessMessage()`) shows. Translated with the mail (`wpml-config.xml`)
 - `_lcmt_mail_confirmation_page` (`FIELD_CONFIRMATION_PAGE`) — ID of the page a visitor is sent to after a successful submission; a select of published pages (`wp_dropdown_pages()`, "None" = `0`). Saved only when the ID is a `page`, deleted otherwise. A stored page that is no longer published is flagged under the select, and saving clears it.
 
 Falls back to old ACF meta keys (`to`, `subject`, `content`) for backwards compatibility.
@@ -124,7 +128,7 @@ Core email sending engine.
 - Auto-validates required fields from parsed content, and values by type through `FieldValidator`
 - Sends email via `Mailer::sendByKey()`
 - Fires `lcmt_mailer_before_send` and `lcmt_mailer_after_send` actions
-- On success, adds `redirect` to the answer when `ConfirmationPage::url()` returns a URL
+- On success, answers with `SuccessMessage::forForm()` as `message`, and adds `redirect` when `ConfirmationPage::url()` returns a URL
 
 ### ConfirmationPage
 The page a visitor is sent to after a successful submission, set per form (`MetaFields::FIELD_CONFIRMATION_PAGE`).

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-01T16:01:19+00:00\n"
+"POT-Creation-Date: 2026-11-08T14:36:07+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: lcmt-dev-mailer\n"
@@ -55,7 +55,7 @@ msgid "name=\"\""
 msgstr ""
 
 #: includes/admin-mail-sender.php:76
-#: includes/meta-fields.php:296
+#: includes/meta-fields.php:325
 msgid "Type"
 msgstr ""
 
@@ -187,7 +187,7 @@ msgid "Protection"
 msgstr ""
 
 #: includes/admin-mail-sender.php:388
-#: includes/meta-fields.php:45
+#: includes/meta-fields.php:46
 msgid "Key"
 msgstr ""
 
@@ -222,7 +222,7 @@ msgstr ""
 #. translators: %s: spam protection name
 #. translators: %s: name of the site-wide spam protection
 #: includes/admin-mail-sender.php:479
-#: includes/meta-fields.php:182
+#: includes/meta-fields.php:194
 #, php-format
 msgid "Site default (%s)"
 msgstr ""
@@ -306,7 +306,7 @@ msgstr ""
 #: includes/captcha-settings.php:25
 #: includes/captcha-settings.php:26
 #: includes/captcha-settings.php:155
-#: includes/meta-fields.php:176
+#: includes/meta-fields.php:188
 msgid "Spam protection"
 msgstr ""
 
@@ -339,9 +339,9 @@ msgid "Site default protection"
 msgstr ""
 
 #: includes/captcha-settings.php:222
-#: includes/meta-fields.php:173
 #: includes/meta-fields.php:185
-#: includes/meta-fields.php:228
+#: includes/meta-fields.php:197
+#: includes/meta-fields.php:257
 msgid "None"
 msgstr ""
 
@@ -516,39 +516,39 @@ msgid "Please fill in all required fields."
 msgstr ""
 
 #: includes/form-renderer.php:165
-#: includes/settings.php:384
+#: includes/settings.php:396
 msgid "An error occurred."
 msgstr ""
 
-#: includes/meta-fields.php:24
+#: includes/meta-fields.php:25
 msgid "Mail Fields"
 msgstr ""
 
-#: includes/meta-fields.php:48
+#: includes/meta-fields.php:49
 msgid "Unique identifier in kebab-case (e.g. contact, reset-password). Used for the shortcode, REST endpoint and form file."
 msgstr ""
 
-#: includes/meta-fields.php:53
+#: includes/meta-fields.php:54
 msgid "To"
 msgstr ""
 
-#: includes/meta-fields.php:58
+#: includes/meta-fields.php:59
 msgid "Reply-To"
 msgstr ""
 
-#: includes/meta-fields.php:61
+#: includes/meta-fields.php:62
 msgid "Optional. Supports placeholders (e.g. [email* email] to reply to the form sender)."
 msgstr ""
 
-#: includes/meta-fields.php:66
+#: includes/meta-fields.php:67
 msgid "Subject"
 msgstr ""
 
-#: includes/meta-fields.php:71
+#: includes/meta-fields.php:72
 msgid "Content"
 msgstr ""
 
-#: includes/meta-fields.php:83
+#: includes/meta-fields.php:84
 #: includes/privacy.php:20
 #: includes/privacy.php:30
 #: includes/privacy.php:66
@@ -557,89 +557,98 @@ msgstr ""
 msgid "Received messages"
 msgstr ""
 
-#: includes/meta-fields.php:86
+#: includes/meta-fields.php:87
 msgid "Save the messages sent through this form"
 msgstr ""
 
-#: includes/meta-fields.php:87
+#: includes/meta-fields.php:88
 msgid "They appear under Email templates → Received messages, and are anonymized or deleted after the retention period set there."
 msgstr ""
 
-#: includes/meta-fields.php:191
+#: includes/meta-fields.php:203
 msgid "not set up"
 msgstr ""
 
-#: includes/meta-fields.php:198
+#: includes/meta-fields.php:210
 msgid "Blocks automated submissions of this form."
 msgstr ""
 
-#: includes/meta-fields.php:207
+#: includes/meta-fields.php:219
 msgid "Set up a protection"
 msgstr ""
 
-#: includes/meta-fields.php:235
+#: includes/meta-fields.php:236
+#: includes/settings.php:272
+msgid "Success message"
+msgstr ""
+
+#: includes/meta-fields.php:239
+msgid "Optional. Shown after a successful submission of this form. Empty: the site's message, set in Email templates → Settings."
+msgstr ""
+
+#: includes/meta-fields.php:264
 msgid "Confirmation page"
 msgstr ""
 
-#: includes/meta-fields.php:243
+#: includes/meta-fields.php:272
 msgid "No published page yet."
 msgstr ""
 
 #. translators: %d: page ID
-#: includes/meta-fields.php:249
+#: includes/meta-fields.php:278
 #, php-format
 msgid "The page selected before (#%d) is no longer published: visitors see the success message, and saving this form clears it."
 msgstr ""
 
-#: includes/meta-fields.php:254
+#: includes/meta-fields.php:283
 msgid "Optional. After a successful submission, visitors are taken to this page instead of seeing the success message. On a multilingual site, its translation in the visitor's language is used when there is one."
 msgstr ""
 
-#: includes/meta-fields.php:273
+#: includes/meta-fields.php:302
 msgid "Placeholder syntax reference"
 msgstr ""
 
-#: includes/meta-fields.php:280
+#: includes/meta-fields.php:309
 msgid "Syntax"
 msgstr ""
 
-#: includes/meta-fields.php:281
+#: includes/meta-fields.php:310
 msgid "Result"
 msgstr ""
 
-#: includes/meta-fields.php:285
+#: includes/meta-fields.php:314
 msgid "Optional field, type text"
 msgstr ""
 
-#: includes/meta-fields.php:286
+#: includes/meta-fields.php:315
 msgid "Required field, type text"
 msgstr ""
 
-#: includes/meta-fields.php:287
+#: includes/meta-fields.php:316
 msgid "Optional field with explicit type"
 msgstr ""
 
-#: includes/meta-fields.php:288
+#: includes/meta-fields.php:317
 msgid "Required field with explicit type"
 msgstr ""
 
-#: includes/meta-fields.php:292
+#: includes/meta-fields.php:321
 msgid "Available types:"
 msgstr ""
 
-#: includes/meta-fields.php:297
+#: includes/meta-fields.php:326
 msgid "HTML output"
 msgstr ""
 
-#: includes/meta-fields.php:313
+#: includes/meta-fields.php:342
 msgid "Example content:"
 msgstr ""
 
-#: includes/meta-fields.php:326
+#: includes/meta-fields.php:355
 msgid "Built-in placeholders (always available): [currentUserLink], [currentUserEmail], [submissionLanguage]"
 msgstr ""
 
-#: includes/meta-fields.php:329
+#: includes/meta-fields.php:358
 msgid "the language of the page the form was sent from, e.g. English; empty without Polylang."
 msgstr ""
 
@@ -774,7 +783,7 @@ msgid "anonymized"
 msgstr ""
 
 #: includes/settings.php:38
-#: includes/settings.php:201
+#: includes/settings.php:213
 msgid "Mailer Settings"
 msgstr ""
 
@@ -782,91 +791,87 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: includes/settings.php:149
-#: includes/settings.php:268
-#: includes/settings.php:383
+#: includes/settings.php:147
+#: includes/settings.php:280
+#: includes/settings.php:395
 msgid "Email sent successfully."
 msgstr ""
 
-#: includes/settings.php:209
+#: includes/settings.php:221
 msgid "Sender address"
 msgstr ""
 
 #. translators: %s: the default sender address, e.g. no-reply@example.com
-#: includes/settings.php:222
+#: includes/settings.php:234
 #, php-format
 msgid "The From address of every email the plugin sends. Leave empty to use %s, which follows the site host across environments."
 msgstr ""
 
-#: includes/settings.php:228
+#: includes/settings.php:240
 msgid "Use an address on a domain this site is allowed to send for. An address on a domain you do not control (a Gmail or Outlook mailbox, for instance) fails SPF and DKIM checks, and the messages are dropped as spoofing."
 msgstr ""
 
-#: includes/settings.php:235
+#: includes/settings.php:247
 msgid "Email logo"
 msgstr ""
 
-#: includes/settings.php:247
+#: includes/settings.php:259
 msgid "Select image"
 msgstr ""
 
-#: includes/settings.php:250
+#: includes/settings.php:262
 msgid "Remove"
 msgstr ""
 
-#: includes/settings.php:254
+#: includes/settings.php:266
 msgid "This logo appears at the top of all emails sent by the plugin."
 msgstr ""
 
-#: includes/settings.php:260
-msgid "Success message"
+#: includes/settings.php:282
+msgid "Shown to the visitor after a successful submission, by the forms that have no message of their own. Leave empty to use the default."
 msgstr ""
 
-#: includes/settings.php:270
-msgid "Shown to the visitor after a successful submission. Leave empty to use the default."
-msgstr ""
-
-#: includes/settings.php:277
+#: includes/settings.php:289
 msgid "Success color"
 msgstr ""
 
-#: includes/settings.php:287
+#: includes/settings.php:299
 msgid "Background of the confirmation alert."
 msgstr ""
 
-#: includes/settings.php:294
+#: includes/settings.php:306
 msgid "Success text color"
 msgstr ""
 
-#: includes/settings.php:304
+#: includes/settings.php:316
 msgid "Leave empty to pick automatically whichever of black or white reads best on the background."
 msgstr ""
 
-#: includes/settings.php:311
+#: includes/settings.php:323
 msgid "Error color"
 msgstr ""
 
-#: includes/settings.php:325
+#: includes/settings.php:337
 msgid "Error text color"
 msgstr ""
 
-#: includes/settings.php:335
+#: includes/settings.php:347
 msgid "Leave empty to pick automatically."
 msgstr ""
 
-#: includes/settings.php:341
+#: includes/settings.php:353
 msgid "Preview"
 msgstr ""
 
-#: includes/settings.php:357
+#: includes/settings.php:369
 msgid "WCAG 1.4.3 asks for at least 4.5:1 between the text and its background."
 msgstr ""
 
-#: includes/settings.php:481
+#: includes/settings.php:493
 msgid "Select email logo"
 msgstr ""
 
-#: includes/settings.php:482
+#: includes/settings.php:494
 msgid "Use this image"
 msgstr ""
 

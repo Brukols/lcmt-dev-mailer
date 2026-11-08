@@ -16,6 +16,7 @@ class MetaFields
     public const FIELD_STORE_SUBMISSIONS = '_lcmt_mail_store_submissions';
     public const FIELD_CONFIRMATION_PAGE = '_lcmt_mail_confirmation_page';
     public const FIELD_CAPTCHA = '_lcmt_mail_captcha';
+    public const FIELD_SUCCESS_MESSAGE = '_lcmt_mail_success_message';
 
     public static function addMetaBox(): void
     {
@@ -88,6 +89,7 @@ class MetaFields
         echo '</td>';
         echo '</tr>';
 
+        self::renderSuccessMessage($post);
         self::renderConfirmationPage($post);
         self::renderCaptcha($post);
 
@@ -140,6 +142,16 @@ class MetaFields
         }
 
         update_post_meta($postId, self::FIELD_STORE_SUBMISSIONS, isset($_POST['lcmt_mail_store_submissions']) ? '1' : '0');
+
+        if (isset($_POST['lcmt_mail_success_message'])) {
+            $message = trim(sanitize_textarea_field(wp_unslash($_POST['lcmt_mail_success_message'])));
+
+            if ($message !== '') {
+                update_post_meta($postId, self::FIELD_SUCCESS_MESSAGE, $message);
+            } else {
+                delete_post_meta($postId, self::FIELD_SUCCESS_MESSAGE);
+            }
+        }
 
         if (isset($_POST['lcmt_mail_confirmation_page'])) {
             $pageId = ConfirmationPage::normalizeId(wp_unslash($_POST['lcmt_mail_confirmation_page']));
@@ -208,6 +220,23 @@ class MetaFields
         }
 
         echo '</p>';
+        echo '</td>';
+        echo '</tr>';
+    }
+
+    /**
+     * The "Success message" row: optional, the site's message shows through
+     * as the placeholder of the empty field.
+     */
+    private static function renderSuccessMessage(\WP_Post $post): void
+    {
+        $message = (string) get_post_meta($post->ID, self::FIELD_SUCCESS_MESSAGE, true);
+
+        echo '<tr>';
+        echo '<th><label for="lcmt_mail_success_message">' . esc_html__('Success message', 'lcmt-dev-mailer') . '</label></th>';
+        echo '<td>';
+        echo '<textarea id="lcmt_mail_success_message" name="lcmt_mail_success_message" rows="2" class="large-text" placeholder="' . esc_attr(Settings::siteSuccessMessage()) . '">' . esc_textarea($message) . '</textarea>';
+        echo '<p class="description">' . esc_html__('Optional. Shown after a successful submission of this form. Empty: the site\'s message, set in Email templates → Settings.', 'lcmt-dev-mailer') . '</p>';
         echo '</td>';
         echo '</tr>';
     }

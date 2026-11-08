@@ -1630,3 +1630,9 @@ msgstr "Cloudflare pouvant traiter ces données aux États-Unis, ce transfert es
 #, php-format
 msgid "Learn more: <a href=\"%1$s\">Turnstile privacy policy</a> and <a href=\"%2$s\">Cloudflare privacy policy</a>."
 msgstr "Pour en savoir plus : <a href=\"%1$s\">politique de confidentialité de Turnstile</a> et <a href=\"%2$s\">politique de confidentialité de Cloudflare</a>."
+
+msgid "Shown to the visitor after a successful submission, by the forms that have no message of their own. Leave empty to use the default."
+msgstr "Affiché au visiteur après un envoi réussi, par les formulaires qui n'ont pas leur propre message. Laisser vide pour utiliser le message par défaut."
+
+msgid "Optional. Shown after a successful submission of this form. Empty: the site's message, set in Email templates → Settings."
+msgstr "Facultatif. Affiché après un envoi réussi de ce formulaire. Vide : le message du site, réglé dans Modèles d'e-mails → Paramètres."
