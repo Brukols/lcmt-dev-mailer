@@ -466,18 +466,23 @@ class Turnstile implements CaptchaProvider, CaptchaAssets, CaptchaBadge, Captcha
     /**
      * New options are autoloaded by default (WordPress 6.4+ has a helper to
      * change that; older versions need the query).
+     *
+     * add_option() also runs when update_option() replaces a value equal to
+     * the registered default: it caches the new value in "alloptions" only,
+     * which is dropped here, so the option's own cache entry, still holding
+     * the old value, is dropped too.
      */
     private static function keepOutOfAutoload(string $option): void
     {
         if (function_exists('wp_set_option_autoload')) {
             wp_set_option_autoload($option, false);
+        } else {
+            global $wpdb;
 
-            return;
+            $wpdb->update($wpdb->options, ['autoload' => 'no'], ['option_name' => $option]);
+            wp_cache_delete('alloptions', 'options');
         }
 
-        global $wpdb;
-
-        $wpdb->update($wpdb->options, ['autoload' => 'no'], ['option_name' => $option]);
-        wp_cache_delete('alloptions', 'options');
+        wp_cache_delete($option, 'options');
     }
 }

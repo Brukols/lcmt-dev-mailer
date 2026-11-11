@@ -76,6 +76,43 @@ lcmt_it('captcha settings: saving the Turnstile tab keeps the General options', 
     lcmt_assert_same('1', get_option(Captcha::OPTION_KEEP_BLOCKED), 'keep-blocked kept');
 });
 
+lcmt_it('captcha settings: a Turnstile option saved at its default reads its next value at once', function () {
+    global $wpdb;
+
+    CaptchaSettings::registerSettings();
+
+    $cases = [
+        Turnstile::OPTION_APPEARANCE => [Turnstile::APPEARANCE_INTERACTION, Turnstile::APPEARANCE_ALWAYS],
+        Turnstile::OPTION_SITE_KEY   => ['', '1x00000000000000000000AA'],
+        Turnstile::OPTION_SECRET_KEY => ['', 'it-secret'],
+    ];
+
+    foreach ($cases as $option => [$default, $next]) {
+        update_option($option, $next);
+
+        // Back to the registered default (an empty secret field keeps the
+        // secret: the "Forget" box empties it).
+        $saved = $_POST;
+        $_POST['lcmt_turnstile_forget_secret'] = '1';
+        try {
+            update_option($option, $default);
+        } finally {
+            $_POST = $saved;
+        }
+        lcmt_assert_same($default, get_option($option), "$option at its default");
+
+        // Stored value == default: update_option() hands over to add_option().
+        update_option($option, $next);
+
+        $row = $wpdb->get_row($wpdb->prepare("SELECT option_value, autoload FROM {$wpdb->options} WHERE option_name = %s", $option));
+        lcmt_assert_true($row !== null && $row->option_value !== $default, "$option saved");
+        lcmt_assert_same($row->option_value, get_option($option), "$option read back");
+        lcmt_assert_true(in_array($row->autoload, ['off', 'auto-off', 'no'], true), "$option not autoloaded");
+    }
+
+    lcmt_assert_same(Turnstile::APPEARANCE_ALWAYS, get_option(Turnstile::OPTION_APPEARANCE), 'new appearance');
+});
+
 lcmt_it('captcha settings: the ALTCHA tab posts its own group, the difficulty alone', function () {
     global $new_allowed_options;
 
