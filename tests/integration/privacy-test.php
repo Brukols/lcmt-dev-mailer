@@ -376,14 +376,17 @@ lcmt_it('privacy: the Data retention page documents the shortcodes', function ()
 });
 
 lcmt_it('privacy: the page links the privacy policy page when one is set', function () {
-    $without = lcmt_pv_page();
-    lcmt_assert_true(str_contains($without, 'options-privacy.php"'), 'settings link without a page');
-
-    $id = wp_insert_post(['post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'IT policy']);
+    // The site may already declare a policy page: start without one.
     $old = get_option('wp_page_for_privacy_policy', false);
-    update_option('wp_page_for_privacy_policy', $id);
 
     try {
+        update_option('wp_page_for_privacy_policy', 0);
+        $without = lcmt_pv_page();
+        lcmt_assert_true(str_contains($without, 'options-privacy.php"'), 'settings link without a page');
+
+        $id = wp_insert_post(['post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'IT policy']);
+        update_option('wp_page_for_privacy_policy', $id);
+
         lcmt_assert_true(str_contains(lcmt_pv_page(), esc_url((string) get_privacy_policy_url())), 'policy page link');
     } finally {
         $old === false ? delete_option('wp_page_for_privacy_policy') : update_option('wp_page_for_privacy_policy', $old);
