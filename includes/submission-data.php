@@ -78,6 +78,26 @@ class SubmissionData
     }
 
     /**
+     * The names of the files a message was sent with. Only the names are
+     * stored: the files went with the email and were not kept.
+     *
+     * @param list<array{name: string, type: string, value: string}> $snapshot
+     * @return list<string>
+     */
+    public static function fileNames(array $snapshot): array
+    {
+        $names = [];
+
+        foreach ($snapshot as $field) {
+            if ($field['type'] === 'file' && $field['value'] !== '') {
+                $names[] = $field['value'];
+            }
+        }
+
+        return $names;
+    }
+
+    /**
      * Whether one of the values is this email address, ignoring case.
      *
      * @param list<array{name: string, type: string, value: string}> $snapshot

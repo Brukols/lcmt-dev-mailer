@@ -39,6 +39,9 @@ Placeholders define the form fields. Write them in the **To**, **Subject** or **
 | `date`     | `<input type="date">`    |        |
 | `textarea` | `<textarea>`             |        |
 | `hidden`   | `<input type="hidden">`  |        |
+| `file`     | `<input type="file">`    |        |
+
+A `file` field (`[brief file]`, `[brief* file]`) is attached to the email; in the mail content, the placeholder is replaced by the file's name. See [File fields](#file-fields).
 
 ### Example
 
@@ -71,7 +74,7 @@ These are always available and don't need to be in the content:
 | `[currentUserEmail]` | Email of the current logged-in user      |
 | `[submissionLanguage]` | Name of the language of the page the form was sent from (e.g. `English`); empty without Polylang |
 
-A value passed under the same name to `Mailer::sendByKey()` wins. "Send the email again" on a received message passes the user placeholders empty (the admin resending it is not the visitor) and sends it in the language it was first sent in. `[submissionLanguage]` is never a form field: visitors cannot fill it.
+A value passed under the same name to `Mailer::sendByKey()` wins. "Send the email again" on a received message passes the user placeholders empty (the admin resending it is not the visitor) and sends it in the language it was first sent in. `[submissionLanguage]`, `[currentUserEmail]` and `[currentUserLink]` are never form fields: visitors cannot fill them, a value posted under those names is ignored.
 
 ---
 
@@ -113,6 +116,8 @@ A `tel` value holds 6 to 20 digits, an optional leading `+`, and any spaces, dot
 - `404` — Unknown form key
 - `500` — Email sending failed. The visitor is told so, to try again later or write by email, since the site owner may never open the admin. When the form saves its messages, the message is still in Received messages, with the failure banner and **Send the email again**.
 
+With a file field, the form script sends `multipart/form-data` instead (see [File fields](#file-fields)): the same fields, the file under its field name, and `_context` as a JSON string.
+
 ### Success message
 
 Each mail post has an optional **Success message** (stored in the `_lcmt_mail_success_message` meta): the text shown to the visitor after a successful submission of this form, the `message` key of the REST answer. Left empty, the form shows the site's message, set in **Email templates → Settings** (or the default, *Email sent successfully.*). With Polylang, the message of the form's published translation in the submission language is used when it has one. A [confirmation page](#confirmation-page) still takes the visitor elsewhere instead, and the [`lcmt_mailer_success_message`](#lcmt_mailer_success_message) filter can change the text.
@@ -146,6 +151,8 @@ document.addEventListener('lcmt:success', function (e) {
     'message'   => 'Hello!',
 ]);
 ```
+
+A fourth, optional argument attaches files: `Mailer::sendByKey('contact', $placeholders, null, ['/path/to/file.pdf'])`. The caller owns these files (the plugin does not delete them).
 
 ---
 
@@ -213,7 +220,40 @@ The plugin adds these classes to the `<form>` during submission:
 | `lcmt-form--submitting`  | Request in progress           |
 | `lcmt-form--success`     | Email sent successfully       |
 | `lcmt-form--error`       | Validation or sending failed  |
-| `lcmt-field--error`      | Added to invalid input fields |
+
+Fields in error get `aria-invalid="true"`, and so do their `label[for]`, the `<label>` wrapping them and the `<legend>` of their `<fieldset>`; for a radio button, the whole group. The plugin's stylesheet colors them in red. Choices (radio, checkbox, file, select) clear on `change`, text fields on `input`.
+
+### File fields
+
+A `[name file]` placeholder (`[name* file]` when required) asks the visitor for one file, attached to the email. The mail content shows the file name (cleaned: no path, no special characters, 120 characters at most).
+
+**Per template**, the **File uploads** row of the mail template sets:
+- **Allowed formats**: JPG/JPEG, PNG, WEBP, GIF, TIFF, PDF, AI (Adobe Illustrator), EPS, SVG. Nothing ticked means JPG, PNG and PDF (the default of a new template).
+- **Maximum size** in MB, per file (default 10). The row shows the server's own limit (`wp_max_upload_size()`: `upload_max_filesize` and `post_max_size`); a larger value is lowered to it, when saved and on every request.
+
+**Checks on the server** (422 with `errors`): required file, a single file per field, PHP upload errors, `is_uploaded_file()`, the size, the extension, then the **content**: the MIME type the file really has (fileinfo) must be one of its format's (an AI file may hold a PDF or PostScript, TIFF is `image/tiff`, SVG `image/svg+xml`…), and `wp_check_filetype_and_ext()` must agree. A renamed file is refused. An SVG is only ever attached to the email, never shown on the site.
+
+**Never kept**: the upload is moved to a private folder of its own under `get_temp_dir()` (0700, random name), attached under the visitor's file name, and deleted right after `wp_mail()`, sent or not. Received messages only store the file name. A message blocked by the spam protection keeps no file (PHP deletes the upload at the end of the request). **Send the email again** sends the email **without** the file; the message screen says so.
+
+**In the form file**, three helpers (guard them with `function_exists()`):
+
+```php
+<label for="devis-fichier">Fichier joint</label>
+<input type="file" id="devis-fichier" name="fichier"
+       accept="<?php echo esc_attr(function_exists('lcmt_mailer_file_accept') ? lcmt_mailer_file_accept('devis') : ''); ?>">
+<span data-lcmt-file-name="fichier">Aucun fichier choisi</span>
+<small><?php echo esc_html(function_exists('lcmt_mailer_file_hint') ? lcmt_mailer_file_hint('devis') : ''); ?></small>
+```
+
+| Helper | Returns |
+|--------|---------|
+| `lcmt_mailer_file_accept($key)` | The `accept` value: `.jpg,.jpeg,.png,.pdf` (`''` for an unknown key) |
+| `lcmt_mailer_file_max_size($key)` | The maximum size in bytes (`0` for an unknown key) |
+| `lcmt_mailer_file_hint($key)` | A translated line, not escaped: *Formats : JPG, PNG, PDF — 10 Mo maximum* |
+
+**In the browser**, the plugin puts the limits on the `<form>` (`data-lcmt-file-extensions`, `data-lcmt-file-max-size`, `data-lcmt-file-hint`, and `enctype="multipart/form-data"`), so the script checks the chosen file's extension and size before sending and shows *This file format is not accepted.* / *This file is too large.* followed by the hint; the field gets `aria-invalid="true"` like any field in error. An element with `data-lcmt-file-name="<field>"` shows the chosen file name (its own text comes back when the file is cleared or the form reset) and gets a `data-lcmt-file-chosen` attribute while a file is chosen, for styling.
+
+Filters: [`lcmt_mailer_file_formats`](.claude/hooks.md) (the format map) and [`lcmt_mailer_file_limits`](.claude/hooks.md) (formats and size of one form).
 
 ---
 

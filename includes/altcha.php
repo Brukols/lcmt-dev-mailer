@@ -253,12 +253,12 @@ class Altcha implements CaptchaProvider, CaptchaAssets, CaptchaBadge, CaptchaPri
         if (!is_int($counter) || $counter < 0 || $counter > self::MAX_COUNTER) return false;
         if (!is_string($derivedKey) || !preg_match('/^(?:[0-9a-f]{2})+$/D', $derivedKey)) return false;
 
-        // A challenge is good for one try only, spent before the costly step.
-        // The marker lives until the challenge expires, after which the
-        // expiry check above rejects it anyway.
+        // A challenge is good for one try only, spent before the costly step,
+        // and claimed atomically: of parallel requests replaying one solved
+        // challenge, only one goes on. The marker lives until the challenge
+        // expires, after which the expiry check above rejects it anyway.
         $marker = self::USED_PREFIX . $parameters['nonce'];
-        if (get_transient($marker)) return false;
-        set_transient($marker, 1, max(1, $parameters['expiresAt'] - time()));
+        if (!OnceMarker::claim($marker, $parameters['expiresAt'] - time())) return false;
 
         $expected = bin2hex(static::deriveKey($parameters, $counter));
 

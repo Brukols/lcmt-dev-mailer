@@ -61,7 +61,8 @@ Its settings and strings (`lcmtMailerFront`: alert colors, page language, transl
    - Collects all `[name]` inputs
    - Validates `required` inputs and `type="email"` inputs client-side. A checkbox or radio button counts only when checked (`lib/field-value.js`): an unticked consent box is empty, so a required one blocks the submit and the server refuses it too
    - Asks the form's spam protection for a token (see "Spam protection adapters" below); the ALTCHA adapter keeps the current proof unless it is missing or expires within 30 s (the widget's own refresh timer stops while the computer sleeps), else solves a new challenge before sending
-   - Sends `fetch POST` with JSON body to the endpoint; on a multilingual site (`lcmtMailerFront.lang` set from `pll_current_language()`), `lib/request-url.js` adds `?lang=<slug>` so the answer and the mail use the page language
+   - A file field (`input[type=file]`) is checked against the form's `data-lcmt-file-extensions` / `data-lcmt-file-max-size` (`lib/file-field.js`, `fileProblem()`); a wrong format or size marks the field and shows `i18n.fileType` / `i18n.fileTooLarge` followed by `data-lcmt-file-hint`. A file input counts as empty without a file (`lib/field-value.js` gives the file name), so `required` works on it
+   - Sends `fetch POST` with a JSON body to the endpoint, or, when the form has a file input (even with no file chosen), a `FormData` body (`requestBody()`): the same keys, objects such as `_context` as JSON strings, each chosen file under its field name, no `Content-Type` header (the browser adds the boundary); on a multilingual site (`lcmtMailerFront.lang` set from `pll_current_language()`), `lib/request-url.js` adds `?lang=<slug>` so the answer and the mail use the page language
    - Handles success/error states: on success, fires `lcmt:success` on the form, then goes to the form's confirmation page when the answer has a `redirect` URL, else shows the success message and resets the form (see below)
    - Resets the spam protection after every answer: the server spends a token as soon as it reads it, even when it then refuses a field, so a corrected form needs a new one
 
@@ -106,13 +107,17 @@ document.addEventListener('lcmt:success', function (e) {
 | `lcmt-form--success`     | Email sent, form reset        |
 | `lcmt-form--error`       | Validation or sending failed  |
 
-### CSS class on inputs
+### Fields in error (`aria-invalid`)
 
-| Class                | When                              |
-|----------------------|-----------------------------------|
-| `lcmt-field--error`  | Input failed validation           |
+`markFieldError()` sets `aria-invalid="true"` on what `lib/field-errors.js` (`errorGroup()`, unit-tested with stand-in elements) returns for the input: the control, its `label[for=id]`, the `<label>` that wraps it (`closest('label')`) and the `<legend>` of its `<fieldset>` (`:scope > legend`); for a radio button, every radio of the same name in the form, with their labels. It is cleared on the whole group when the visitor changes any control of it: on `change` for radio, checkbox, file and select (`clearEvent()`), on `input` for text fields. Server errors mark the field named in quotes in the message, so a radio group goes red as a whole too.
 
-The class is removed on the next `input` event.
+`form-handler.css` colors `input`, `textarea`, `select`, `label` and `legend` with `[aria-invalid="true"]` in `#e53e3e`. (The `lcmt-field--error` class of older docs is not set: style `[aria-invalid="true"]`.)
+
+### File fields
+
+When the template has a file field, `FormRenderer` adds to the `<form>`: `enctype="multipart/form-data"`, `data-lcmt-file-extensions` (`jpg,jpeg,png,pdf`), `data-lcmt-file-max-size` (bytes) and `data-lcmt-file-hint` (translated line). The theme's form file writes the input itself, typically with `accept="<?php echo esc_attr(lcmt_mailer_file_accept('devis')); ?>"` and the `lcmt_mailer_file_hint()` line (see README → File fields).
+
+Chosen file name: an element `[data-lcmt-file-name="<field name>"]` inside the form gets the name of the chosen file and a `data-lcmt-file-chosen` attribute; its original text comes back (and the attribute goes) when the file is cleared or the form is reset (`showFileName()`).
 
 ### Status element
 
@@ -132,7 +137,7 @@ The attribute value is set to `submitting`, `success`, or `error`. The text cont
   pointer-events: none;
 }
 
-.lcmt-field--error {
+[aria-invalid="true"] {
   border-color: red;
 }
 
@@ -182,6 +187,9 @@ POST /wp-json/lcmt-mailer/v1/forms/{key}
 ```
 
 ### Request
+
+Forms with a file field send `multipart/form-data` instead: the same fields, each file under its field name, `_context` as a JSON string (see README → File fields). The endpoint reads `get_json_params()` for JSON and `get_body_params()` + `get_file_params()` for multipart.
+
 ```json
 {
   "firstname": "John",
@@ -209,7 +217,7 @@ When the form has a confirmation page (or `lcmt_mailer_confirmation_url` returns
 
 **403 — Spam protection failed:** the form's captcha rejected the proof (missing, invalid, expired or already used), or its verification service could not be reached while the site refuses in that case. When the fields are valid, the message is kept in Received messages → Spam with its reason (see [Architecture](architecture.md)).
 
-**422 — Validation error:** a required field is empty, or a value does not match its type (`email`, `number`, `url`, `tel`; see `FieldValidator`). A field used in To or Reply-To must hold a single valid email address, whatever its declared type.
+**422 — Validation error:** a required field is empty, a file is refused (format, content, size, several files, upload error), or a value does not match its type (`email`, `number`, `url`, `tel`; see `FieldValidator`). A field used in To or Reply-To must hold a single valid email address, whatever its declared type.
 ```json
 {
   "success": false,

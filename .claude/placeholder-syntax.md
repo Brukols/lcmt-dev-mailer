@@ -28,6 +28,9 @@ Placeholders are written in the **To**, **Subject**, and **Content** fields of a
 | `date`     | `<input type="date">`     |         |
 | `textarea` | `<textarea>`              |         |
 | `hidden`   | `<input type="hidden">`   |         |
+| `file`     | `<input type="file">`     |         |
+
+A `file` field is never read from the text body: only from the uploaded files (`FileField::check()`), and its value (placeholder, received message) is the cleaned file name. The file itself is attached to the email (see [Architecture](architecture.md#filefield)).
 
 Unknown types fall back to `text`.
 
@@ -51,7 +54,7 @@ These are always injected by the Mailer and don't need to appear in the content:
 
 `buildForm()` only fills them when the caller did not pass the same name (bare or bracketed, with or without `*`). The resend of a received message passes the two user placeholders as `''`, so they never name the admin who resends it, and runs in the stored language of the message (`RequestLanguage::using()`).
 
-`[submissionLanguage]` is in `FieldParser::SERVER_FILLED`: `FieldParser::formFields()` leaves it out of the fields a visitor fills (REST endpoint, generated form template, TypeScript interface, test mail), so it is never asked for nor taken from the request.
+`[submissionLanguage]`, `[currentUserEmail]` and `[currentUserLink]` are in `FieldParser::SERVER_FILLED` (the two user placeholders since 2.10.0: a visitor could otherwise pose as the signed-in account): `FieldParser::formFields()` leaves it out of the fields a visitor fills (REST endpoint, generated form template, TypeScript interface, test mail), so they are never asked for nor taken from the request.
 
 A translated mail post must keep the same placeholder names and types as the source mail (the mail only replaces a placeholder written with the source's type): `MailLanguage::pick()` falls back to the source otherwise.
 
@@ -80,4 +83,4 @@ export interface ContactFormData {
 ```
 
 - Required fields have no `?`
-- `number` type maps to TypeScript `number`, all others to `string`
+- `number` type maps to TypeScript `number`, `file` to `File`, all others to `string`

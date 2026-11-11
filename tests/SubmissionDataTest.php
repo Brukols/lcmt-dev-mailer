@@ -77,4 +77,24 @@ class SubmissionDataTest extends TestCase
     {
         $this->assertSame(['fields', 'mail_error', 'user_agent'], SubmissionData::PERSONAL_COLUMNS);
     }
+
+    public function testSnapshotKeepsOnlyTheNameOfAFile(): void
+    {
+        $fields   = ['brief' => ['name' => 'brief', 'required' => true, 'type' => 'file']];
+        $snapshot = SubmissionData::snapshot($fields, ['brief' => 'plan.pdf']);
+
+        $this->assertSame([['name' => 'brief', 'type' => 'file', 'value' => 'plan.pdf']], $snapshot);
+    }
+
+    public function testListsTheFilesAMessageWasSentWith(): void
+    {
+        $snapshot = [
+            ['name' => 'name', 'type' => 'text', 'value' => 'Jeanne'],
+            ['name' => 'brief', 'type' => 'file', 'value' => 'plan.pdf'],
+            ['name' => 'logo', 'type' => 'file', 'value' => ''],
+        ];
+
+        $this->assertSame(['plan.pdf'], SubmissionData::fileNames($snapshot));
+        $this->assertSame([], SubmissionData::fileNames([]));
+    }
 }

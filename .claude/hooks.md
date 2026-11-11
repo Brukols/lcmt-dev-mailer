@@ -74,6 +74,40 @@ add_filter('lcmt_mailer_confirmation_url', function (string $url, string $key, \
 
 Used in: `ConfirmationPage::url()`, called by `FormEndpoint::handle()`; the result is the `redirect` key of the 200 answer. On the page, `form-handler.js` fires `lcmt:success` before leaving (see [Frontend](frontend.md#success-event-and-confirmation-page)).
 
+### `lcmt_mailer_file_formats`
+The formats a mail template's file fields can accept (the checkboxes of **File uploads**). Default: `FileField::FORMATS` (`jpg`, `png`, `webp`, `gif`, `tiff`, `pdf`, `ai`, `eps`, `svg`). Each entry is `id => ['label' => …, 'short' => …, 'extensions' => […], 'mimes' => […]]`: a file passes when its extension and the MIME type of its content (fileinfo) belong to the same ticked format. `FileField::sanitizeFormatMap()` drops malformed entries and script or page extensions (`php`, `phtml`, `phar`, `html`, `js`, `exe`…) whatever the filter returns.
+
+```php
+add_filter('lcmt_mailer_file_formats', function (array $formats) {
+    $formats['docx'] = [
+        'label'      => 'Word (DOCX)',
+        'short'      => 'DOCX',
+        'extensions' => ['docx'],
+        'mimes'      => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+    ];
+    return $formats;
+});
+```
+
+Used in: `FileField::formats()` (admin row, checks, helpers, form attributes).
+
+### `lcmt_mailer_file_limits`
+What the file fields of one form accept: `['formats' => list of format ids, 'max_size' => bytes]`, from the template's meta. Arguments: `array $limits, string $key, \WP_Post $post`. Unknown ids are dropped (an empty list keeps the template's), and the size is capped to `wp_max_upload_size()` again after the filter.
+
+```php
+add_filter('lcmt_mailer_file_limits', function (array $limits, string $key) {
+    if ($key === 'devis') {
+        $limits['max_size'] = 20 * MB_IN_BYTES;
+    }
+    return $limits;
+}, 10, 2);
+```
+
+Used in: `FileField::limitsFor()` (endpoint, renderer, `lcmt_mailer_file_*()` helpers), cached per request.
+
+### Post meta `_lcmt_mail_file_formats` / `_lcmt_mail_file_max_size`
+Not hooks: the **File uploads** settings of a mail template (`MetaFields::FIELD_FILE_FORMATS`, a comma list of format ids, missing = `jpg,png,pdf`; `MetaFields::FIELD_FILE_MAX_SIZE`, whole MB, missing = 10). Copied to translations (`wpml-config.xml`).
+
 ### `lcmt_mailer_captcha_providers`
 Register a spam protection. Keys are provider ids, values are classes implementing `LcmtDevMailer\CaptchaProvider`.
 

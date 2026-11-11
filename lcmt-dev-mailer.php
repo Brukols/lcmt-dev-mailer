@@ -4,7 +4,7 @@
  * Plugin Name: LCMT Mailer
  * Plugin URI: https://github.com/Brukols/lcmt-dev-mailer
  * Description: Developer-oriented mail engine. Create mail templates in WP admin, auto-generates REST endpoints, form rendering, validation and TypeScript types.
- * Version: 2.9.0
+ * Version: 2.10.0
  * Author: Amaury Lecomte
  * Author URI:
  * Text Domain: lcmt-dev-mailer
@@ -39,10 +39,45 @@ function lcmt_mailer_captcha(): void
     echo LcmtDevMailer\FormRenderer::CAPTCHA_SLOT;
 }
 
+/**
+ * The `accept` attribute value of the file fields of a form, in a form file
+ * ({theme}/forms/{key}.php): ".jpg,.jpeg,.png,.pdf". '' for an unknown key.
+ */
+function lcmt_mailer_file_accept(string $key): string
+{
+    $limits = LcmtDevMailer\FileField::limitsForKey($key);
+
+    return $limits ? LcmtDevMailer\FileField::accept($limits['formats'], LcmtDevMailer\FileField::formats()) : '';
+}
+
+/**
+ * The largest file, in bytes, the file fields of a form accept. 0 for an
+ * unknown key.
+ */
+function lcmt_mailer_file_max_size(string $key): int
+{
+    $limits = LcmtDevMailer\FileField::limitsForKey($key);
+
+    return $limits ? $limits['max_size'] : 0;
+}
+
+/**
+ * A line telling visitors what the file fields of a form accept, in the
+ * site language: "Formats: JPG, PNG, PDF — 10 MB maximum". Not escaped.
+ * '' for an unknown key.
+ */
+function lcmt_mailer_file_hint(string $key): string
+{
+    $limits = LcmtDevMailer\FileField::limitsForKey($key);
+
+    return $limits ? LcmtDevMailer\FileField::hint($limits) : '';
+}
+
 require_once LCMT_MAILER_PATH . 'includes/post-type.php';
 require_once LCMT_MAILER_PATH . 'includes/meta-fields.php';
 require_once LCMT_MAILER_PATH . 'includes/field-parser.php';
 require_once LCMT_MAILER_PATH . 'includes/field-validator.php';
+require_once LCMT_MAILER_PATH . 'includes/file-field.php';
 require_once LCMT_MAILER_PATH . 'includes/template-loader.php';
 require_once LCMT_MAILER_PATH . 'includes/request-language.php';
 require_once LCMT_MAILER_PATH . 'includes/mail-language.php';
@@ -58,6 +93,7 @@ require_once LCMT_MAILER_PATH . 'includes/secret-box.php';
 require_once LCMT_MAILER_PATH . 'includes/unreadable-secrets.php';
 require_once LCMT_MAILER_PATH . 'includes/captcha-provider.php';
 require_once LCMT_MAILER_PATH . 'includes/captcha.php';
+require_once LCMT_MAILER_PATH . 'includes/once-marker.php';
 require_once LCMT_MAILER_PATH . 'includes/altcha.php';
 require_once LCMT_MAILER_PATH . 'includes/turnstile.php';
 require_once LCMT_MAILER_PATH . 'includes/captcha-settings.php';

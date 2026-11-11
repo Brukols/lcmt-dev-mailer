@@ -80,6 +80,25 @@ function add_query_arg($args, $url)
     return $args === [] ? $url : $url . '&' . http_build_query($args);
 }
 
+// Persistent object cache (OnceMarker): wp_cache_add() only adds a missing key.
+function wp_using_ext_object_cache($using = null)
+{
+    return (bool) ($GLOBALS['lcmt_test_ext_object_cache'] ?? true);
+}
+
+function wp_cache_add($key, $data, $group = '', $expire = 0)
+{
+    $GLOBALS['lcmt_test_cache_calls'][] = ['add', $group . ':' . $key, (int) $expire];
+
+    if (array_key_exists($group . ':' . $key, $GLOBALS['lcmt_test_cache'] ?? [])) {
+        return false;
+    }
+
+    $GLOBALS['lcmt_test_cache'][$group . ':' . $key] = $data;
+
+    return true;
+}
+
 function get_transient($name)
 {
     return $GLOBALS['lcmt_test_transients'][$name] ?? false;
@@ -198,6 +217,7 @@ require_once dirname(__DIR__) . '/includes/settings.php';
 require_once dirname(__DIR__) . '/includes/success-message.php';
 require_once dirname(__DIR__) . '/includes/date-value.php';
 require_once dirname(__DIR__) . '/includes/field-validator.php';
+require_once dirname(__DIR__) . '/includes/file-field.php';
 require_once dirname(__DIR__) . '/includes/submission-data.php';
 require_once dirname(__DIR__) . '/includes/submission-context.php';
 require_once dirname(__DIR__) . '/includes/channel-classifier.php';
@@ -205,6 +225,7 @@ require_once dirname(__DIR__) . '/includes/secret-box.php';
 require_once dirname(__DIR__) . '/includes/unreadable-secrets.php';
 require_once dirname(__DIR__) . '/includes/captcha-settings.php';
 require_once dirname(__DIR__) . '/includes/captcha-provider.php';
+require_once dirname(__DIR__) . '/includes/once-marker.php';
 require_once dirname(__DIR__) . '/includes/altcha.php';
 require_once dirname(__DIR__) . '/includes/turnstile.php';
 require_once dirname(__DIR__) . '/includes/captcha.php';

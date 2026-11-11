@@ -10,6 +10,7 @@ lcmt-dev-mailer/
 │   ├── meta-fields.php          # MetaFields — native WP meta box (key, to, subject, content, success message, confirmation page, spam protection) + syntax reference panel
 │   ├── field-parser.php         # FieldParser — parses [field* type] placeholders from content
 │   ├── field-validator.php      # FieldValidator — sanitizes submitted values and checks them by type
+│   ├── file-field.php           # FileField — file fields: formats, size, upload checks, private copy attached to the mail
 │   ├── template-loader.php      # TemplateLoader — loads mail-base.php with theme override support
 │   ├── request-language.php     # RequestLanguage — submission language (Polylang), locale switch of the REST request
 │   ├── mail-language.php        # MailLanguage — picks the translated subject/content or the source mail
@@ -69,7 +70,9 @@ lcmt-dev-mailer/
 │   │   ├── lib/deactivate-dialog.js # The <dialog>: checkbox, help line, Cancel/Deactivate, busy state, tested under node
 │   │   ├── lib/stats-view.js    # Chart | Table state and localStorage persistence, tested under node
 │   │   ├── lib/request-url.js   # REST URL of a form, with the page language as `lang`, tested under node
-│   │   ├── lib/field-value.js   # Value a control submits: an unticked checkbox or radio is empty, tested under node
+│   │   ├── lib/field-value.js   # Value a control submits: an unticked checkbox or radio is empty, a file field its file name, tested under node
+│   │   ├── lib/field-errors.js  # What turns red with a field in error (labels, legend, radio group), and the event that clears it, tested under node
+│   │   ├── lib/file-field.js    # File fields: browser check of extension/size, JSON or multipart body, chosen file name, tested under node
 │   │   └── lib/form-success.js  # `lcmt:success` event, then confirmation page or success message, tested under node
 │   └── dist/                    # Minified output (esbuild)
 └── package.json                 # Build config (esbuild)
@@ -89,6 +92,8 @@ Native WordPress meta box with these fields:
 - `_lcmt_mail_content` — email body (WYSIWYG), supports placeholders with type syntax
 - `_lcmt_mail_store_submissions` — `'1'` / `'0'`, whether received messages are saved (on when absent)
 - `_lcmt_mail_success_message` (`FIELD_SUCCESS_MESSAGE`) — optional message shown after a successful submission of this form (textarea, the site's message as placeholder); deleted when saved empty, so the site's message (`Settings::siteSuccessMessage()`) shows. Translated with the mail (`wpml-config.xml`)
+- `_lcmt_mail_file_formats` (`FIELD_FILE_FORMATS`) — comma list of the format ids the file fields accept (checkboxes of the **File uploads** row); deleted when nothing is ticked, so `FileField::DEFAULT_FORMATS` (`jpg,png,pdf`) applies. Copied to translations
+- `_lcmt_mail_file_max_size` (`FIELD_FILE_MAX_SIZE`) — maximum size per file in whole MB (default 10), lowered to `FileField::serverMaxMb(wp_max_upload_size())` on save; the **File uploads** row shows the server's limit next to it. Saved only when the row's hidden `lcmt_mail_file_settings` marker is posted. Copied to translations
 - `_lcmt_mail_confirmation_page` (`FIELD_CONFIRMATION_PAGE`) — ID of the page a visitor is sent to after a successful submission; a select of published pages (`wp_dropdown_pages()`, "None" = `0`). Saved only when the ID is a `page`, deleted otherwise. A stored page that is no longer published is flagged under the select, and saving clears it.
 
 Falls back to old ACF meta keys (`to`, `subject`, `content`) for backwards compatibility.
@@ -108,7 +113,8 @@ Loads the HTML email wrapper template.
 
 ### Mailer
 Core email sending engine.
-- `sendByKey($key, $placeholders)` — main public API
+- `sendByKey($key, $placeholders, $forcedLanguage = null, $attachments = [])` — main public API; `$attachments` are paths passed to `wp_mail()`, owned by the caller
+- `sendWithBaseTemplate($form, $attachments = [])`
 - `getPostByKey($key)` — queries mail CPT by `_lcmt_mail_key` meta
 - `buildForm($post, $placeholders)` — replaces placeholders in to/subject/content
 - Normalizes placeholders: bare keys get both `[field]` and `[field*]` forms
@@ -127,6 +133,7 @@ Core email sending engine.
 - Registers `POST /wp-json/lcmt-mailer/v1/forms/{key}`
 - Auto-validates required fields from parsed content, and values by type through `FieldValidator`
 - Sends email via `Mailer::sendByKey()`
+- Reads a JSON body, or a `multipart/form-data` one (`get_body_params()` + `get_file_params()`) for forms with a file field; the spam protection and `_context` (`FileField::decodeContext()`) work with both. File fields are checked by `FileField::check()` and their value is the clean file name. After the checks and the spam protection, each file is moved to a private copy (`FileField::privateCopy()`, a 500 if that fails), attached through `SubmissionRecorder::send(…, $attachments)` → `Mailer::sendByKey(…, $attachments)` → `wp_mail()`, and deleted in a `finally`, sent or not. A blocked message never gets a copy.
 - Fires `lcmt_mailer_before_send` and `lcmt_mailer_after_send` actions
 - On success, answers with `SuccessMessage::forForm()` as `message`, and adds `redirect` when `ConfirmationPage::url()` returns a URL
 
@@ -135,6 +142,15 @@ The page a visitor is sent to after a successful submission, set per form (`Meta
 - `normalizeId($raw)` (pure) — a stored or posted value as a page ID, `0` for none or anything but a plain positive integer
 - `pick($pageId, $translationId, $isPublished)` (pure) — the translation when published, else the page when published, else `0`
 - `url($post, $key)` — the page in the submission language (`pll_get_post()` with `RequestLanguage::current()`, guarded by `function_exists`), its `get_permalink()`, then the `lcmt_mailer_confirmation_url` filter, then `wp_sanitize_redirect()` + `wp_validate_redirect(…, '')`: anything outside the site (and `allowed_redirect_hosts`) becomes `''`, so the endpoint is never an open redirect, whatever a filter returns. `''` means "show the success message". The mail post is the default-language one (`Mailer::getPostByKey()`), so its meta is the source; the meta is declared `copy` in `wpml-config.xml`.
+
+### FileField
+File fields (`[name file]`, `[name* file]`, type `FileField::TYPE`). Pure helpers (tested in `tests/FileFieldTest.php`): `FORMATS` (id → label, short label, extensions, MIME types; AI accepts `application/pdf` and `application/postscript`, EPS `application/postscript` and `image/x-eps`, TIFF `image/tiff`, SVG `image/svg+xml`), `sanitizeFormatMap()` (filter output, drops script/page extensions), `sanitizeFormats()`, `sanitizeMaxMb()`, `capBytes()`, `serverMaxMb()`, `extension()`, `extensions()`, `accept()`, `formatFor()`, `mimeMatches()`, `uploadProblem()` (`$_FILES` entry → `''`, `empty`, `multiple`, `too_big`, `failed`), `shortenName()`, `hintText()`, `formAttributes()`, `hasFileField()`, `decodeContext()` (the `_context` of a multipart body is a JSON string, at most 4 KB, depth 8).
+
+WordPress glue: `formats()` (filter `lcmt_mailer_file_formats`), `limitsFor($post, $key)` (meta, filter `lcmt_mailer_file_limits`, capped to `wp_max_upload_size()`, cached per request), `limitsForKey()` (the `lcmt_mailer_file_*()` helpers), `hint()`, `formAttributesFor()` (the `<form>` attributes `FormRenderer` adds when the template has a file field), and:
+- `check($file, $limits, $field)` — upload problem, `is_uploaded_file()`, size (`filesize()` and the reported size), extension in the allowed formats, then the content: the real MIME type (fileinfo, else the image header) must be one of that format's, and `wp_check_filetype_and_ext()` must return the same type with no corrected file name. It is called with only that format's extensions mapped to the real type, and with an `upload_mimes` filter allowing exactly that pair for the call (removed in a `finally`), since SVG, AI and EPS are not in WordPress's upload types. Without fileinfo, only images can be checked: other formats are refused. Errors are translated and name the field in quotes (the form script marks the field from it).
+- `cleanName()` — `sanitize_file_name(wp_basename())`, at most `MAX_NAME_LENGTH` (120) characters, extension kept.
+- `privateCopy($tmp, $name)` — `move_uploaded_file()` into `get_temp_dir()/lcmt-mailer-<24 random chars>/` (0700, file 0600) under the clean name, so the mail carries the visitor's file name; `cleanup($paths)` deletes the file and that folder (only folders with the prefix).
+- `bodyTooLarge()` — a multipart request over `post_max_size` reaches PHP with no field and no file: the endpoint answers 422 with the size instead of failing the spam protection.
 
 ### FieldValidator
 Sanitizes a submitted value (`sanitize_text_field`, or `sanitize_textarea_field` for textareas) and checks it by type:
@@ -145,6 +161,8 @@ Sanitizes a submitted value (`sanitize_text_field`, or `sanitize_textarea_field`
 - other types — not checked
 
 ### AdminMailSender
+`buildFormTemplate($key, $fields)` (public, tested in `tests/FormTemplateTest.php`) writes the generated form file; a file field gets `<input type="file">` with `accept` from `lcmt_mailer_file_accept()`, a `[data-lcmt-file-name]` element and the `lcmt_mailer_file_hint()` line, both helpers guarded by `function_exists()`.
+
 Admin sidebar metabox with:
 - Usage info: shortcode, PHP snippet, REST endpoint
 - Field reference table (name, type, required)
@@ -182,7 +200,7 @@ It also owns the columns of the email templates list (`addColumns()` / `populate
 - When a stored value cannot be decrypted (security keys changed, database copied), the protection counts as not set up; the next form render or submission that relies on it (`Captcha::useSecrets()`) makes `UnreadableSecrets::report()` record it in the `lcmt_mailer_unreadable_secrets` option and sends **one** email to `admin_email`; `UnreadableSecrets::notice()` shows an admin notice until the key is saved again (`clear()`). The Turnstile secret row keeps its field and its forget checkbox, so the admin can enter the key again or remove the unreadable copy.
 
 ### SubmissionData
-Pure helpers around the stored `fields` JSON: `snapshot()` freezes each submitted value with its field name and type (password fields are never stored, each value is cut to `MAX_VALUE_LENGTH` = 10 000 characters, multibyte-safe), `toPlaceholders()` rebuilds the placeholders for a resend, `containsEmail()` matches an exact value, `summary()` builds the line shown in lists. `PERSONAL_COLUMNS` (`fields`, `mail_error`, `user_agent`) lists what anonymization clears.
+Pure helpers around the stored `fields` JSON: `fileNames()` lists the file names of a message (the detail screen then notes that the file went with the email and that **Send the email again** sends it without it), `snapshot()` freezes each submitted value with its field name and type (password fields are never stored, each value is cut to `MAX_VALUE_LENGTH` = 10 000 characters, multibyte-safe), `toPlaceholders()` rebuilds the placeholders for a resend, `containsEmail()` matches an exact value, `summary()` builds the line shown in lists. `PERSONAL_COLUMNS` (`fields`, `mail_error`, `user_agent`) lists what anonymization clears.
 
 ### UserAgent
 Pure class. `clean($raw)` is what is stored of the `User-Agent` header: control characters stripped, at most 500 characters, empty when it is not valid UTF-8. `parse($ua)` returns `['browser' => …, 'os' => …]`, families only, never a version: browser is `Edge`, `Opera`, `Samsung Internet`, `Firefox` (incl. FxiOS), `Chrome` (incl. CriOS), `Safari`, `Bot` (crawlers, monitors, curl…) or `Other`; OS is `iOS`, `iPadOS`, `Android`, `Windows`, `macOS`, `ChromeOS`, `Linux` or `Other`; an empty header gives `''` for both. Order matters (Edge and Opera also say Chrome, Android also says Linux): see the precedence tests in `tests/UserAgentTest.php`. The raw string can single out a device, so it is **personal** (cleared by anonymization, exported by the privacy tools); the two families are statistics and stay.
@@ -222,7 +240,7 @@ All SQL on the table: `insert`, `update`, `find`, `search`/`count` (filters: for
 ### SubmissionRecorder
 - `record()` saves a submission when the mail template stores submissions (`MetaFields::storesSubmissions()`, on by default) and returns its id, or 0.
 - `record(…, $spamReason)` with a reason (`REASON_FAILED` `captcha_failed`, `REASON_UNAVAILABLE` `captcha_unavailable`) saves the message as `spam` with that `spam_reason` (schema 5). `FormEndpoint` does so for a blocked message with valid fields when the template stores submissions, `Captcha::OPTION_KEEP_BLOCKED` is on and `canKeepBlocked()` allows it (at most 50 per hour, filter `lcmt_mailer_blocked_hourly_limit`, transient `lcmt_mailer_blocked_<YmdH>`); no email, same 403 as any blocked message. `Captcha::OPTION_UNAVAILABLE` `accept` lets a message through when the verification service does not answer.
-- `send($id, $key, $placeholders)` calls `Mailer::sendByKey()` and stores `mail_sent` / `mail_error`.
+- `send($id, $key, $placeholders, $attachments = [])` calls `Mailer::sendByKey()` (attachments are never stored; a resend from the admin has none) and stores `mail_sent` / `mail_error`.
 - `captureMailError()` listens to `wp_mail_failed` to keep the reason of a failure. Without one, the stored error says the email could not be built when the template cannot be found (`Mailer::getPostByKey()`), otherwise that the mail system gave no reason (wp_mail, or a plugin short-circuiting it, returned false silently).
 
 ### Attribution

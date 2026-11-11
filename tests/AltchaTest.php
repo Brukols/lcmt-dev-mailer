@@ -33,6 +33,8 @@ class AltchaTest extends TestCase
     {
         $GLOBALS['lcmt_test_options']    = [];
         $GLOBALS['lcmt_test_transients'] = [];
+        $GLOBALS['lcmt_test_cache']      = [];
+        $GLOBALS['lcmt_test_cache_calls'] = [];
     }
 
     /**
@@ -267,6 +269,8 @@ class AltchaTest extends TestCase
         // change. Forget the spent markers first, since a wrong solution to
         // the genuine challenge spends it.
         $GLOBALS['lcmt_test_transients'] = [];
+        $GLOBALS['lcmt_test_cache']      = [];
+        $GLOBALS['lcmt_test_cache_calls'] = [];
         $this->assertTrue(Altcha::validatePayload($fixture['payload']));
     }
 
@@ -314,7 +318,7 @@ class AltchaTest extends TestCase
         $payload = $this->solve($challenge);
 
         $this->assertTrue(Altcha::validatePayload($payload));
-        $this->assertArrayHasKey('lcmt_altcha_used_' . $challenge['parameters']['nonce'], $GLOBALS['lcmt_test_transients']);
+        $this->assertArrayHasKey('lcmt_mailer_once:lcmt_altcha_used_' . $challenge['parameters']['nonce'], $GLOBALS['lcmt_test_cache']);
         $this->assertFalse(Altcha::validatePayload($payload), 'spent');
     }
 

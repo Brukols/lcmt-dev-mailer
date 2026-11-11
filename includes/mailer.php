@@ -14,9 +14,10 @@ class Mailer
      * @param string      $key             The mail key (e.g. 'contact').
      * @param array       $placeholders    Key/value pairs — keys can be bare ('firstname') or bracketed ('[firstname]').
      * @param string|null $forcedLanguage  Force a specific language slug (Polylang).
+     * @param list<string> $attachments    Paths of files to attach (wp_mail()). The caller owns them and deletes them.
      * @return bool
      */
-    public static function sendByKey(string $key, array $placeholders, ?string $forcedLanguage = null): bool
+    public static function sendByKey(string $key, array $placeholders, ?string $forcedLanguage = null, array $attachments = []): bool
     {
         $post = self::getPostByKey($key, $forcedLanguage);
 
@@ -30,13 +31,15 @@ class Mailer
             return false;
         }
 
-        return self::sendWithBaseTemplate($form);
+        return self::sendWithBaseTemplate($form, $attachments);
     }
 
     /**
      * Send an email using a pre-built form array (to, subject, content).
+     *
+     * @param list<string> $attachments Paths of files to attach.
      */
-    public static function sendWithBaseTemplate(array $form): bool
+    public static function sendWithBaseTemplate(array $form, array $attachments = []): bool
     {
         $html = TemplateLoader::render($form['subject'], $form['content']);
 
@@ -53,7 +56,7 @@ class Mailer
 
         $headers = apply_filters('lcmt_mailer_headers', $headers, $form);
 
-        return wp_mail($to, $form['subject'], $html, $headers);
+        return wp_mail($to, $form['subject'], $html, $headers, array_values(array_filter($attachments, 'is_string')));
     }
 
     /**

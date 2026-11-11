@@ -43,6 +43,20 @@ class FieldParserTest extends TestCase
         $this->assertSame(['email'], array_keys($fields));
     }
 
+    /**
+     * The signed-in account's email and profile link come from the server:
+     * a visitor must not be able to post them (security review F1).
+     */
+    public function testFormFieldsLeaveOutTheCurrentUserPlaceholders(): void
+    {
+        $fields = FieldParser::formFields(FieldParser::parse(
+            'Request from [currentUserEmail] ([currentUserLink]): [message* textarea]',
+            '[currentUserEmail email]'
+        ));
+
+        $this->assertSame(['message'], array_keys($fields));
+    }
+
     public function testThePatternMatchesEveryPlaceholderForm(): void
     {
         foreach (['[name]', '[name*]', '[email email]', '[email* email]', '[submissionLanguage]'] as $placeholder) {
@@ -58,5 +72,23 @@ class FieldParserTest extends TestCase
         $this->assertSame(['/x/'], FieldParser::protectedPatterns(['/x/'], 'post', 'page'));
         $this->assertSame(['/x/'], FieldParser::protectedPatterns(['/x/'], 'term', 'mail'));
         $this->assertSame([], FieldParser::protectedPatterns([], 'options', 'mail'));
+    }
+
+    public function testReadsAFileField(): void
+    {
+        $fields = FieldParser::parse('Brief: [brief* file] [logo file]');
+
+        $this->assertSame(['name' => 'brief', 'required' => true, 'type' => 'file'], $fields['brief']);
+        $this->assertSame('file', $fields['logo']['type']);
+    }
+
+    public function testTypesAFileFieldAsFileInTypeScript(): void
+    {
+        $ts = FieldParser::toTypeScript('devis', FieldParser::parse('[brief* file] [logo file] [count number] [name]'));
+
+        $this->assertStringContainsString('  brief: File;', $ts);
+        $this->assertStringContainsString('  logo?: File;', $ts);
+        $this->assertStringContainsString('  count?: number;', $ts);
+        $this->assertStringContainsString('  name?: string;', $ts);
     }
 }

@@ -62,6 +62,10 @@ class FormRenderer
         $endpoint = '/wp-json/lcmt-mailer/v1/forms/' . $key;
         $nonce    = wp_create_nonce('wp_rest');
 
+        // The limits of the file fields, for the form script's own checks
+        // (the server checks again), and multipart encoding.
+        $fileAttributes = FileField::formAttributesFor($mailPost, $key);
+
         // Capture the developer's form inner HTML
         ob_start();
         include $formFile;
@@ -78,7 +82,7 @@ class FormRenderer
             // Inject our attributes into the existing form tag
             $innerHtml = preg_replace(
                 '/<form([\s>])/i',
-                '<form id="' . esc_attr($formId) . '" data-lcmt-endpoint="' . esc_attr($endpoint) . '" data-lcmt-nonce="' . esc_attr($nonce) . '"$1',
+                '<form id="' . esc_attr($formId) . '" data-lcmt-endpoint="' . esc_attr($endpoint) . '" data-lcmt-nonce="' . esc_attr($nonce) . '"' . self::escapeReplacement($fileAttributes) . '$1',
                 $innerHtml,
                 1
             );
@@ -86,7 +90,7 @@ class FormRenderer
         }
 
         // Wrap with our form tag
-        $html  = '<form id="' . esc_attr($formId) . '" data-lcmt-endpoint="' . esc_attr($endpoint) . '" data-lcmt-nonce="' . esc_attr($nonce) . '">';
+        $html  = '<form id="' . esc_attr($formId) . '" data-lcmt-endpoint="' . esc_attr($endpoint) . '" data-lcmt-nonce="' . esc_attr($nonce) . '"' . $fileAttributes . '>';
         $html .= $innerHtml;
         $html .= '</form>';
 
@@ -157,6 +161,8 @@ class FormRenderer
                 'requiredFields' => __('Please fill in all required fields.', 'lcmt-dev-mailer'),
                 'genericError'   => __('An error occurred.', 'lcmt-dev-mailer'),
                 'captchaFailed'  => __('Security verification failed. Please try again.', 'lcmt-dev-mailer'),
+                'fileType'       => __('This file format is not accepted.', 'lcmt-dev-mailer'),
+                'fileTooLarge'   => __('This file is too large.', 'lcmt-dev-mailer'),
             ],
         ]);
     }
@@ -186,6 +192,15 @@ class FormRenderer
         }
 
         return self::render($atts['key'], $atts);
+    }
+
+    /**
+     * A string used literally in a preg_replace() replacement: "$1" or "\\1"
+     * in it (a hint text) must not be read as a back-reference.
+     */
+    private static function escapeReplacement(string $text): string
+    {
+        return strtr($text, ['\\' => '\\\\', '$' => '\\$']);
     }
 
     /**

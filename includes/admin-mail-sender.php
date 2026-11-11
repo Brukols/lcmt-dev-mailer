@@ -324,7 +324,7 @@ class AdminMailSender
     /**
      * Build the PHP form template content from parsed fields.
      */
-    private static function buildFormTemplate(string $key, array $fields): string
+    public static function buildFormTemplate(string $key, array $fields): string
     {
         $lines = [];
         $lines[] = '<?php';
@@ -355,6 +355,11 @@ class AdminMailSender
 
             if ($type === 'textarea') {
                 $lines[] = '        <textarea id="' . $name . '" name="' . $name . '" rows="5"' . $reqAttr . '></textarea>';
+            } elseif ($type === FileField::TYPE) {
+                // The key is a sanitize_title() slug: no quote can break out of the PHP string.
+                $lines[] = '        <input type="file" id="' . $name . '" name="' . $name . '" accept="<?php echo esc_attr(function_exists(\'lcmt_mailer_file_accept\') ? lcmt_mailer_file_accept(\'' . $key . '\') : \'\'); ?>"' . $reqAttr . ' />';
+                $lines[] = '        <span data-lcmt-file-name="' . $name . '"></span>';
+                $lines[] = '        <small><?php echo esc_html(function_exists(\'lcmt_mailer_file_hint\') ? lcmt_mailer_file_hint(\'' . $key . '\') : \'\'); ?></small>';
             } else {
                 $lines[] = '        <input type="' . $type . '" id="' . $name . '" name="' . $name . '"' . $reqAttr . ' />';
             }

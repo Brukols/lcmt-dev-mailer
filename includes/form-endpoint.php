@@ -63,7 +63,21 @@ class FormEndpoint
         // whatever type its placeholder declares.
         $addressFields = FieldParser::parse($to, $replyTo);
 
-        $body = (array) $request->get_json_params();
+        [$body, $files, $multipart] = self::readBody($request);
+
+        // A multipart body over post_max_size reaches PHP empty: say why
+        // rather than failing the spam protection.
+        if ($multipart && FileField::bodyTooLarge($body, $files)) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => __('Some fields are invalid or missing. Please check and try again.', 'lcmt-dev-mailer'),
+                'errors'  => [sprintf(
+                    /* translators: %s: a size such as "10 MB" */
+                    __('The files sent are too large: %s maximum in all.', 'lcmt-dev-mailer'),
+                    FileField::sizeText(FileField::serverLimit())
+                )],
+            ], 422);
+        }
 
         // Check the spam protection this template uses, if any. A blocked
         // message is still validated below, so it can be kept as spam.
@@ -85,8 +99,30 @@ class FormEndpoint
         $placeholders = [];
         $values = [];
 
+        // Checked uploads of the file fields, by field name.
+        $uploads = [];
+        $limits  = null;
+
         foreach ($fields as $field) {
-            $value = FieldValidator::sanitize($body[$field['name']] ?? '', $field['type']);
+            if ($field['type'] === FileField::TYPE) {
+                // Only from the uploaded files, never from a text value.
+                $limits ??= FileField::limitsFor($post, (string) $key);
+                $upload   = FileField::check($files[$field['name']] ?? null, $limits, $field['name']);
+
+                if ($upload['error'] !== null) {
+                    $errors[] = $upload['error'];
+                    continue;
+                }
+
+                // The mail and the received message show the file name.
+                $value = $upload['name'];
+
+                if ($value !== '') {
+                    $uploads[$field['name']] = $upload;
+                }
+            } else {
+                $value = FieldValidator::sanitize($body[$field['name']] ?? '', $field['type']);
+            }
 
             if ($value === '') {
                 if ($field['required']) {
@@ -95,7 +131,7 @@ class FormEndpoint
                         $field['name']
                     );
                 }
-            } else {
+            } elseif ($field['type'] !== FileField::TYPE) {
                 $type  = isset($addressFields[$field['name']]) ? 'email' : $field['type'];
                 $error = FieldValidator::error($value, $type, $field['name']);
 
@@ -123,8 +159,11 @@ class FormEndpoint
             ], 422);
         }
 
+        $context = FileField::decodeContext($body['_context'] ?? null);
+
         if ($blocked) {
             // Kept for the site owner, never emailed, and the visitor (or bot) learns nothing.
+            // Its files are left to PHP, which deletes them at the end of the request.
             if (MetaFields::storesSubmissions($post->ID)
                 && Captcha::sanitizeKeepBlocked(get_option(Captcha::OPTION_KEEP_BLOCKED, '1')) === '1'
                 && SubmissionRecorder::canKeepBlocked()
@@ -134,7 +173,7 @@ class FormEndpoint
                     $key,
                     $fields,
                     $values,
-                    $body['_context'] ?? null,
+                    $context,
                     (string) $request->get_header('user_agent'),
                     $outcome === Captcha::UNAVAILABLE ? SubmissionRecorder::REASON_UNAVAILABLE : SubmissionRecorder::REASON_FAILED
                 );
@@ -143,18 +182,42 @@ class FormEndpoint
             return $refusal();
         }
 
-        $submissionId = SubmissionRecorder::record($post, $key, $fields, $values, $body['_context'] ?? null, (string) $request->get_header('user_agent'));
+        // Each file goes to a private folder under its clean name, so the
+        // email carries the visitor's file name; deleted once sent.
+        $attachments = [];
 
-        /**
-         * Action fired before sending the form email.
-         *
-         * @param string $key          The form key.
-         * @param array  $placeholders The sanitized form data as placeholders.
-         * @param \WP_Post $post       The mail post.
-         */
-        do_action('lcmt_mailer_before_send', $key, $placeholders, $post);
+        foreach ($uploads as $upload) {
+            $path = FileField::privateCopy($upload['tmp'], $upload['name']);
 
-        $sent = SubmissionRecorder::send($submissionId, $key, $placeholders);
+            if ($path === null) {
+                FileField::cleanup($attachments);
+
+                return new \WP_REST_Response([
+                    'success' => false,
+                    'message' => __('Your file could not be processed. Please try again later or contact us by email.', 'lcmt-dev-mailer'),
+                ], 500);
+            }
+
+            $attachments[] = $path;
+        }
+
+        try {
+            $submissionId = SubmissionRecorder::record($post, $key, $fields, $values, $context, (string) $request->get_header('user_agent'));
+
+            /**
+             * Action fired before sending the form email.
+             *
+             * @param string $key          The form key.
+             * @param array  $placeholders The sanitized form data as placeholders.
+             * @param \WP_Post $post       The mail post.
+             */
+            do_action('lcmt_mailer_before_send', $key, $placeholders, $post);
+
+            $sent = SubmissionRecorder::send($submissionId, $key, $placeholders, $attachments);
+        } finally {
+            // Sent or not, the files are never kept.
+            FileField::cleanup($attachments);
+        }
 
         // The visitor hears about a failure even when the message was saved:
         // the site owner may never open the admin to see it, and the visitor
@@ -189,5 +252,23 @@ class FormEndpoint
         }
 
         return new \WP_REST_Response($response, 200);
+    }
+
+    /**
+     * The fields and files of the request: a JSON body (forms without a file
+     * field), or a multipart one (forms with one), whose `_context` is a JSON
+     * string.
+     *
+     * @return array{0: array, 1: array, 2: bool} Fields, files, whether the body is multipart.
+     */
+    private static function readBody(\WP_REST_Request $request): array
+    {
+        $type = $request->get_content_type();
+
+        if (($type['value'] ?? '') === 'multipart/form-data') {
+            return [(array) $request->get_body_params(), (array) $request->get_file_params(), true];
+        }
+
+        return [(array) $request->get_json_params(), [], false];
     }
 }

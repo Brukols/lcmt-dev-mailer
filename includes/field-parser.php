@@ -13,7 +13,7 @@ class FieldParser
      */
     private const VALID_TYPES = [
         'text', 'email', 'tel', 'phone', 'url', 'number',
-        'password', 'date', 'textarea', 'hidden',
+        'password', 'date', 'textarea', 'hidden', 'file',
     ];
 
     /**
@@ -26,6 +26,7 @@ class FieldParser
      *   [company* text]     — required, type "text"
      *   [phone* phone]      — required, type "phone" (mapped to "tel")
      *   [message textarea]  — optional, type "textarea"
+     *   [brief* file]       — required, type "file" (an attachment)
      *
      * @return array<string, array{name: string, required: bool, type: string}>
      */
@@ -79,9 +80,12 @@ class FieldParser
     public const PATTERN = '/\[([a-zA-Z_][a-zA-Z0-9_]*)(\*)?(?:\s+([a-zA-Z]+))?\]/';
 
     /**
-     * Built-in placeholders the server fills, never asked to the visitor.
+     * Built-in placeholders the server fills, never asked to the visitor:
+     * the endpoint never reads them from the request body, so a visitor
+     * cannot pose as the signed-in account (Mailer::buildForm() fills them;
+     * trusted PHP callers can still pass their own values).
      */
-    public const SERVER_FILLED = ['submissionLanguage'];
+    public const SERVER_FILLED = ['submissionLanguage', 'currentUserEmail', 'currentUserLink'];
 
     /**
      * The parsed fields a visitor fills: all but the server-filled ones.
@@ -123,7 +127,11 @@ class FieldParser
 
         foreach ($fields as $field) {
             $optional = $field['required'] ? '' : '?';
-            $tsType   = $field['type'] === 'number' ? 'number' : 'string';
+            $tsType   = match ($field['type']) {
+                'number' => 'number',
+                'file'   => 'File',
+                default  => 'string',
+            };
             $lines[]  = "  {$field['name']}{$optional}: {$tsType};";
         }
 

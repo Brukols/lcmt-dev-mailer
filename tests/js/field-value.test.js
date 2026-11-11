@@ -37,3 +37,15 @@ test('a radio group with no button checked is empty', () => {
 
   assert.equal(fieldValue(small, [small, large]), '');
 });
+
+test('a file field gives the name of the chosen file', () => {
+  var input = control({ type: 'file', name: 'brief', value: 'C:\\fakepath\\plan.pdf', files: [{ name: 'plan.pdf' }] });
+
+  assert.equal(fieldValue(input, [input]), 'plan.pdf');
+});
+
+test('a file field without a file is empty', () => {
+  var input = control({ type: 'file', name: 'brief', files: [] });
+
+  assert.equal(fieldValue(input, [input]), '');
+});

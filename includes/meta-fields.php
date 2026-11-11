@@ -17,6 +17,8 @@ class MetaFields
     public const FIELD_CONFIRMATION_PAGE = '_lcmt_mail_confirmation_page';
     public const FIELD_CAPTCHA = '_lcmt_mail_captcha';
     public const FIELD_SUCCESS_MESSAGE = '_lcmt_mail_success_message';
+    public const FIELD_FILE_FORMATS = '_lcmt_mail_file_formats';
+    public const FIELD_FILE_MAX_SIZE = '_lcmt_mail_file_max_size';
 
     public static function addMetaBox(): void
     {
@@ -92,6 +94,7 @@ class MetaFields
         self::renderSuccessMessage($post);
         self::renderConfirmationPage($post);
         self::renderCaptcha($post);
+        self::renderFileUploads($post, $to, $replyTo, $subject, $content);
 
         echo '</table>';
 
@@ -170,6 +173,77 @@ class MetaFields
         } else {
             update_post_meta($postId, self::FIELD_CAPTCHA, $captcha);
         }
+
+        // Only when the "File uploads" row was in the form.
+        if (isset($_POST['lcmt_mail_file_settings'])) {
+            $formats = FileField::sanitizeFormats(wp_unslash($_POST['lcmt_mail_file_formats'] ?? []), FileField::formats());
+
+            if ($formats) {
+                update_post_meta($postId, self::FIELD_FILE_FORMATS, implode(',', $formats));
+            } else {
+                // Nothing ticked: the default formats.
+                delete_post_meta($postId, self::FIELD_FILE_FORMATS);
+            }
+
+            $maxMb = min(
+                FileField::sanitizeMaxMb(wp_unslash($_POST['lcmt_mail_file_max_size'] ?? '')),
+                FileField::serverMaxMb(FileField::serverLimit())
+            );
+
+            update_post_meta($postId, self::FIELD_FILE_MAX_SIZE, (string) $maxMb);
+        }
+    }
+
+    /**
+     * The "File uploads" row: the formats and the size the file fields
+     * ([name file]) of this template accept. Shown on every template, with a
+     * note when it has no file field yet.
+     */
+    private static function renderFileUploads(\WP_Post $post, string $to, string $replyTo, string $subject, string $content): void
+    {
+        $map      = FileField::formats();
+        $selected = FileField::storedFormats($post->ID, $map);
+        $server   = FileField::serverLimit();
+        $serverMb = FileField::serverMaxMb($server);
+        $maxMb    = min(FileField::storedMaxMb($post->ID), $serverMb);
+        $hasFile  = FileField::hasFileField(FieldParser::parse($to, $replyTo, $subject, $content));
+
+        echo '<tr>';
+        echo '<th>' . esc_html__('File uploads', 'lcmt-dev-mailer') . '</th>';
+        echo '<td>';
+        echo '<input type="hidden" name="lcmt_mail_file_settings" value="1" />';
+
+        echo '<p class="description" style="margin-bottom: 8px;">';
+        echo esc_html__('For the file fields of this template, written [name file] or [name* file]. The file is attached to the email and never kept on the site: received messages only keep its name.', 'lcmt-dev-mailer');
+
+        if (!$hasFile) {
+            echo ' <em>' . esc_html__('This template has no file field yet.', 'lcmt-dev-mailer') . '</em>';
+        }
+
+        echo '</p>';
+
+        echo '<fieldset>';
+        echo '<legend style="font-weight: 600; margin-bottom: 4px;">' . esc_html__('Allowed formats', 'lcmt-dev-mailer') . '</legend>';
+
+        foreach ($map as $id => $format) {
+            echo '<label style="display: inline-block; min-width: 11em; margin: 0 12px 4px 0;"><input type="checkbox" name="lcmt_mail_file_formats[]" value="' . esc_attr($id) . '" ' . checked(in_array($id, $selected, true), true, false) . ' /> ';
+            echo esc_html($format['label']) . ' <code style="font-size: 11px;">' . esc_html('.' . implode(' .', $format['extensions'])) . '</code></label>';
+        }
+
+        echo '</fieldset>';
+        echo '<p class="description">' . esc_html__('Nothing ticked: JPG, PNG and PDF. The content of each file is checked, not only its extension.', 'lcmt-dev-mailer') . '</p>';
+
+        echo '<p style="margin-top: 12px;"><label for="lcmt_mail_file_max_size" style="font-weight: 600;">' . esc_html__('Maximum size', 'lcmt-dev-mailer') . '</label> ';
+        echo '<input type="number" id="lcmt_mail_file_max_size" name="lcmt_mail_file_max_size" value="' . esc_attr((string) $maxMb) . '" min="1" max="' . esc_attr((string) $serverMb) . '" step="1" class="small-text" /> ';
+        echo esc_html__('MB', 'lcmt-dev-mailer') . '</p>';
+
+        echo '<p class="description">' . esc_html(sprintf(
+            /* translators: %s: a size such as "64 MB" */
+            __('Per file. This server accepts up to %s per upload (PHP upload_max_filesize and post_max_size): a larger value is lowered to it.', 'lcmt-dev-mailer'),
+            FileField::sizeText($server)
+        )) . '</p>';
+        echo '</td>';
+        echo '</tr>';
     }
 
     /**
@@ -336,6 +410,7 @@ class MetaFields
                         <tr><td><code>date</code></td><td><code>&lt;input type="date"&gt;</code></td></tr>
                         <tr><td><code>textarea</code></td><td><code>&lt;textarea&gt;</code></td></tr>
                         <tr><td><code>hidden</code></td><td><code>&lt;input type="hidden"&gt;</code></td></tr>
+                        <tr><td><code>file</code></td><td><code>&lt;input type="file"&gt;</code> — <?php esc_html_e('attached to the email; the mail shows the file name. Formats and size: "File uploads" above.', 'lcmt-dev-mailer'); ?></td></tr>
                     </tbody>
                 </table>
 

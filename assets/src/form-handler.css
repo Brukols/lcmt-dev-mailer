@@ -55,7 +55,8 @@ textarea[aria-invalid="true"]::placeholder {
   color: #e53e3e !important;
 }
 
-label[aria-invalid="true"] {
+label[aria-invalid="true"],
+legend[aria-invalid="true"] {
   color: #e53e3e !important;
 }
 

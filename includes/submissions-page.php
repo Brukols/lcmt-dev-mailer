@@ -708,7 +708,13 @@ class SubmissionsPage
             foreach ($row['fields'] as $field) {
                 echo '<tr>';
                 echo '<th style="width: 200px;"><code>' . esc_html($field['name']) . '</code></th>';
-                echo '<td>' . nl2br(esc_html($field['value'])) . '</td>';
+                echo '<td>' . nl2br(esc_html($field['value']));
+
+                if ($field['type'] === 'file' && $field['value'] !== '') {
+                    echo ' <span class="description">' . esc_html__('(attached to the email, not kept on the site)', 'lcmt-dev-mailer') . '</span>';
+                }
+
+                echo '</td>';
                 echo '</tr>';
             }
 
@@ -769,5 +775,9 @@ class SubmissionsPage
         }
 
         echo '</p>';
+
+        if (isset($buttons['resend']) && $row['fields'] !== null && SubmissionData::fileNames($row['fields'])) {
+            echo '<p class="description">' . esc_html__('"Send the email again" sends it without the attached file: files are never kept on the site. Ask the visitor to send it again if needed.', 'lcmt-dev-mailer') . '</p>';
+        }
     }
 }

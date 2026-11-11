@@ -28,6 +28,7 @@ See the `.claude/` folder for topic-specific docs:
 
 ## Key rules
 
+- **Test-driven development** (owner's instruction, 2026-11-11): write the failing test first (phpunit for PHP logic, `yarn test:js` for `assets/src/lib/`), watch it fail, then write the code that makes it pass, then refactor. Every new behaviour and every bug fix starts with a test; logic that needs WordPress gets a wp-cli integration check (see [Build](.claude/build.md#tests)).
 - No jQuery — all JS must be vanilla, minified via esbuild
 - No ACF dependency — the plugin uses native WordPress meta boxes and `get_post_meta`
 - File names in kebab-case

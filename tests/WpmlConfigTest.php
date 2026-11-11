@@ -59,6 +59,14 @@ class WpmlConfigTest extends TestCase
         }
     }
 
+    public function test_file_upload_settings_are_copied(): void
+    {
+        $copied = $this->fields('copy');
+
+        $this->assertContains(MetaFields::FIELD_FILE_FORMATS, $copied);
+        $this->assertContains(MetaFields::FIELD_FILE_MAX_SIZE, $copied);
+    }
+
     public function test_success_message_is_an_admin_text(): void
     {
         $this->assertCount(1, $this->config()->xpath('admin-texts/key[@name="lcmt_mailer_success_message"]'));
@@ -72,6 +80,6 @@ class WpmlConfigTest extends TestCase
             $this->assertContains($name, $constants, $name . ' is not a MetaFields constant');
         }
 
-        $this->assertCount(9, array_merge($this->fields('translate'), $this->fields('copy')));
+        $this->assertCount(11, array_merge($this->fields('translate'), $this->fields('copy')));
     }
 }

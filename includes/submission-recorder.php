@@ -90,12 +90,13 @@ class SubmissionRecorder
      * Send the email of a submission and store the outcome on it.
      *
      * @param int $id 0 sends without recording anything.
+     * @param list<string> $attachments Paths of files to attach; never stored.
      */
-    public static function send(int $id, string $key, array $placeholders): bool
+    public static function send(int $id, string $key, array $placeholders, array $attachments = []): bool
     {
         self::$mailError = null;
 
-        $sent = Mailer::sendByKey($key, $placeholders);
+        $sent = Mailer::sendByKey($key, $placeholders, null, $attachments);
 
         if ($id) {
             SubmissionRepository::update($id, [

@@ -7,7 +7,10 @@
  *   - Fetch POST to the REST endpoint
  *   - Plugin loader overlay (.lcmt-loader)
  *   - Snackbar alerts for success/error
- *   - aria-invalid on inputs and labels for error styling
+ *   - aria-invalid on inputs, their labels and the legend of their fieldset
+ *     (a whole radio group at once), see lib/field-errors.js
+ *   - File fields: browser check of format and size, multipart body, the
+ *     chosen file name in [data-lcmt-file-name] (see lib/file-field.js)
  *   - A bubbling `lcmt:success` event on the form, then the form's
  *     confirmation page when it has one (see lib/form-success.js)
  *
@@ -20,6 +23,8 @@ import { formContext } from './lib/attribution';
 import { requestUrl } from './lib/request-url';
 import { fieldValue } from './lib/field-value';
 import { handleSuccess } from './lib/form-success';
+import { errorGroup, clearEvent } from './lib/field-errors';
+import { fileLimits, fileProblem, requestBody, showFileName } from './lib/file-field';
 import { captchaToken, resetCaptcha } from './lib/captcha/registry';
 import { scriptBase, adapterLoader } from './lib/captcha/script-loader';
 
@@ -105,22 +110,28 @@ import { scriptBase, adapterLoader } from './lib/captcha/script-loader';
 
   // ── Field errors (aria-invalid) ──
 
+  // The control, its labels and its fieldset's legend; a radio brings its
+  // whole group. Cleared as soon as the visitor changes any control of it.
   function markFieldError(input) {
-    input.setAttribute('aria-invalid', 'true');
+    var group = errorGroup(input, input.form);
 
-    var label = input.form
-      ? input.form.querySelector('label[for="' + input.id + '"]')
-      : null;
-
-    if (label) {
-      label.setAttribute('aria-invalid', 'true');
+    for (var i = 0; i < group.targets.length; i++) {
+      group.targets[i].setAttribute('aria-invalid', 'true');
     }
 
-    input.addEventListener('input', function handler() {
-      input.removeAttribute('aria-invalid');
-      if (label) label.removeAttribute('aria-invalid');
-      input.removeEventListener('input', handler);
-    });
+    function handler() {
+      for (var t = 0; t < group.targets.length; t++) {
+        group.targets[t].removeAttribute('aria-invalid');
+      }
+
+      for (var c = 0; c < group.controls.length; c++) {
+        group.controls[c].removeEventListener(clearEvent(group.controls[c]), handler);
+      }
+    }
+
+    for (var j = 0; j < group.controls.length; j++) {
+      group.controls[j].addEventListener(clearEvent(group.controls[j]), handler);
+    }
   }
 
   function clearErrors(form) {
@@ -155,6 +166,35 @@ import { scriptBase, adapterLoader } from './lib/captcha/script-loader';
       if (!startedAt) startedAt = Date.now();
     });
 
+    // The chosen file name, in the [data-lcmt-file-name="<field>"] element
+    // the form file may hold; its own text shows again without a file.
+    var fileNameEls = form.querySelectorAll('[data-lcmt-file-name]');
+    var emptyTexts = [];
+
+    for (var n = 0; n < fileNameEls.length; n++) {
+      emptyTexts.push(fileNameEls[n].textContent);
+    }
+
+    function refreshFileName(input) {
+      for (var k = 0; k < fileNameEls.length; k++) {
+        if (fileNameEls[k].getAttribute('data-lcmt-file-name') === input.name) {
+          showFileName(fileNameEls[k], input.files && input.files[0], emptyTexts[k]);
+        }
+      }
+    }
+
+    form.addEventListener('change', function (e) {
+      if (e.target && e.target.type === 'file') refreshFileName(e.target);
+    });
+
+    // reset fires before the fields are cleared.
+    form.addEventListener('reset', function () {
+      setTimeout(function () {
+        var files = form.querySelectorAll('input[type="file"]');
+        for (var k = 0; k < files.length; k++) refreshFileName(files[k]);
+      }, 0);
+    });
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
 
@@ -169,6 +209,9 @@ import { scriptBase, adapterLoader } from './lib/captcha/script-loader';
       var inputs = form.querySelectorAll('[name]');
       var data = {};
       var errorFields = [];
+      var fileInputs = [];
+      var limits = fileLimits(form);
+      var fileError = '';
 
       for (var i = 0; i < inputs.length; i++) {
         var input = inputs[i];
@@ -188,11 +231,37 @@ import { scriptBase, adapterLoader } from './lib/captcha/script-loader';
           continue;
         }
 
+        if (input.type === 'file') {
+          var problem = fileProblem(input.files && input.files[0], limits);
+
+          if (problem) {
+            markFieldError(input);
+            fileError = fileError || problem;
+            continue;
+          }
+
+          // Sent as a file (when one is chosen), not as a text value.
+          fileInputs.push(input);
+          continue;
+        }
+
         data[name] = value;
       }
 
+      var front = window.lcmtMailerFront || {};
+      var strings = front.i18n || {};
+
       if (errorFields.length > 0) {
-        showAlert(window.lcmtMailerFront && window.lcmtMailerFront.i18n.requiredFields || 'Please fill in all required fields.', 'error');
+        showAlert(strings.requiredFields || 'Please fill in all required fields.', 'error');
+        return;
+      }
+
+      if (fileError) {
+        var fileMessage = fileError === 'size'
+          ? strings.fileTooLarge || 'This file is too large.'
+          : strings.fileType || 'This file format is not accepted.';
+
+        showAlert(limits.hint ? fileMessage + ' ' + limits.hint : fileMessage, 'error');
         return;
       }
 
@@ -215,14 +284,17 @@ import { scriptBase, adapterLoader } from './lib/captcha/script-loader';
           if (captcha) data[captcha.field] = captcha.token;
           data['_context'] = formContext(startedAt);
 
+          // Multipart as soon as the form has a file field, even with no
+          // file chosen; JSON otherwise.
+          var request = requestBody(data, fileInputs, window.FormData);
+
+          request.headers['X-WP-Nonce'] = nonce;
+
           return fetch(requestUrl(endpoint, window.lcmtMailerFront), {
             method: 'POST',
             credentials: 'same-origin',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-WP-Nonce': nonce,
-            },
-            body: JSON.stringify(data),
+            headers: request.headers,
+            body: request.body,
           });
         })
         .then(function (res) { return res.json(); })

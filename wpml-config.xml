@@ -13,6 +13,8 @@
         <custom-field action="copy">_lcmt_mail_store_submissions</custom-field>
         <custom-field action="copy">_lcmt_mail_confirmation_page</custom-field>
         <custom-field action="copy">_lcmt_mail_captcha</custom-field>
+        <custom-field action="copy">_lcmt_mail_file_formats</custom-field>
+        <custom-field action="copy">_lcmt_mail_file_max_size</custom-field>
     </custom-fields>
     <admin-texts>
         <key name="lcmt_mailer_success_message" />
