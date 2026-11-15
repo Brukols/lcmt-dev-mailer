@@ -126,6 +126,31 @@ class FormRenderer
     }
 
     /**
+     * The options a public page reads, fetched together before the assets
+     * are registered.
+     *
+     * None is autoloaded (never saved, or the ALTCHA key kept out of autoload
+     * on purpose), so each would otherwise cost a query of its own.
+     *
+     * @return string[]
+     */
+    public static function frontOptions(): array
+    {
+        return [
+            Attribution::OPTION_WITHOUT_CONSENT,
+            Captcha::OPTION,
+            Altcha::OPTION_KEY,
+            Turnstile::OPTION_SITE_KEY,
+            Turnstile::OPTION_SECRET_KEY,
+            Turnstile::OPTION_APPEARANCE,
+            Settings::OPTION_COLOR_SUCCESS,
+            Settings::OPTION_COLOR_ERROR,
+            Settings::OPTION_TEXT_SUCCESS,
+            Settings::OPTION_TEXT_ERROR,
+        ];
+    }
+
+    /**
      * Register assets early (called on wp_enqueue_scripts).
      * Assets are only enqueued when a form is actually rendered.
      *

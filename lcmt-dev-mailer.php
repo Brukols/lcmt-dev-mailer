@@ -182,19 +182,11 @@ add_action('admin_notices', ['LcmtDevMailer\\UnreadableSecrets', 'notice']);
 add_action('admin_post_' . LcmtDevMailer\Altcha::REGENERATE_ACTION, ['LcmtDevMailer\\Altcha', 'handleRegenerateKey']);
 
 // ── Frontend: register assets early, enqueue on shortcode render ──
-// The options a public page reads are not autoloaded (never saved, or the
-// ALTCHA key kept out of autoload on purpose), so each would cost a query of
-// its own; they are fetched together first. wp_prime_option_caches() is WP 6.4+.
+// The options a public page reads are fetched in one query first, see
+// FormRenderer::frontOptions(). wp_prime_option_caches() is WP 6.4+.
 add_action('wp_enqueue_scripts', function () {
     if (function_exists('wp_prime_option_caches')) {
-        wp_prime_option_caches([
-            LcmtDevMailer\Attribution::OPTION_WITHOUT_CONSENT,
-            LcmtDevMailer\Captcha::OPTION,
-            LcmtDevMailer\Altcha::OPTION_KEY,
-            LcmtDevMailer\Turnstile::OPTION_SITE_KEY,
-            LcmtDevMailer\Turnstile::OPTION_SECRET_KEY,
-            LcmtDevMailer\Turnstile::OPTION_APPEARANCE,
-        ]);
+        wp_prime_option_caches(LcmtDevMailer\FormRenderer::frontOptions());
     }
 }, 0);
 add_action('wp_enqueue_scripts', ['LcmtDevMailer\\FormRenderer', 'registerAssets']);

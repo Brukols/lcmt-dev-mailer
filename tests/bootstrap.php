@@ -231,6 +231,7 @@ require_once dirname(__DIR__) . '/includes/turnstile.php';
 require_once dirname(__DIR__) . '/includes/captcha.php';
 require_once dirname(__DIR__) . '/includes/admin-mail-sender.php';
 require_once dirname(__DIR__) . '/includes/form-renderer.php';
+require_once dirname(__DIR__) . '/includes/attribution.php';
 require_once dirname(__DIR__) . '/includes/privacy.php';
 require_once dirname(__DIR__) . '/includes/submission-csv.php';
 require_once dirname(__DIR__) . '/includes/retention.php';
