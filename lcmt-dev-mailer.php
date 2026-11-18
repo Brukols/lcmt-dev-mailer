@@ -62,15 +62,25 @@ function lcmt_mailer_file_max_size(string $key): int
 }
 
 /**
- * A line telling visitors what the file fields of a form accept, in the
- * site language: "Formats: JPG, PNG, PDF — 10 MB maximum". Not escaped.
- * '' for an unknown key.
+ * The number of files each [name files] field of a form accepts. 0 for an
+ * unknown key.
  */
-function lcmt_mailer_file_hint(string $key): string
+function lcmt_mailer_file_max_files(string $key): int
 {
     $limits = LcmtDevMailer\FileField::limitsForKey($key);
 
-    return $limits ? LcmtDevMailer\FileField::hint($limits) : '';
+    return $limits ? $limits['max_files'] : 0;
+}
+
+/**
+ * A line telling visitors what the file fields of a form accept, in the
+ * site language: "Formats: JPG, PNG, PDF — 10 MB maximum"; on a form with a
+ * [name files] field, "Formats: JPG, PNG, PDF — 10 MB maximum per file,
+ * 3 files maximum". Not escaped. '' for an unknown key.
+ */
+function lcmt_mailer_file_hint(string $key): string
+{
+    return LcmtDevMailer\FileField::hintForKey($key);
 }
 
 require_once LCMT_MAILER_PATH . 'includes/post-type.php';

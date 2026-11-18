@@ -710,7 +710,7 @@ class SubmissionsPage
                 echo '<th style="width: 200px;"><code>' . esc_html($field['name']) . '</code></th>';
                 echo '<td>' . nl2br(esc_html($field['value']));
 
-                if ($field['type'] === 'file' && $field['value'] !== '') {
+                if (in_array($field['type'], ['file', 'files'], true) && $field['value'] !== '') {
                     echo ' <span class="description">' . esc_html__('(attached to the email, not kept on the site)', 'lcmt-dev-mailer') . '</span>';
                 }
 

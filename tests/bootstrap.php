@@ -23,6 +23,28 @@ function __($text, $domain = 'default')
     return $text;
 }
 
+function _n($single, $plural, $number, $domain = 'default')
+{
+    return (int) $number === 1 ? $single : $plural;
+}
+
+// Close enough for the file names of the tests (WordPress also strips
+// special characters and turns spaces into dashes).
+function sanitize_file_name($name)
+{
+    return preg_replace('/[^A-Za-z0-9._-]+/', '-', (string) $name);
+}
+
+function wp_basename($path, $suffix = '')
+{
+    return basename(str_replace('\\', '/', (string) $path), $suffix);
+}
+
+function size_format($bytes, $decimals = 0)
+{
+    return number_format($bytes / 1048576, $decimals) . ' MB';
+}
+
 function get_option($name, $default = false)
 {
     return $GLOBALS['lcmt_test_options'][$name] ?? $default;
@@ -139,6 +161,11 @@ function delete_post_meta($postId, $key)
 
 define('MINUTE_IN_SECONDS', 60);
 define('DAY_IN_SECONDS', 86400);
+
+class WP_Post
+{
+    public function __construct(public $ID = 0) {}
+}
 
 class WP_Error
 {

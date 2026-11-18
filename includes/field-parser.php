@@ -13,7 +13,7 @@ class FieldParser
      */
     private const VALID_TYPES = [
         'text', 'email', 'tel', 'phone', 'url', 'number',
-        'password', 'date', 'textarea', 'hidden', 'file',
+        'password', 'date', 'textarea', 'hidden', 'file', 'files',
     ];
 
     /**
@@ -27,6 +27,7 @@ class FieldParser
      *   [phone* phone]      — required, type "phone" (mapped to "tel")
      *   [message textarea]  — optional, type "textarea"
      *   [brief* file]       — required, type "file" (an attachment)
+     *   [photos files]      — optional, type "files" (several attachments)
      *
      * @return array<string, array{name: string, required: bool, type: string}>
      */
@@ -130,6 +131,7 @@ class FieldParser
             $tsType   = match ($field['type']) {
                 'number' => 'number',
                 'file'   => 'File',
+                'files'  => 'File[]',
                 default  => 'string',
             };
             $lines[]  = "  {$field['name']}{$optional}: {$tsType};";

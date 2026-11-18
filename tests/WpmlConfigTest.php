@@ -65,6 +65,7 @@ class WpmlConfigTest extends TestCase
 
         $this->assertContains(MetaFields::FIELD_FILE_FORMATS, $copied);
         $this->assertContains(MetaFields::FIELD_FILE_MAX_SIZE, $copied);
+        $this->assertContains(MetaFields::FIELD_FILE_MAX_FILES, $copied);
     }
 
     public function test_success_message_is_an_admin_text(): void
@@ -80,6 +81,6 @@ class WpmlConfigTest extends TestCase
             $this->assertContains($name, $constants, $name . ' is not a MetaFields constant');
         }
 
-        $this->assertCount(11, array_merge($this->fields('translate'), $this->fields('copy')));
+        $this->assertCount(12, array_merge($this->fields('translate'), $this->fields('copy')));
     }
 }

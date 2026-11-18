@@ -79,7 +79,8 @@ class SubmissionData
 
     /**
      * The names of the files a message was sent with. Only the names are
-     * stored: the files went with the email and were not kept.
+     * stored: the files went with the email and were not kept. A [name files]
+     * field holds its names joined by ", " (clean names have no comma).
      *
      * @param list<array{name: string, type: string, value: string}> $snapshot
      * @return list<string>
@@ -89,8 +90,16 @@ class SubmissionData
         $names = [];
 
         foreach ($snapshot as $field) {
-            if ($field['type'] === 'file' && $field['value'] !== '') {
+            if ($field['value'] === '') {
+                continue;
+            }
+
+            if ($field['type'] === 'file') {
                 $names[] = $field['value'];
+            } elseif ($field['type'] === 'files') {
+                foreach (explode(', ', $field['value']) as $name) {
+                    $names[] = $name;
+                }
             }
         }
 

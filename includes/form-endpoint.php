@@ -99,12 +99,28 @@ class FormEndpoint
         $placeholders = [];
         $values = [];
 
-        // Checked uploads of the file fields, by field name.
+        // Checked uploads of the file fields, one entry per file.
         $uploads = [];
         $limits  = null;
 
         foreach ($fields as $field) {
-            if ($field['type'] === FileField::TYPE) {
+            if ($field['type'] === FileField::MULTIPLE_TYPE) {
+                // Sent as name[]: each file is checked like a single one.
+                $limits ??= FileField::limitsFor($post, (string) $key);
+                $checked  = FileField::checkMany($files[$field['name']] ?? null, $limits, $field['name']);
+
+                if ($checked['errors']) {
+                    array_push($errors, ...$checked['errors']);
+                    continue;
+                }
+
+                // The mail and the received message show the file names.
+                $value = implode(', ', array_column($checked['files'], 'name'));
+
+                foreach ($checked['files'] as $upload) {
+                    $uploads[] = $upload;
+                }
+            } elseif ($field['type'] === FileField::TYPE) {
                 // Only from the uploaded files, never from a text value.
                 $limits ??= FileField::limitsFor($post, (string) $key);
                 $upload   = FileField::check($files[$field['name']] ?? null, $limits, $field['name']);
@@ -118,7 +134,7 @@ class FormEndpoint
                 $value = $upload['name'];
 
                 if ($value !== '') {
-                    $uploads[$field['name']] = $upload;
+                    $uploads[] = $upload;
                 }
             } else {
                 $value = FieldValidator::sanitize($body[$field['name']] ?? '', $field['type']);
@@ -131,7 +147,7 @@ class FormEndpoint
                         $field['name']
                     );
                 }
-            } elseif ($field['type'] !== FileField::TYPE) {
+            } elseif ($field['type'] !== FileField::TYPE && $field['type'] !== FileField::MULTIPLE_TYPE) {
                 $type  = isset($addressFields[$field['name']]) ? 'email' : $field['type'];
                 $error = FieldValidator::error($value, $type, $field['name']);
 

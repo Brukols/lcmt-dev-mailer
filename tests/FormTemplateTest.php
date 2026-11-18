@@ -28,9 +28,22 @@ class FormTemplateTest extends TestCase
         $this->assertStringContainsString('data-lcmt-file-name="brief"', $template);
     }
 
+    public function test_a_files_field_gets_a_multiple_file_input_and_a_list(): void
+    {
+        $template = AdminMailSender::buildFormTemplate('devis', FieldParser::parse('[attachment* files]'));
+
+        $this->assertStringContainsString(
+            '<input type="file" id="attachment" name="attachment[]" multiple accept="<?php echo esc_attr(function_exists(\'lcmt_mailer_file_accept\') ? lcmt_mailer_file_accept(\'devis\') : \'\'); ?>" required />',
+            $template
+        );
+        $this->assertStringContainsString('<ul data-lcmt-file-list="attachment"></ul>', $template);
+        $this->assertStringContainsString("lcmt_mailer_file_hint('devis')", $template);
+        $this->assertStringNotContainsString('data-lcmt-file-name="attachment"', $template);
+    }
+
     public function test_the_generated_template_is_valid_php(): void
     {
-        $template = AdminMailSender::buildFormTemplate('devis', FieldParser::parse('[name*] [brief file] [message textarea]'));
+        $template = AdminMailSender::buildFormTemplate('devis', FieldParser::parse('[name*] [brief file] [attachment files] [message textarea]'));
         $file     = tempnam(sys_get_temp_dir(), 'lcmt');
         file_put_contents($file, $template);
 

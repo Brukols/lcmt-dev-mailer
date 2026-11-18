@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the LCMT Mailer plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: LCMT Mailer 2.10.0\n"
+"Project-Id-Version: LCMT Mailer 2.11.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/lcmt-dev-mailer\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-11T14:55:47+00:00\n"
+"POT-Creation-Date: 2026-11-18T16:01:17+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: lcmt-dev-mailer\n"
@@ -55,7 +55,7 @@ msgid "name=\"\""
 msgstr ""
 
 #: includes/admin-mail-sender.php:76
-#: includes/meta-fields.php:399
+#: includes/meta-fields.php:415
 msgid "Type"
 msgstr ""
 
@@ -178,60 +178,60 @@ msgstr ""
 msgid "Template created: forms/"
 msgstr ""
 
-#: includes/admin-mail-sender.php:372
+#: includes/admin-mail-sender.php:377
 msgid "Submit"
 msgstr ""
 
-#: includes/admin-mail-sender.php:390
+#: includes/admin-mail-sender.php:395
 msgid "Protection"
 msgstr ""
 
-#: includes/admin-mail-sender.php:393
-#: includes/meta-fields.php:48
+#: includes/admin-mail-sender.php:398
+#: includes/meta-fields.php:49
 msgid "Key"
 msgstr ""
 
-#: includes/admin-mail-sender.php:394
+#: includes/admin-mail-sender.php:399
 msgid "Form file"
 msgstr ""
 
-#: includes/admin-mail-sender.php:395
+#: includes/admin-mail-sender.php:400
 msgid "Actions"
 msgstr ""
 
-#: includes/admin-mail-sender.php:428
+#: includes/admin-mail-sender.php:433
 msgid "Manage"
 msgstr ""
 
-#: includes/admin-mail-sender.php:448
+#: includes/admin-mail-sender.php:453
 msgid "Not protected"
 msgstr ""
 
 #. translators: %s: spam protection name
-#: includes/admin-mail-sender.php:458
+#: includes/admin-mail-sender.php:463
 #, php-format
 msgid "%s — not set up"
 msgstr ""
 
 #. translators: 1: spam protection the template chose, 2: site default protection used instead
-#: includes/admin-mail-sender.php:469
+#: includes/admin-mail-sender.php:474
 #, php-format
 msgid "%1$s — not set up (using %2$s)"
 msgstr ""
 
 #. translators: %s: spam protection name
 #. translators: %s: name of the site-wide spam protection
-#: includes/admin-mail-sender.php:484
-#: includes/meta-fields.php:268
+#: includes/admin-mail-sender.php:489
+#: includes/meta-fields.php:284
 #, php-format
 msgid "Site default (%s)"
 msgstr ""
 
-#: includes/admin-mail-sender.php:517
+#: includes/admin-mail-sender.php:522
 msgid "Tip:"
 msgstr ""
 
-#: includes/admin-mail-sender.php:517
+#: includes/admin-mail-sender.php:522
 msgid "You can send test emails directly from the edit page using the \"Actions & Usage\" panel on the right."
 msgstr ""
 
@@ -306,7 +306,7 @@ msgstr ""
 #: includes/captcha-settings.php:25
 #: includes/captcha-settings.php:26
 #: includes/captcha-settings.php:155
-#: includes/meta-fields.php:262
+#: includes/meta-fields.php:278
 msgid "Spam protection"
 msgstr ""
 
@@ -339,9 +339,9 @@ msgid "Site default protection"
 msgstr ""
 
 #: includes/captcha-settings.php:222
-#: includes/meta-fields.php:259
-#: includes/meta-fields.php:271
-#: includes/meta-fields.php:331
+#: includes/meta-fields.php:275
+#: includes/meta-fields.php:287
+#: includes/meta-fields.php:347
 msgid "None"
 msgstr ""
 
@@ -489,34 +489,68 @@ msgstr ""
 msgid "The field \"%s\" must be a valid phone number."
 msgstr ""
 
+#. translators: 1: list of file formats such as "JPG, PNG, PDF", 2: a size such as "10 MB", 3: a number of files
+#: includes/file-field.php:354
+#, php-format
+msgid "Formats: %1$s — %2$s maximum per file, %3$d file maximum"
+msgid_plural "Formats: %1$s — %2$s maximum per file, %3$d files maximum"
+msgstr[0] ""
+msgstr[1] ""
+
 #. translators: 1: list of file formats such as "JPG, PNG, PDF", 2: a size such as "10 MB"
-#: includes/file-field.php:308
+#: includes/file-field.php:362
 #, php-format
 msgid "Formats: %1$s — %2$s maximum"
 msgstr ""
 
+#. translators: %s: the field name
+#: includes/file-field.php:696
+#, php-format
+msgid "The field \"%s\" accepts a single file."
+msgstr ""
+
 #. translators: 1: the field name, 2: a size such as "10 MB"
-#: includes/file-field.php:512
+#: includes/file-field.php:701
 #, php-format
 msgid "The file of the field \"%1$s\" is too large: %2$s maximum."
 msgstr ""
 
-#. translators: %s: the field name
-#: includes/file-field.php:519
-#, php-format
-msgid "The file of the field \"%s\" could not be received. Please try again."
-msgstr ""
-
 #. translators: 1: the field name, 2: list of file formats such as "JPG, PNG, PDF"
-#: includes/file-field.php:525
+#: includes/file-field.php:707
 #, php-format
 msgid "The file of the field \"%1$s\" must be in one of these formats: %2$s."
 msgstr ""
 
-#. translators: %s: the field name
-#: includes/file-field.php:536
+#. translators: 1: the field name, 2: a number of files
+#: includes/file-field.php:743
 #, php-format
-msgid "The field \"%s\" accepts a single file."
+msgid "The field \"%1$s\" accepts %2$d file at most."
+msgid_plural "The field \"%1$s\" accepts %2$d files at most."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: the field name, 2: a file name, 3: a size such as "10 MB"
+#: includes/file-field.php:765
+#, php-format
+msgid "The field \"%1$s\": the file \"%2$s\" is too large, %3$s maximum."
+msgstr ""
+
+#. translators: 1: the field name, 2: a file name, 3: list of file formats such as "JPG, PNG, PDF"
+#: includes/file-field.php:772
+#, php-format
+msgid "The field \"%1$s\": the file \"%2$s\" must be in one of these formats: %3$s."
+msgstr ""
+
+#. translators: 1: the field name, 2: a file name
+#: includes/file-field.php:779
+#, php-format
+msgid "The field \"%1$s\": the file \"%2$s\" could not be received. Please try again."
+msgstr ""
+
+#. translators: %s: the field name
+#: includes/file-field.php:838
+#, php-format
+msgid "The file of the field \"%s\" could not be received. Please try again."
 msgstr ""
 
 #: includes/form-endpoint.php:50
@@ -524,7 +558,7 @@ msgid "Unknown form."
 msgstr ""
 
 #: includes/form-endpoint.php:73
-#: includes/form-endpoint.php:157
+#: includes/form-endpoint.php:173
 msgid "Some fields are invalid or missing. Please check and try again."
 msgstr ""
 
@@ -535,69 +569,79 @@ msgid "The files sent are too large: %s maximum in all."
 msgstr ""
 
 #: includes/form-endpoint.php:94
-#: includes/form-renderer.php:163
+#: includes/form-renderer.php:188
 msgid "Security verification failed. Please try again."
 msgstr ""
 
-#: includes/form-endpoint.php:130
+#: includes/form-endpoint.php:146
 #, php-format
 msgid "The field \"%s\" is required."
 msgstr ""
 
-#: includes/form-endpoint.php:197
+#: includes/form-endpoint.php:213
 msgid "Your file could not be processed. Please try again later or contact us by email."
 msgstr ""
 
-#: includes/form-endpoint.php:228
+#: includes/form-endpoint.php:244
 msgid "Your message could not be sent. Please try again later or contact us by email."
 msgstr ""
 
-#: includes/form-renderer.php:161
+#: includes/form-renderer.php:186
 msgid "Please fill in all required fields."
 msgstr ""
 
-#: includes/form-renderer.php:162
+#: includes/form-renderer.php:187
 #: includes/settings.php:396
 msgid "An error occurred."
 msgstr ""
 
-#: includes/form-renderer.php:164
+#: includes/form-renderer.php:189
 msgid "This file format is not accepted."
 msgstr ""
 
-#: includes/form-renderer.php:165
+#: includes/form-renderer.php:190
 msgid "This file is too large."
 msgstr ""
 
-#: includes/meta-fields.php:27
+#: includes/form-renderer.php:191
+msgid "Too many files."
+msgstr ""
+
+#. translators: %s: a file name, on the button that takes it off the list of files to send
+#: includes/form-renderer.php:193
+#, php-format
+msgid "Remove %s"
+msgstr ""
+
+#: includes/meta-fields.php:28
 msgid "Mail Fields"
 msgstr ""
 
-#: includes/meta-fields.php:51
+#: includes/meta-fields.php:52
 msgid "Unique identifier in kebab-case (e.g. contact, reset-password). Used for the shortcode, REST endpoint and form file."
 msgstr ""
 
-#: includes/meta-fields.php:56
+#: includes/meta-fields.php:57
 msgid "To"
 msgstr ""
 
-#: includes/meta-fields.php:61
+#: includes/meta-fields.php:62
 msgid "Reply-To"
 msgstr ""
 
-#: includes/meta-fields.php:64
+#: includes/meta-fields.php:65
 msgid "Optional. Supports placeholders (e.g. [email* email] to reply to the form sender)."
 msgstr ""
 
-#: includes/meta-fields.php:69
+#: includes/meta-fields.php:70
 msgid "Subject"
 msgstr ""
 
-#: includes/meta-fields.php:74
+#: includes/meta-fields.php:75
 msgid "Content"
 msgstr ""
 
-#: includes/meta-fields.php:86
+#: includes/meta-fields.php:87
 #: includes/privacy.php:20
 #: includes/privacy.php:30
 #: includes/privacy.php:66
@@ -606,136 +650,148 @@ msgstr ""
 msgid "Received messages"
 msgstr ""
 
-#: includes/meta-fields.php:89
+#: includes/meta-fields.php:90
 msgid "Save the messages sent through this form"
 msgstr ""
 
-#: includes/meta-fields.php:90
+#: includes/meta-fields.php:91
 msgid "They appear under Email templates → Received messages, and are anonymized or deleted after the retention period set there."
 msgstr ""
 
-#: includes/meta-fields.php:212
+#: includes/meta-fields.php:223
 msgid "File uploads"
 msgstr ""
 
-#: includes/meta-fields.php:217
+#: includes/meta-fields.php:228
 msgid "For the file fields of this template, written [name file] or [name* file]. The file is attached to the email and never kept on the site: received messages only keep its name."
 msgstr ""
 
-#: includes/meta-fields.php:220
+#: includes/meta-fields.php:231
 msgid "This template has no file field yet."
 msgstr ""
 
-#: includes/meta-fields.php:226
+#: includes/meta-fields.php:237
 msgid "Allowed formats"
 msgstr ""
 
-#: includes/meta-fields.php:234
+#: includes/meta-fields.php:245
 msgid "Nothing ticked: JPG, PNG and PDF. The content of each file is checked, not only its extension."
 msgstr ""
 
-#: includes/meta-fields.php:236
+#: includes/meta-fields.php:247
 msgid "Maximum size"
 msgstr ""
 
-#: includes/meta-fields.php:238
+#: includes/meta-fields.php:249
 msgid "MB"
 msgstr ""
 
 #. translators: %s: a size such as "64 MB"
-#: includes/meta-fields.php:242
+#: includes/meta-fields.php:253
 #, php-format
 msgid "Per file. This server accepts up to %s per upload (PHP upload_max_filesize and post_max_size): a larger value is lowered to it."
 msgstr ""
 
-#: includes/meta-fields.php:277
-msgid "not set up"
+#: includes/meta-fields.php:257
+msgid "Maximum number of files"
 msgstr ""
 
-#: includes/meta-fields.php:284
-msgid "Blocks automated submissions of this form."
+#: includes/meta-fields.php:260
+msgid "For each field taking several files, written [name files] or [name* files]. The formats and the maximum size apply to each file."
 msgstr ""
 
 #: includes/meta-fields.php:293
+msgid "not set up"
+msgstr ""
+
+#: includes/meta-fields.php:300
+msgid "Blocks automated submissions of this form."
+msgstr ""
+
+#: includes/meta-fields.php:309
 msgid "Set up a protection"
 msgstr ""
 
-#: includes/meta-fields.php:310
+#: includes/meta-fields.php:326
 #: includes/settings.php:272
 msgid "Success message"
 msgstr ""
 
-#: includes/meta-fields.php:313
+#: includes/meta-fields.php:329
 msgid "Optional. Shown after a successful submission of this form. Empty: the site's message, set in Email templates → Settings."
 msgstr ""
 
-#: includes/meta-fields.php:338
+#: includes/meta-fields.php:354
 msgid "Confirmation page"
 msgstr ""
 
-#: includes/meta-fields.php:346
+#: includes/meta-fields.php:362
 msgid "No published page yet."
 msgstr ""
 
 #. translators: %d: page ID
-#: includes/meta-fields.php:352
+#: includes/meta-fields.php:368
 #, php-format
 msgid "The page selected before (#%d) is no longer published: visitors see the success message, and saving this form clears it."
 msgstr ""
 
-#: includes/meta-fields.php:357
+#: includes/meta-fields.php:373
 msgid "Optional. After a successful submission, visitors are taken to this page instead of seeing the success message. On a multilingual site, its translation in the visitor's language is used when there is one."
 msgstr ""
 
-#: includes/meta-fields.php:376
+#: includes/meta-fields.php:392
 msgid "Placeholder syntax reference"
 msgstr ""
 
-#: includes/meta-fields.php:383
+#: includes/meta-fields.php:399
 msgid "Syntax"
 msgstr ""
 
-#: includes/meta-fields.php:384
+#: includes/meta-fields.php:400
 msgid "Result"
 msgstr ""
 
-#: includes/meta-fields.php:388
+#: includes/meta-fields.php:404
 msgid "Optional field, type text"
 msgstr ""
 
-#: includes/meta-fields.php:389
+#: includes/meta-fields.php:405
 msgid "Required field, type text"
 msgstr ""
 
-#: includes/meta-fields.php:390
+#: includes/meta-fields.php:406
 msgid "Optional field with explicit type"
 msgstr ""
 
-#: includes/meta-fields.php:391
+#: includes/meta-fields.php:407
 msgid "Required field with explicit type"
 msgstr ""
 
-#: includes/meta-fields.php:395
+#: includes/meta-fields.php:411
 msgid "Available types:"
 msgstr ""
 
-#: includes/meta-fields.php:400
+#: includes/meta-fields.php:416
 msgid "HTML output"
 msgstr ""
 
-#: includes/meta-fields.php:413
+#: includes/meta-fields.php:429
 msgid "attached to the email; the mail shows the file name. Formats and size: \"File uploads\" above."
 msgstr ""
 
-#: includes/meta-fields.php:417
+#: includes/meta-fields.php:430
+msgid "several files, all attached to the email; the mail shows their names. Formats, size per file and number of files: \"File uploads\" above."
+msgstr ""
+
+#: includes/meta-fields.php:434
 msgid "Example content:"
 msgstr ""
 
-#: includes/meta-fields.php:430
+#: includes/meta-fields.php:447
 msgid "Built-in placeholders (always available): [currentUserLink], [currentUserEmail], [submissionLanguage]"
 msgstr ""
 
-#: includes/meta-fields.php:433
+#: includes/meta-fields.php:450
 msgid "the language of the page the form was sent from, e.g. English; empty without Polylang."
 msgstr ""
 

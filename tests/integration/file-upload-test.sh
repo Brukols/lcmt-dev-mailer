@@ -10,9 +10,12 @@
 #   tests/integration/file-upload-test.sh ~/Sites/demo https://demo.test "/opt/homebrew/opt/php@8.3/bin/php /opt/homebrew/bin/wp"
 #
 # It creates a temporary template (spam protection None, messages not saved,
-# JPG/PNG/PDF up to 1 MB, a required file field) and a temporary mu-plugin
-# whose pre_wp_mail filter records the attachments and stops every email;
-# both, and the mail-log rows of the run, are removed on exit, even on failure.
+# JPG/PNG/PDF up to 1 MB, a required file field), a second one with fields
+# taking several files ([pieces* files] [extras files], 2 files each, messages
+# saved) and a temporary mu-plugin whose pre_wp_mail filter records the
+# attachments and stops every email; all of them, the messages of the second
+# template and the mail-log rows of the run are removed on exit, even on
+# failure.
 
 set -u
 
@@ -25,14 +28,18 @@ cd "$SITE" || exit 2
 WORK=$(mktemp -d)
 MU="$SITE/wp-content/mu-plugins/lcmt-it-upload-capture.php"
 KEY="it-upload-$(date +%s)$RANDOM"
+KEY2="${KEY}-multi"
 TO="it-upload@example.invalid"
 POST_ID=""
+POST_ID2=""
 FAILED=0
 
 wp_eval() { $WP eval "$1" 2>>"$WORK/wp-errors.log"; }
 
 cleanup() {
     [ -n "$POST_ID" ] && wp_eval "wp_delete_post($POST_ID, true);" >/dev/null
+    [ -n "$POST_ID2" ] && wp_eval "wp_delete_post($POST_ID2, true);" >/dev/null
+    wp_eval "global \$wpdb; \$wpdb->delete(\$wpdb->prefix . 'lcmt_mailer_submissions', ['form_key' => '$KEY2']);" >/dev/null
     # Rows a mail-logging plugin may have recorded for the test address.
     wp_eval "global \$wpdb; \$t = \$wpdb->prefix . 'wpml_mails'; if (\$wpdb->get_var(\"SHOW TABLES LIKE '\$t'\") === \$t) { \$wpdb->query(\$wpdb->prepare(\"DELETE FROM \$t WHERE receiver LIKE %s\", '%$TO%')); }" >/dev/null
     rm -f "$MU"
@@ -56,6 +63,18 @@ echo \$id;")
 
 [ -n "$POST_ID" ] || { echo "Could not create the template:"; cat "$WORK/wp-errors.log"; exit 2; }
 
+POST_ID2=$(wp_eval "
+\$id = wp_insert_post(['post_type' => 'mail', 'post_status' => 'publish', 'post_title' => 'IT upload multi']);
+foreach ([
+    '_lcmt_mail_key' => '$KEY2', '_lcmt_mail_to' => '$TO', '_lcmt_mail_subject' => 'Upload [nom*]',
+    '_lcmt_mail_content' => 'Pieces: [pieces* files] Extras: [extras files]', '_lcmt_mail_captcha' => 'none',
+    '_lcmt_mail_store_submissions' => '1', '_lcmt_mail_file_formats' => 'jpg,png,pdf', '_lcmt_mail_file_max_size' => '1',
+    '_lcmt_mail_file_max_files' => '2',
+] as \$k => \$v) { update_post_meta(\$id, \$k, \$v); }
+echo \$id;")
+
+[ -n "$POST_ID2" ] || { echo "Could not create the second template:"; cat "$WORK/wp-errors.log"; exit 2; }
+
 cat > "$MU" <<PHP
 <?php
 // TEMPORARY (tests/integration/file-upload-test.sh): records the test mails' attachments, sends nothing.
@@ -69,6 +88,7 @@ add_filter('pre_wp_mail', static function (\$return, \$atts) {
             'perms' => substr(sprintf('%o', @fileperms(\$path)), -3), 'dir' => substr(sprintf('%o', @fileperms(dirname(\$path))), -3)];
     }
     file_put_contents('$WORK/mails.jsonl', wp_json_encode(\$files) . "\n", FILE_APPEND);
+    file_put_contents('$WORK/messages.jsonl', wp_json_encode((string) \$atts['message']) . "\n", FILE_APPEND);
 
     return !file_exists('$WORK/fail');
 }, 10, 2);
@@ -142,6 +162,55 @@ expect "a JSON body cannot fill a file field" 422 -H 'Content-Type: application/
 touch "$WORK/fail"
 expect "a failed send answers 500" 500 -F nom=Test -F "fichier=@$WORK/devis.pdf"
 [ "$(leftovers)" = "$BEFORE" ] && ok "the copy is deleted after a failed send" || fail "a temp folder is left after a failed send"
+
+rm -f "$WORK/fail"
+
+# ---- Several files ([pieces* files] [extras files], 2 files each) ----------
+
+ENDPOINT="$URL/wp-json/lcmt-mailer/v1/forms/$KEY2"
+echo "Several files ($ENDPOINT)"
+
+expect "two allowed files are accepted" 200 -F nom=Test -F "pieces[]=@$WORK/devis.pdf" -F "pieces[]=@$WORK/image.png"
+LAST=$(tail -n 1 "$WORK/mails.jsonl" 2>/dev/null)
+case "$LAST" in
+    *'"name":"devis.pdf"'*'"exists":true'*'"name":"image.png"'*'"exists":true'*) ok "the mail carries both files under their names" ;;
+    *) fail "attachments not found in the mail: $LAST" ;;
+esac
+[ "$(grep -o '"perms":"600"' <<<"$LAST" | wc -l | tr -d ' ')" = 2 ] && [ "$(grep -o '"dir":"700"' <<<"$LAST" | wc -l | tr -d ' ')" = 2 ] \
+    && ok "each copy is private (0600 in its own 0700 folder)" || fail "copy permissions: $LAST"
+[ "$(copy_dirs | tail -n 2 | sort -u | wc -l | tr -d ' ')" = 2 ] && ok "each file has a folder of its own" || fail "the copies share a folder"
+tail -n 1 "$WORK/messages.jsonl" | grep -q 'Pieces: devis.pdf, image.png' && ok "the mail lists the file names" || fail "file names not in the mail: $(tail -n 1 "$WORK/messages.jsonl" | head -c 300)"
+[ "$(leftovers)" = "$BEFORE" ] && ok "the copies are deleted after sending" || fail "a temp folder is left after sending"
+STORED=$(wp_eval "global \$wpdb; echo \$wpdb->get_var(\$wpdb->prepare('SELECT fields FROM ' . \$wpdb->prefix . 'lcmt_mailer_submissions WHERE form_key = %s ORDER BY id DESC LIMIT 1', '$KEY2'));")
+case "$STORED" in
+    *'"name":"pieces","type":"files","value":"devis.pdf, image.png"'*) ok "the received message keeps the file names only" ;;
+    *) fail "received message: $STORED" ;;
+esac
+
+expect "a single file sent as pieces[] is accepted" 200 -F nom=Test -F "pieces[]=@$WORK/image.png"
+expect "each field takes its own number of files" 200 -F nom=Test -F "pieces[]=@$WORK/devis.pdf" -F "pieces[]=@$WORK/image.png" \
+    -F "extras[]=@$WORK/devis.pdf" -F "extras[]=@$WORK/image.png"
+[ "$(tail -n 1 "$WORK/mails.jsonl" | grep -o '"exists":true' | wc -l | tr -d ' ')" = 4 ] && ok "the four files are attached" || fail "attachments: $(tail -n 1 "$WORK/mails.jsonl")"
+[ "$(leftovers)" = "$BEFORE" ] && ok "the four copies are deleted after sending" || fail "a temp folder is left after sending"
+
+expect "more files than allowed are refused" 422 -F nom=Test -F "pieces[]=@$WORK/devis.pdf" -F "pieces[]=@$WORK/image.png" -F "pieces[]=@$WORK/devis.pdf"
+grep -q 'accepts 2 files at most\|accepte 2 fichiers au maximum' "$WORK/answer.json" && ok "the error says how many files the field takes" || fail "answer: $(head -c 300 "$WORK/answer.json")"
+expect "an allowed file next to a refused one is refused" 422 -F nom=Test -F "pieces[]=@$WORK/devis.pdf" -F "pieces[]=@$WORK/notes.txt"
+grep -q 'notes.txt' "$WORK/answer.json" && ok "the error names the refused file" || fail "answer: $(head -c 300 "$WORK/answer.json")"
+expect "a PNG renamed .jpg among the files is refused" 422 -F nom=Test -F "pieces[]=@$WORK/image.png" -F "pieces[]=@$WORK/photo.jpg"
+expect "text renamed .pdf among the files is refused" 422 -F nom=Test -F "pieces[]=@$WORK/faux.pdf"
+expect "a JPEG named .php among the files is refused" 422 -F nom=Test -F "pieces[]=@$WORK/shell.php;type=image/jpeg"
+expect "a file over the size limit among the files is refused" 422 -F nom=Test -F "pieces[]=@$WORK/devis.pdf" -F "pieces[]=@$WORK/gros.pdf"
+expect "a missing required field of files is refused" 422 -F nom=Test -F "extras[]=@$WORK/devis.pdf"
+expect "file names sent as text are refused" 422 -F nom=Test -F "pieces[]=devis.pdf"
+expect "a JSON body cannot fill a field of files" 422 -H 'Content-Type: application/json' --data '{"nom":"Test","pieces":["devis.pdf"]}'
+expect "a nested name is refused" 422 -F nom=Test -F "pieces[a][b]=@$WORK/devis.pdf"
+[ "$(leftovers)" = "$BEFORE" ] && ok "refused files leave no copy" || fail "a temp folder is left after a refusal"
+
+touch "$WORK/fail"
+expect "a failed send with several files answers 500" 500 -F nom=Test -F "pieces[]=@$WORK/devis.pdf" -F "pieces[]=@$WORK/image.png"
+[ "$(leftovers)" = "$BEFORE" ] && ok "the copies are deleted after a failed send" || fail "a temp folder is left after a failed send"
+rm -f "$WORK/fail"
 
 if [ "$FAILED" = 0 ]; then echo "Success: file uploads"; else echo "Error: file uploads"; fi
 exit "$FAILED"

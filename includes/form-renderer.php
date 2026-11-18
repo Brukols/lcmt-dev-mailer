@@ -188,6 +188,9 @@ class FormRenderer
                 'captchaFailed'  => __('Security verification failed. Please try again.', 'lcmt-dev-mailer'),
                 'fileType'       => __('This file format is not accepted.', 'lcmt-dev-mailer'),
                 'fileTooLarge'   => __('This file is too large.', 'lcmt-dev-mailer'),
+                'tooManyFiles'   => __('Too many files.', 'lcmt-dev-mailer'),
+                /* translators: %s: a file name, on the button that takes it off the list of files to send */
+                'removeFile'     => __('Remove %s', 'lcmt-dev-mailer'),
             ],
         ]);
     }

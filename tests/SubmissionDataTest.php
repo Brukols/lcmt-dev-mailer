@@ -97,4 +97,15 @@ class SubmissionDataTest extends TestCase
         $this->assertSame(['plan.pdf'], SubmissionData::fileNames($snapshot));
         $this->assertSame([], SubmissionData::fileNames([]));
     }
+
+    public function testListsEachFileOfASeveralFilesField(): void
+    {
+        $snapshot = [
+            ['name' => 'attachment', 'type' => 'files', 'value' => 'plan.pdf, logo.png'],
+            ['name' => 'photos', 'type' => 'files', 'value' => ''],
+            ['name' => 'brief', 'type' => 'file', 'value' => 'brief.pdf'],
+        ];
+
+        $this->assertSame(['plan.pdf', 'logo.png', 'brief.pdf'], SubmissionData::fileNames($snapshot));
+    }
 }

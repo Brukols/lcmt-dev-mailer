@@ -91,4 +91,21 @@ class FieldParserTest extends TestCase
         $this->assertStringContainsString('  count?: number;', $ts);
         $this->assertStringContainsString('  name?: string;', $ts);
     }
+
+    public function testReadsASeveralFilesField(): void
+    {
+        $fields = FieldParser::parse('[attachment* files] [photos files]');
+
+        $this->assertSame(['name' => 'attachment', 'required' => true, 'type' => 'files'], $fields['attachment']);
+        $this->assertSame('files', $fields['photos']['type']);
+    }
+
+    public function testTypesASeveralFilesFieldAsAFileArrayInTypeScript(): void
+    {
+        $ts = FieldParser::toTypeScript('devis', FieldParser::parse('[attachment* files] [photos files] [brief file]'));
+
+        $this->assertStringContainsString('  attachment: File[];', $ts);
+        $this->assertStringContainsString('  photos?: File[];', $ts);
+        $this->assertStringContainsString('  brief?: File;', $ts);
+    }
 }

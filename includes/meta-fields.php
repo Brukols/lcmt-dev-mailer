@@ -19,6 +19,7 @@ class MetaFields
     public const FIELD_SUCCESS_MESSAGE = '_lcmt_mail_success_message';
     public const FIELD_FILE_FORMATS = '_lcmt_mail_file_formats';
     public const FIELD_FILE_MAX_SIZE = '_lcmt_mail_file_max_size';
+    public const FIELD_FILE_MAX_FILES = '_lcmt_mail_file_max_files';
 
     public static function addMetaBox(): void
     {
@@ -191,6 +192,13 @@ class MetaFields
             );
 
             update_post_meta($postId, self::FIELD_FILE_MAX_SIZE, (string) $maxMb);
+
+            $maxFiles = FileField::capFiles(
+                FileField::sanitizeMaxFiles(wp_unslash($_POST['lcmt_mail_file_max_files'] ?? '')),
+                FileField::serverMaxFiles()
+            );
+
+            update_post_meta($postId, self::FIELD_FILE_MAX_FILES, (string) $maxFiles);
         }
     }
 
@@ -207,6 +215,9 @@ class MetaFields
         $serverMb = FileField::serverMaxMb($server);
         $maxMb    = min(FileField::storedMaxMb($post->ID), $serverMb);
         $hasFile  = FileField::hasFileField(FieldParser::parse($to, $replyTo, $subject, $content));
+        $serverFiles = FileField::serverMaxFiles();
+        $maxFilesTop = $serverFiles > 0 ? min(FileField::MAX_FILES_LIMIT, $serverFiles) : FileField::MAX_FILES_LIMIT;
+        $maxFiles    = min(FileField::storedMaxFiles($post->ID), $maxFilesTop);
 
         echo '<tr>';
         echo '<th>' . esc_html__('File uploads', 'lcmt-dev-mailer') . '</th>';
@@ -242,6 +253,11 @@ class MetaFields
             __('Per file. This server accepts up to %s per upload (PHP upload_max_filesize and post_max_size): a larger value is lowered to it.', 'lcmt-dev-mailer'),
             FileField::sizeText($server)
         )) . '</p>';
+
+        echo '<p style="margin-top: 12px;"><label for="lcmt_mail_file_max_files" style="font-weight: 600;">' . esc_html__('Maximum number of files', 'lcmt-dev-mailer') . '</label> ';
+        echo '<input type="number" id="lcmt_mail_file_max_files" name="lcmt_mail_file_max_files" value="' . esc_attr((string) $maxFiles) . '" min="1" max="' . esc_attr((string) $maxFilesTop) . '" step="1" class="small-text" /></p>';
+
+        echo '<p class="description">' . esc_html__('For each field taking several files, written [name files] or [name* files]. The formats and the maximum size apply to each file.', 'lcmt-dev-mailer') . '</p>';
         echo '</td>';
         echo '</tr>';
     }
@@ -411,6 +427,7 @@ class MetaFields
                         <tr><td><code>textarea</code></td><td><code>&lt;textarea&gt;</code></td></tr>
                         <tr><td><code>hidden</code></td><td><code>&lt;input type="hidden"&gt;</code></td></tr>
                         <tr><td><code>file</code></td><td><code>&lt;input type="file"&gt;</code> — <?php esc_html_e('attached to the email; the mail shows the file name. Formats and size: "File uploads" above.', 'lcmt-dev-mailer'); ?></td></tr>
+                        <tr><td><code>files</code></td><td><code>&lt;input type="file" name="x[]" multiple&gt;</code> — <?php esc_html_e('several files, all attached to the email; the mail shows their names. Formats, size per file and number of files: "File uploads" above.', 'lcmt-dev-mailer'); ?></td></tr>
                     </tbody>
                 </table>
 

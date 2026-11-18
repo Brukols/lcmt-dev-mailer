@@ -7,14 +7,30 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * File fields ([name file] / [name* file]): the formats and size a mail
+ * File fields ([name file] / [name* file], one file; [name files] /
+ * [name* files], several): the formats, size and number of files a mail
  * template accepts, the checks of an upload, and the private copy attached
- * to the email. The file is never kept on the site: the copy is deleted once
+ * to the email. A file is never kept on the site: the copy is deleted once
  * the email is sent, and received messages only keep its name.
  */
 class FileField
 {
     public const TYPE = 'file';
+
+    /**
+     * A field taking several files: <input type="file" name="x[]" multiple>.
+     */
+    public const MULTIPLE_TYPE = 'files';
+
+    /**
+     * Files a [name files] field takes when the template sets nothing.
+     */
+    public const DEFAULT_MAX_FILES = 3;
+
+    /**
+     * The highest "Maximum number of files" an admin can set.
+     */
+    public const MAX_FILES_LIMIT = 20;
 
     public const MB = 1048576;
 
@@ -67,7 +83,7 @@ class FileField
     /**
      * Limits by mail post ID, for the request.
      *
-     * @var array<int, array{formats: list<string>, max_size: int}>
+     * @var array<int, array{formats: list<string>, max_size: int, max_files: int}>
      */
     private static array $limits = [];
 
@@ -145,6 +161,32 @@ class FileField
         }
 
         return self::DEFAULT_MAX_MB;
+    }
+
+    /**
+     * A stored or posted maximum number of files: a whole number from 1 to
+     * MAX_FILES_LIMIT, the default when empty or not a number.
+     *
+     * @param mixed $raw
+     */
+    public static function sanitizeMaxFiles($raw): int
+    {
+        if (is_int($raw) || (is_string($raw) && preg_match('/^\s*\d+(\.\d+)?\s*$/', $raw)) || is_float($raw)) {
+            return min(self::MAX_FILES_LIMIT, max(1, (int) floor((float) $raw)));
+        }
+
+        return self::DEFAULT_MAX_FILES;
+    }
+
+    /**
+     * Files a field may take: the template's number, never more than PHP
+     * receives in one request (max_file_uploads; 0, unknown, leaves it).
+     */
+    public static function capFiles(int $files, int $serverFiles): int
+    {
+        $files = max(1, $files);
+
+        return $serverFiles > 0 ? min($files, $serverFiles) : $files;
     }
 
     /**
@@ -295,31 +337,47 @@ class FileField
     }
 
     /**
-     * "Formats: JPG, PNG, PDF — 10 MB maximum".
+     * "Formats: JPG, PNG, PDF — 10 MB maximum"; with a number of files (a
+     * template with a [name files] field), "Formats: JPG, PNG, PDF — 10 MB
+     * maximum per file, 3 files maximum".
      *
      * @param list<string> $formats
      * @param array<string, array> $map
      */
-    public static function hintText(array $formats, array $map, string $size): string
+    public static function hintText(array $formats, array $map, string $size, int $maxFiles = 0): string
     {
-        $labels = array_map(static fn(string $id) => (string) ($map[$id]['short'] ?? strtoupper($id)), $formats);
+        $labels = implode(', ', array_map(static fn(string $id) => (string) ($map[$id]['short'] ?? strtoupper($id)), $formats));
+
+        if ($maxFiles > 0) {
+            return sprintf(
+                /* translators: 1: list of file formats such as "JPG, PNG, PDF", 2: a size such as "10 MB", 3: a number of files */
+                _n('Formats: %1$s — %2$s maximum per file, %3$d file maximum', 'Formats: %1$s — %2$s maximum per file, %3$d files maximum', $maxFiles, 'lcmt-dev-mailer'),
+                $labels,
+                $size,
+                $maxFiles
+            );
+        }
 
         /* translators: 1: list of file formats such as "JPG, PNG, PDF", 2: a size such as "10 MB" */
-        return sprintf(__('Formats: %1$s — %2$s maximum', 'lcmt-dev-mailer'), implode(', ', $labels), $size);
+        return sprintf(__('Formats: %1$s — %2$s maximum', 'lcmt-dev-mailer'), $labels, $size);
     }
 
     /**
      * The attributes the form script reads its limits from, escaped, with a
      * leading space.
      *
+     * data-lcmt-file-max-files only comes with a number of files (a template
+     * with a [name files] field).
+     *
      * @param list<string> $extensions
      */
-    public static function formAttributes(array $extensions, int $maxBytes, string $hint): string
+    public static function formAttributes(array $extensions, int $maxBytes, string $hint, int $maxFiles = 0): string
     {
         return ' enctype="multipart/form-data"'
             . ' data-lcmt-file-extensions="' . esc_attr(implode(',', $extensions)) . '"'
             . ' data-lcmt-file-max-size="' . esc_attr((string) $maxBytes) . '"'
-            . ' data-lcmt-file-hint="' . esc_attr($hint) . '"';
+            . ' data-lcmt-file-hint="' . esc_attr($hint) . '"'
+            . ($maxFiles > 0 ? ' data-lcmt-file-max-files="' . esc_attr((string) $maxFiles) . '"' : '');
     }
 
     /**
@@ -330,12 +388,83 @@ class FileField
     public static function hasFileField(array $fields): bool
     {
         foreach ($fields as $field) {
-            if ($field['type'] === self::TYPE) {
+            if ($field['type'] === self::TYPE || $field['type'] === self::MULTIPLE_TYPE) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /**
+     * Whether parsed fields hold a field taking several files.
+     *
+     * @param array<string, array{name: string, required: bool, type: string}> $fields
+     */
+    public static function hasMultipleFileField(array $fields): bool
+    {
+        foreach ($fields as $field) {
+            if ($field['type'] === self::MULTIPLE_TYPE) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * The entry of a [name files] field in $_FILES, one entry per file in
+     * the shape of a single upload: PHP gives `name[]` as arrays of names,
+     * tmp_names, errors and sizes. Slots without a file (an empty selection)
+     * are left out; a single file sent without brackets counts as one.
+     *
+     * @param mixed $entry
+     * @return list<array{name: mixed, type: mixed, tmp_name: mixed, error: mixed, size: mixed}>|null null when the entry is malformed.
+     */
+    public static function splitUploads($entry): ?array
+    {
+        if ($entry === null) {
+            return [];
+        }
+
+        if (!is_array($entry) || !array_key_exists('error', $entry) || !array_key_exists('tmp_name', $entry)) {
+            return null;
+        }
+
+        if (!is_array($entry['error'])) {
+            if (is_array($entry['tmp_name']) || is_array($entry['name'] ?? '')) {
+                return null;
+            }
+
+            return self::uploadProblem($entry) === 'empty' ? [] : [$entry];
+        }
+
+        if (!is_array($entry['tmp_name'])) {
+            return null;
+        }
+
+        $files = [];
+
+        foreach ($entry['error'] as $i => $error) {
+            $file = [];
+
+            foreach (['name', 'type', 'tmp_name', 'error', 'size'] as $part) {
+                $value = $part === 'error' ? $error : ($entry[$part][$i] ?? null);
+
+                // name[a][b]: not what a file input sends.
+                if (is_array($value) || ($part !== 'error' && isset($entry[$part]) && !is_array($entry[$part]))) {
+                    return null;
+                }
+
+                $file[$part] = $value;
+            }
+
+            if (self::uploadProblem($file) !== 'empty') {
+                $files[] = $file;
+            }
+        }
+
+        return $files;
     }
 
     /**
@@ -406,11 +535,26 @@ class FileField
         return $stored === '' ? self::DEFAULT_MAX_MB : self::sanitizeMaxMb($stored);
     }
 
+    public static function storedMaxFiles(int $postId): int
+    {
+        $stored = get_post_meta($postId, MetaFields::FIELD_FILE_MAX_FILES, true);
+
+        return $stored === '' ? self::DEFAULT_MAX_FILES : self::sanitizeMaxFiles($stored);
+    }
+
+    /**
+     * Files PHP receives in one request (max_file_uploads), 0 when unknown.
+     */
+    public static function serverMaxFiles(): int
+    {
+        return max(0, (int) ini_get('max_file_uploads'));
+    }
+
     /**
      * What a template's file fields accept, filtered, and capped to the
-     * server's limit.
+     * server's limits. max_files applies to each [name files] field.
      *
-     * @return array{formats: list<string>, max_size: int}
+     * @return array{formats: list<string>, max_size: int, max_files: int}
      */
     public static function limitsFor(\WP_Post $post, string $key = ''): array
     {
@@ -421,15 +565,18 @@ class FileField
         $map    = self::formats();
         $server = self::serverLimit();
 
+        $serverFiles = self::serverMaxFiles();
+
         $limits = [
-            'formats'  => self::storedFormats($post->ID, $map),
-            'max_size' => self::capBytes(self::storedMaxMb($post->ID) * self::MB, $server),
+            'formats'   => self::storedFormats($post->ID, $map),
+            'max_size'  => self::capBytes(self::storedMaxMb($post->ID) * self::MB, $server),
+            'max_files' => self::capFiles(self::storedMaxFiles($post->ID), $serverFiles),
         ];
 
         /**
          * Filter what the file fields of a template accept.
          *
-         * @param array    $limits {formats: list of format ids, max_size: bytes}
+         * @param array    $limits {formats: list of format ids, max_size: bytes per file, max_files: files per [name files] field}
          * @param string   $key    The form key.
          * @param \WP_Post $post   The mail post.
          */
@@ -439,8 +586,9 @@ class FileField
             $formats = self::sanitizeFormats($filtered['formats'] ?? [], $map);
 
             $limits = [
-                'formats'  => $formats ?: $limits['formats'],
-                'max_size' => self::capBytes(is_numeric($filtered['max_size'] ?? null) ? (int) $filtered['max_size'] : $limits['max_size'], $server),
+                'formats'   => $formats ?: $limits['formats'],
+                'max_size'  => self::capBytes(is_numeric($filtered['max_size'] ?? null) ? (int) $filtered['max_size'] : $limits['max_size'], $server),
+                'max_files' => self::capFiles(is_numeric($filtered['max_files'] ?? null) ? (int) $filtered['max_files'] : $limits['max_files'], $serverFiles),
             ];
         }
 
@@ -450,7 +598,7 @@ class FileField
     /**
      * Limits of the form with this key, null when there is no such form.
      *
-     * @return array{formats: list<string>, max_size: int}|null
+     * @return array{formats: list<string>, max_size: int, max_files: int}|null
      */
     public static function limitsForKey(string $key): ?array
     {
@@ -465,11 +613,33 @@ class FileField
     }
 
     /**
-     * @param array{formats: list<string>, max_size: int} $limits
+     * The hint line; $multiple (a template with a [name files] field) adds
+     * "per file" and the number of files.
+     *
+     * @param array{formats: list<string>, max_size: int, max_files?: int} $limits
      */
-    public static function hint(array $limits): string
+    public static function hint(array $limits, bool $multiple = false): string
     {
-        return self::hintText($limits['formats'], self::formats(), self::sizeText($limits['max_size']));
+        return self::hintText(
+            $limits['formats'],
+            self::formats(),
+            self::sizeText($limits['max_size']),
+            $multiple ? (int) ($limits['max_files'] ?? self::DEFAULT_MAX_FILES) : 0
+        );
+    }
+
+    /**
+     * The hint line of the form with this key, '' when there is no such form.
+     */
+    public static function hintForKey(string $key): string
+    {
+        $post = Mailer::getPostByKey($key);
+
+        if (!$post) {
+            return '';
+        }
+
+        return self::hint(self::limitsFor($post, $key), self::hasMultipleFileField(self::fieldsOf($post)));
     }
 
     /**
@@ -477,20 +647,34 @@ class FileField
      */
     public static function formAttributesFor(\WP_Post $post, string $key): string
     {
-        $fields = FieldParser::parse(
-            MetaFields::get($post->ID, 'to'),
-            MetaFields::get($post->ID, 'reply_to'),
-            MetaFields::get($post->ID, 'subject'),
-            MetaFields::get($post->ID, 'content')
-        );
+        $fields = self::fieldsOf($post);
 
         if (!self::hasFileField($fields)) {
             return '';
         }
 
-        $limits = self::limitsFor($post, $key);
+        $limits   = self::limitsFor($post, $key);
+        $multiple = self::hasMultipleFileField($fields);
 
-        return self::formAttributes(self::extensions($limits['formats'], self::formats()), $limits['max_size'], self::hint($limits));
+        return self::formAttributes(
+            self::extensions($limits['formats'], self::formats()),
+            $limits['max_size'],
+            self::hint($limits, $multiple),
+            $multiple ? $limits['max_files'] : 0
+        );
+    }
+
+    /**
+     * @return array<string, array{name: string, required: bool, type: string}>
+     */
+    private static function fieldsOf(\WP_Post $post): array
+    {
+        return FieldParser::parse(
+            MetaFields::get($post->ID, 'to'),
+            MetaFields::get($post->ID, 'reply_to'),
+            MetaFields::get($post->ID, 'subject'),
+            MetaFields::get($post->ID, 'content')
+        );
     }
 
     /**
@@ -502,74 +686,170 @@ class FileField
      */
     public static function check($file, array $limits, string $field): array
     {
-        $none    = ['error' => null, 'name' => '', 'tmp' => ''];
-        $map     = self::formats();
-        $formats = implode(', ', array_map(static fn(string $id) => (string) ($map[$id]['short'] ?? $id), $limits['formats']));
-        $size    = self::sizeText($limits['max_size']);
+        $none   = ['error' => null, 'name' => '', 'tmp' => ''];
+        $result = self::inspect($file, $limits);
 
-        $tooBig = static fn() => ['error' => sprintf(
-            /* translators: 1: the field name, 2: a size such as "10 MB" */
-            __('The file of the field "%1$s" is too large: %2$s maximum.', 'lcmt-dev-mailer'),
-            $field,
-            $size
-        )] + $none;
+        $message = match ($result['problem']) {
+            '', 'empty' => null,
+            'multiple'  => sprintf(
+                /* translators: %s: the field name */
+                __('The field "%s" accepts a single file.', 'lcmt-dev-mailer'),
+                $field
+            ),
+            'too_big'   => sprintf(
+                /* translators: 1: the field name, 2: a size such as "10 MB" */
+                __('The file of the field "%1$s" is too large: %2$s maximum.', 'lcmt-dev-mailer'),
+                $field,
+                self::sizeText($limits['max_size'])
+            ),
+            'format'    => sprintf(
+                /* translators: 1: the field name, 2: list of file formats such as "JPG, PNG, PDF" */
+                __('The file of the field "%1$s" must be in one of these formats: %2$s.', 'lcmt-dev-mailer'),
+                $field,
+                self::formatsText($limits['formats'])
+            ),
+            default     => self::failedMessage($field),
+        };
 
-        $failed = static fn() => ['error' => sprintf(
-            /* translators: %s: the field name */
-            __('The file of the field "%s" could not be received. Please try again.', 'lcmt-dev-mailer'),
-            $field
-        )] + $none;
+        if ($message !== null) {
+            return ['error' => $message] + $none;
+        }
 
-        $wrongFormat = static fn() => ['error' => sprintf(
-            /* translators: 1: the field name, 2: list of file formats such as "JPG, PNG, PDF" */
-            __('The file of the field "%1$s" must be in one of these formats: %2$s.', 'lcmt-dev-mailer'),
-            $field,
-            $formats
-        )] + $none;
+        return $result['problem'] === '' ? ['error' => null, 'name' => $result['name'], 'tmp' => $result['tmp']] : $none;
+    }
 
-        switch (self::uploadProblem($file)) {
-            case 'empty':
-                return $none;
-            case 'multiple':
-                return ['error' => sprintf(
-                    /* translators: %s: the field name */
-                    __('The field "%s" accepts a single file.', 'lcmt-dev-mailer'),
-                    $field
-                )] + $none;
-            case 'too_big':
-                return $tooBig();
-            case 'failed':
-                return $failed();
+    /**
+     * Check the upload of a [name files] field: at most max_files files, then
+     * each one exactly as check() does a single file. Every refused file gets
+     * its own error, naming the field and the file.
+     *
+     * @param mixed $entry The $_FILES entry, null when none was sent.
+     * @param array{formats: list<string>, max_size: int, max_files: int} $limits
+     * @return array{errors: list<string>, files: list<array{name: string, tmp: string}>} files is empty as soon as one error is found.
+     */
+    public static function checkMany($entry, array $limits, string $field): array
+    {
+        $uploads = self::splitUploads($entry);
+
+        if ($uploads === null) {
+            return ['errors' => [self::failedMessage($field)], 'files' => []];
+        }
+
+        $max = max(1, (int) ($limits['max_files'] ?? self::DEFAULT_MAX_FILES));
+
+        if (count($uploads) > $max) {
+            return ['errors' => [sprintf(
+                /* translators: 1: the field name, 2: a number of files */
+                _n('The field "%1$s" accepts %2$d file at most.', 'The field "%1$s" accepts %2$d files at most.', $max, 'lcmt-dev-mailer'),
+                $field,
+                $max
+            )], 'files' => []];
+        }
+
+        $errors = [];
+        $files  = [];
+
+        foreach ($uploads as $upload) {
+            $result = self::inspect($upload, $limits);
+
+            if ($result['problem'] === '') {
+                $files[] = ['name' => $result['name'], 'tmp' => $result['tmp']];
+                continue;
+            }
+
+            $name = self::cleanName(is_string($upload['name'] ?? null) ? $upload['name'] : '');
+
+            $errors[] = match ($result['problem']) {
+                'too_big' => sprintf(
+                    /* translators: 1: the field name, 2: a file name, 3: a size such as "10 MB" */
+                    __('The field "%1$s": the file "%2$s" is too large, %3$s maximum.', 'lcmt-dev-mailer'),
+                    $field,
+                    $name,
+                    self::sizeText($limits['max_size'])
+                ),
+                'format'  => sprintf(
+                    /* translators: 1: the field name, 2: a file name, 3: list of file formats such as "JPG, PNG, PDF" */
+                    __('The field "%1$s": the file "%2$s" must be in one of these formats: %3$s.', 'lcmt-dev-mailer'),
+                    $field,
+                    $name,
+                    self::formatsText($limits['formats'])
+                ),
+                default   => sprintf(
+                    /* translators: 1: the field name, 2: a file name */
+                    __('The field "%1$s": the file "%2$s" could not be received. Please try again.', 'lcmt-dev-mailer'),
+                    $field,
+                    $name
+                ),
+            };
+        }
+
+        return $errors ? ['errors' => $errors, 'files' => []] : ['errors' => [], 'files' => $files];
+    }
+
+    /**
+     * What is wrong with one upload: '' (accepted, with its clean name and
+     * temporary path), or uploadProblem()'s answer, 'failed' (not a real
+     * upload, empty), 'too_big' (over the template's size) or 'format'.
+     *
+     * @param mixed $file
+     * @param array{formats: list<string>, max_size: int} $limits
+     * @return array{problem: string, name: string, tmp: string}
+     */
+    private static function inspect($file, array $limits): array
+    {
+        $refused = static fn(string $problem) => ['problem' => $problem, 'name' => '', 'tmp' => ''];
+        $problem = self::uploadProblem($file);
+
+        if ($problem !== '') {
+            return $refused($problem);
         }
 
         $tmp = (string) $file['tmp_name'];
 
         if (!is_uploaded_file($tmp)) {
-            return $failed();
+            return $refused('failed');
         }
 
         $bytes = (int) filesize($tmp);
 
         if ($bytes > $limits['max_size'] || (int) ($file['size'] ?? 0) > $limits['max_size']) {
-            return $tooBig();
+            return $refused('too_big');
         }
 
         if ($bytes === 0) {
-            return $failed();
+            return $refused('failed');
         }
 
+        $map    = self::formats();
         $name   = self::cleanName(is_string($file['name'] ?? null) ? $file['name'] : '');
         $format = self::formatFor(self::extension($name), $limits['formats'], $map);
 
-        if ($format === null) {
-            return $wrongFormat();
+        if ($format === null || !self::contentMatches($tmp, $name, $format, $map)) {
+            return $refused('format');
         }
 
-        if (!self::contentMatches($tmp, $name, $format, $map)) {
-            return $wrongFormat();
-        }
+        return ['problem' => '', 'name' => $name, 'tmp' => $tmp];
+    }
 
-        return ['error' => null, 'name' => $name, 'tmp' => $tmp];
+    private static function failedMessage(string $field): string
+    {
+        return sprintf(
+            /* translators: %s: the field name */
+            __('The file of the field "%s" could not be received. Please try again.', 'lcmt-dev-mailer'),
+            $field
+        );
+    }
+
+    /**
+     * "JPG, PNG, PDF": the short labels of the allowed formats.
+     *
+     * @param list<string> $formats
+     */
+    private static function formatsText(array $formats): string
+    {
+        $map = self::formats();
+
+        return implode(', ', array_map(static fn(string $id) => (string) ($map[$id]['short'] ?? $id), $formats));
     }
 
     /**

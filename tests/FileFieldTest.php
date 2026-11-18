@@ -254,6 +254,188 @@ class FileFieldTest extends TestCase
         $this->assertFalse(FileField::hasFileField([]));
     }
 
+    // ── Several files ([name files]) ──
+
+    public function test_a_files_field_counts_as_a_file_field(): void
+    {
+        $files = ['a' => ['name' => 'a', 'required' => false, 'type' => 'files']];
+        $file  = ['a' => ['name' => 'a', 'required' => false, 'type' => 'file']];
+
+        $this->assertSame('files', FileField::MULTIPLE_TYPE);
+        $this->assertTrue(FileField::hasFileField($files));
+        $this->assertTrue(FileField::hasMultipleFileField($files));
+        $this->assertFalse(FileField::hasMultipleFileField($file));
+        $this->assertFalse(FileField::hasMultipleFileField([]));
+    }
+
+    public function test_the_maximum_number_of_files_is_a_whole_number_of_at_least_one(): void
+    {
+        $this->assertSame(3, FileField::DEFAULT_MAX_FILES);
+        $this->assertSame(3, FileField::sanitizeMaxFiles(''));
+        $this->assertSame(3, FileField::sanitizeMaxFiles('abc'));
+        $this->assertSame(3, FileField::sanitizeMaxFiles('-5'));
+        $this->assertSame(3, FileField::sanitizeMaxFiles(null));
+        $this->assertSame(1, FileField::sanitizeMaxFiles('0'));
+        $this->assertSame(5, FileField::sanitizeMaxFiles('5'));
+        $this->assertSame(2, FileField::sanitizeMaxFiles('2.9'));
+        $this->assertSame(8, FileField::sanitizeMaxFiles(8));
+        $this->assertSame(FileField::MAX_FILES_LIMIT, FileField::sanitizeMaxFiles('999'));
+    }
+
+    public function test_the_maximum_number_of_files_never_exceeds_what_php_takes(): void
+    {
+        $this->assertSame(5, FileField::capFiles(5, 20));
+        $this->assertSame(4, FileField::capFiles(10, 4));
+        $this->assertSame(10, FileField::capFiles(10, 0));
+        $this->assertSame(1, FileField::capFiles(0, 0));
+    }
+
+    public function test_reads_the_stored_maximum_number_of_files(): void
+    {
+        $this->assertSame('_lcmt_mail_file_max_files', MetaFields::FIELD_FILE_MAX_FILES);
+        $this->assertSame(3, FileField::storedMaxFiles(3));
+
+        $GLOBALS['lcmt_test_post_meta'][3][MetaFields::FIELD_FILE_MAX_FILES] = '5';
+        $this->assertSame(5, FileField::storedMaxFiles(3));
+    }
+
+    public function test_the_limits_hold_the_maximum_number_of_files(): void
+    {
+        $GLOBALS['lcmt_test_post_meta'][101][MetaFields::FIELD_FILE_MAX_FILES] = '4';
+
+        $limits = FileField::limitsFor(new WP_Post(101), 'devis');
+
+        $this->assertSame(['jpg', 'png', 'pdf'], $limits['formats']);
+        $this->assertSame(10 * FileField::MB, $limits['max_size']);
+        $this->assertSame(min(4, FileField::serverMaxFiles() ?: 4), $limits['max_files']);
+    }
+
+    public function test_a_filter_without_max_files_keeps_the_stored_one(): void
+    {
+        $GLOBALS['lcmt_test_post_meta'][102][MetaFields::FIELD_FILE_MAX_FILES] = '2';
+        $GLOBALS['lcmt_test_filters']['lcmt_mailer_file_limits'] = ['formats' => ['pdf'], 'max_size' => FileField::MB];
+
+        $limits = FileField::limitsFor(new WP_Post(102), 'devis');
+
+        $this->assertSame(['formats' => ['pdf'], 'max_size' => FileField::MB, 'max_files' => 2], $limits);
+    }
+
+    public function test_a_filter_can_change_the_maximum_number_of_files(): void
+    {
+        $GLOBALS['lcmt_test_filters']['lcmt_mailer_file_limits'] = ['formats' => ['pdf'], 'max_size' => FileField::MB, 'max_files' => '2'];
+
+        $this->assertSame(2, FileField::limitsFor(new WP_Post(103), 'devis')['max_files']);
+    }
+
+    public function test_the_hint_of_a_form_with_several_files_says_per_file_and_how_many(): void
+    {
+        $this->assertSame(
+            'Formats: JPG, PNG, PDF — 5 MB maximum per file, 3 files maximum',
+            FileField::hintText(['jpg', 'png', 'pdf'], $this->map(), '5 MB', 3)
+        );
+        $this->assertSame(
+            'Formats: PDF — 5 MB maximum per file, 1 file maximum',
+            FileField::hintText(['pdf'], $this->map(), '5 MB', 1)
+        );
+        $this->assertSame('Formats: PDF — 5 MB maximum', FileField::hintText(['pdf'], $this->map(), '5 MB', 0));
+    }
+
+    public function test_the_form_attributes_carry_the_maximum_number_of_files_when_given(): void
+    {
+        $this->assertSame(
+            ' enctype="multipart/form-data" data-lcmt-file-extensions="pdf" data-lcmt-file-max-size="1024" data-lcmt-file-hint="h" data-lcmt-file-max-files="3"',
+            FileField::formAttributes(['pdf'], 1024, 'h', 3)
+        );
+    }
+
+    public function test_splits_the_array_shape_of_php_into_one_entry_per_file(): void
+    {
+        $entry = [
+            'name'     => ['a.pdf', 'b.png'],
+            'type'     => ['application/pdf', 'image/png'],
+            'tmp_name' => ['/tmp/phpA', '/tmp/phpB'],
+            'error'    => [UPLOAD_ERR_OK, UPLOAD_ERR_OK],
+            'size'     => [10, 20],
+        ];
+
+        $this->assertSame([
+            ['name' => 'a.pdf', 'type' => 'application/pdf', 'tmp_name' => '/tmp/phpA', 'error' => UPLOAD_ERR_OK, 'size' => 10],
+            ['name' => 'b.png', 'type' => 'image/png', 'tmp_name' => '/tmp/phpB', 'error' => UPLOAD_ERR_OK, 'size' => 20],
+        ], FileField::splitUploads($entry));
+    }
+
+    public function test_an_empty_selection_splits_into_no_file(): void
+    {
+        $this->assertSame([], FileField::splitUploads(null));
+        $this->assertSame([], FileField::splitUploads(['name' => [''], 'tmp_name' => [''], 'error' => [UPLOAD_ERR_NO_FILE], 'size' => [0]]));
+        $this->assertSame([], FileField::splitUploads(['name' => '', 'tmp_name' => '', 'error' => UPLOAD_ERR_NO_FILE, 'size' => 0]));
+    }
+
+    public function test_a_single_file_sent_without_brackets_counts_as_one(): void
+    {
+        $one = ['name' => 'a.pdf', 'type' => 'application/pdf', 'tmp_name' => '/tmp/phpA', 'error' => UPLOAD_ERR_OK, 'size' => 10];
+
+        $this->assertSame([$one], FileField::splitUploads($one));
+    }
+
+    public function test_a_malformed_entry_cannot_be_split(): void
+    {
+        $this->assertNull(FileField::splitUploads('a.pdf'));
+        $this->assertNull(FileField::splitUploads(['name' => ['a.pdf']]));
+        $this->assertNull(FileField::splitUploads(['name' => ['a.pdf'], 'tmp_name' => '/tmp/x', 'error' => [0]]));
+        $this->assertNull(FileField::splitUploads([
+            'name' => [['a.pdf']], 'tmp_name' => [['/tmp/x']], 'error' => [[0]], 'size' => [[1]],
+        ]));
+    }
+
+    public function test_more_files_than_allowed_are_refused_before_any_check(): void
+    {
+        $entry = [
+            'name'     => ['a.pdf', 'b.pdf', 'c.pdf'],
+            'tmp_name' => ['/tmp/a', '/tmp/b', '/tmp/c'],
+            'error'    => [0, 0, 0],
+            'size'     => [1, 1, 1],
+        ];
+
+        $result = FileField::checkMany($entry, ['formats' => ['pdf'], 'max_size' => FileField::MB, 'max_files' => 2], 'attachment');
+
+        $this->assertSame(['The field "attachment" accepts 2 files at most.'], $result['errors']);
+        $this->assertSame([], $result['files']);
+    }
+
+    public function test_no_file_is_no_error(): void
+    {
+        $limits = ['formats' => ['pdf'], 'max_size' => FileField::MB, 'max_files' => 3];
+
+        $this->assertSame(['errors' => [], 'files' => []], FileField::checkMany(null, $limits, 'attachment'));
+    }
+
+    public function test_each_file_is_checked_and_its_error_names_the_field_and_the_file(): void
+    {
+        $entry = [
+            'name'     => ['huge.pdf', 'broken.pdf', 'fake.pdf'],
+            'tmp_name' => ['', '', '/tmp/not-uploaded'],
+            'error'    => [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_PARTIAL, UPLOAD_ERR_OK],
+            'size'     => [0, 0, 10],
+        ];
+
+        $result = FileField::checkMany($entry, ['formats' => ['pdf'], 'max_size' => 5 * FileField::MB, 'max_files' => 3], 'attachment');
+
+        $this->assertSame([
+            'The field "attachment": the file "huge.pdf" is too large, 5 MB maximum.',
+            'The field "attachment": the file "broken.pdf" could not be received. Please try again.',
+            'The field "attachment": the file "fake.pdf" could not be received. Please try again.',
+        ], $result['errors']);
+        $this->assertSame([], $result['files']);
+    }
+
+    public function test_a_malformed_entry_is_refused(): void
+    {
+        $result = FileField::checkMany('a.pdf', ['formats' => ['pdf'], 'max_size' => FileField::MB, 'max_files' => 3], 'attachment');
+
+        $this->assertSame(['The file of the field "attachment" could not be received. Please try again.'], $result['errors']);
+    }
+
     // ── _context ──
 
     public function test_the_context_of_a_multipart_body_is_decoded_from_json(): void
