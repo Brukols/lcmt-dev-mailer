@@ -29,8 +29,11 @@ Placeholders are written in the **To**, **Subject**, and **Content** fields of a
 | `textarea` | `<textarea>`              |         |
 | `hidden`   | `<input type="hidden">`   |         |
 | `file`     | `<input type="file">`     |         |
+| `files`    | `<input type="file" name="name[]" multiple>` |  |
 
 A `file` field is never read from the text body: only from the uploaded files (`FileField::check()`), and its value (placeholder, received message) is the cleaned file name. The file itself is attached to the email (see [Architecture](architecture.md#filefield)).
+
+A `files` field takes several files, sent as `name[]` (`$_FILES['name']` in PHP's array shape): `*` means at least one file, and the template's **Maximum number of files** (default 3) applies to each `files` field. Each file goes through the same checks as a `file` field (`FileField::checkMany()`), every accepted file is attached, and the value is the cleaned file names joined by `", "` (`plan.pdf, logo.png`).
 
 Unknown types fall back to `text`.
 
@@ -83,4 +86,4 @@ export interface ContactFormData {
 ```
 
 - Required fields have no `?`
-- `number` type maps to TypeScript `number`, `file` to `File`, all others to `string`
+- `number` type maps to TypeScript `number`, `file` to `File`, `files` to `File[]`, all others to `string`

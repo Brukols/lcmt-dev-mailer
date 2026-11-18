@@ -92,7 +92,7 @@ add_filter('lcmt_mailer_file_formats', function (array $formats) {
 Used in: `FileField::formats()` (admin row, checks, helpers, form attributes).
 
 ### `lcmt_mailer_file_limits`
-What the file fields of one form accept: `['formats' => list of format ids, 'max_size' => bytes]`, from the template's meta. Arguments: `array $limits, string $key, \WP_Post $post`. Unknown ids are dropped (an empty list keeps the template's), and the size is capped to `wp_max_upload_size()` again after the filter.
+What the file fields of one form accept: `['formats' => list of format ids, 'max_size' => bytes per file, 'max_files' => files per [name files] field]`, from the template's meta. Arguments: `array $limits, string $key, \WP_Post $post`. Unknown ids are dropped (an empty list keeps the template's), the size is capped to `wp_max_upload_size()` and the number of files to `max_file_uploads` again after the filter. A filter that returns no `max_files` (written before 2.11.0) keeps the template's.
 
 ```php
 add_filter('lcmt_mailer_file_limits', function (array $limits, string $key) {
@@ -105,8 +105,8 @@ add_filter('lcmt_mailer_file_limits', function (array $limits, string $key) {
 
 Used in: `FileField::limitsFor()` (endpoint, renderer, `lcmt_mailer_file_*()` helpers), cached per request.
 
-### Post meta `_lcmt_mail_file_formats` / `_lcmt_mail_file_max_size`
-Not hooks: the **File uploads** settings of a mail template (`MetaFields::FIELD_FILE_FORMATS`, a comma list of format ids, missing = `jpg,png,pdf`; `MetaFields::FIELD_FILE_MAX_SIZE`, whole MB, missing = 10). Copied to translations (`wpml-config.xml`).
+### Post meta `_lcmt_mail_file_formats` / `_lcmt_mail_file_max_size` / `_lcmt_mail_file_max_files`
+Not hooks: the **File uploads** settings of a mail template (`MetaFields::FIELD_FILE_FORMATS`, a comma list of format ids, missing = `jpg,png,pdf`; `MetaFields::FIELD_FILE_MAX_SIZE`, whole MB, missing = 10; `MetaFields::FIELD_FILE_MAX_FILES`, files per `[name files]` field, 1 to 20, missing = 3). Copied to translations (`wpml-config.xml`).
 
 ### `lcmt_mailer_captcha_providers`
 Register a spam protection. Keys are provider ids, values are classes implementing `LcmtDevMailer\CaptchaProvider`.

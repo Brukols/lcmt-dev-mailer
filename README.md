@@ -40,8 +40,9 @@ Placeholders define the form fields. Write them in the **To**, **Subject** or **
 | `textarea` | `<textarea>`             |        |
 | `hidden`   | `<input type="hidden">`  |        |
 | `file`     | `<input type="file">`    |        |
+| `files`    | `<input type="file" name="x[]" multiple>` |  |
 
-A `file` field (`[brief file]`, `[brief* file]`) is attached to the email; in the mail content, the placeholder is replaced by the file's name. See [File fields](#file-fields).
+A `file` field (`[brief file]`, `[brief* file]`) is attached to the email; in the mail content, the placeholder is replaced by the file's name. A `files` field (`[attachment files]`, `[attachment* files]`) takes several files, all attached; the placeholder shows their names, separated by commas. See [File fields](#file-fields).
 
 ### Example
 
@@ -116,7 +117,7 @@ A `tel` value holds 6 to 20 digits, an optional leading `+`, and any spaces, dot
 - `404` — Unknown form key
 - `500` — Email sending failed. The visitor is told so, to try again later or write by email, since the site owner may never open the admin. When the form saves its messages, the message is still in Received messages, with the failure banner and **Send the email again**.
 
-With a file field, the form script sends `multipart/form-data` instead (see [File fields](#file-fields)): the same fields, the file under its field name, and `_context` as a JSON string.
+With a file field, the form script sends `multipart/form-data` instead (see [File fields](#file-fields)): the same fields, the file under its field name (the files of a `files` field all under `name[]`), and `_context` as a JSON string.
 
 ### Success message
 
@@ -227,13 +228,16 @@ Fields in error get `aria-invalid="true"`, and so do their `label[for]`, the `<l
 
 A `[name file]` placeholder (`[name* file]` when required) asks the visitor for one file, attached to the email. The mail content shows the file name (cleaned: no path, no special characters, 120 characters at most).
 
+A `[name files]` placeholder (`[name* files]` when at least one file is required) asks for **several files**: the input is `<input type="file" name="name[]" multiple>`, every file is attached, and the mail content shows the file names separated by commas (`plan.pdf, logo.png`).
+
 **Per template**, the **File uploads** row of the mail template sets:
 - **Allowed formats**: JPG/JPEG, PNG, WEBP, GIF, TIFF, PDF, AI (Adobe Illustrator), EPS, SVG. Nothing ticked means JPG, PNG and PDF (the default of a new template).
 - **Maximum size** in MB, per file (default 10). The row shows the server's own limit (`wp_max_upload_size()`: `upload_max_filesize` and `post_max_size`); a larger value is lowered to it, when saved and on every request.
+- **Maximum number of files**, for each `files` field (default 3, at most 20, and never more than PHP's `max_file_uploads`). Formats and size apply to each file. Keep `post_max_size` above the number of files × the size, or a full selection is refused as too large.
 
-**Checks on the server** (422 with `errors`): required file, a single file per field, PHP upload errors, `is_uploaded_file()`, the size, the extension, then the **content**: the MIME type the file really has (fileinfo) must be one of its format's (an AI file may hold a PDF or PostScript, TIFF is `image/tiff`, SVG `image/svg+xml`…), and `wp_check_filetype_and_ext()` must agree. A renamed file is refused. An SVG is only ever attached to the email, never shown on the site.
+**Checks on the server** (422 with `errors`): required file, a single file per `file` field, at most the maximum number of files per `files` field, PHP upload errors, `is_uploaded_file()`, the size, the extension, then the **content**: the MIME type the file really has (fileinfo) must be one of its format's (an AI file may hold a PDF or PostScript, TIFF is `image/tiff`, SVG `image/svg+xml`…), and `wp_check_filetype_and_ext()` must agree. A renamed file is refused. An SVG is only ever attached to the email, never shown on the site. In a `files` field each file goes through every check, and each refused file gets its own error naming the field and the file (*The field "attachment": the file "plan.exe" must be in one of these formats: JPG, PNG, PDF.*); the email goes only when every file passes.
 
-**Never kept**: the upload is moved to a private folder of its own under `get_temp_dir()` (0700, random name), attached under the visitor's file name, and deleted right after `wp_mail()`, sent or not. Received messages only store the file name. A message blocked by the spam protection keeps no file (PHP deletes the upload at the end of the request). **Send the email again** sends the email **without** the file; the message screen says so.
+**Never kept**: the upload is moved to a private folder of its own under `get_temp_dir()` (0700, random name, one folder per file), attached under the visitor's file name, and deleted right after `wp_mail()`, sent or not. Received messages only store the file names. A message blocked by the spam protection keeps no file (PHP deletes the upload at the end of the request). **Send the email again** sends the email **without** the files; the message screen says so.
 
 **In the form file**, three helpers (guard them with `function_exists()`):
 
@@ -249,9 +253,22 @@ A `[name file]` placeholder (`[name* file]` when required) asks the visitor for 
 |--------|---------|
 | `lcmt_mailer_file_accept($key)` | The `accept` value: `.jpg,.jpeg,.png,.pdf` (`''` for an unknown key) |
 | `lcmt_mailer_file_max_size($key)` | The maximum size in bytes (`0` for an unknown key) |
-| `lcmt_mailer_file_hint($key)` | A translated line, not escaped: *Formats : JPG, PNG, PDF — 10 Mo maximum* |
+| `lcmt_mailer_file_max_files($key)` | The number of files each `files` field takes (`0` for an unknown key) |
+| `lcmt_mailer_file_hint($key)` | A translated line, not escaped: *Formats : JPG, PNG, PDF — 10 Mo maximum*; on a form with a `files` field, *Formats : JPG, PNG, PDF — 10 Mo maximum par fichier, 3 fichiers maximum* |
+
+For a `files` field, the input is sent as `name[]` with `multiple`, and an optional list element shows the chosen files:
+
+```php
+<label for="devis-pieces">Pièces jointes</label>
+<input type="file" id="devis-pieces" name="pieces[]" multiple
+       accept="<?php echo esc_attr(function_exists('lcmt_mailer_file_accept') ? lcmt_mailer_file_accept('devis') : ''); ?>">
+<ul data-lcmt-file-list="pieces"></ul>
+<small><?php echo esc_html(function_exists('lcmt_mailer_file_hint') ? lcmt_mailer_file_hint('devis') : ''); ?></small>
+```
 
 **In the browser**, the plugin puts the limits on the `<form>` (`data-lcmt-file-extensions`, `data-lcmt-file-max-size`, `data-lcmt-file-hint`, and `enctype="multipart/form-data"`), so the script checks the chosen file's extension and size before sending and shows *This file format is not accepted.* / *This file is too large.* followed by the hint; the field gets `aria-invalid="true"` like any field in error. An element with `data-lcmt-file-name="<field>"` shows the chosen file name (its own text comes back when the file is cleared or the form reset) and gets a `data-lcmt-file-chosen` attribute while a file is chosen, for styling.
+
+A `files` field keeps a **list of files** in the browser: each selection adds to it (a file already in the list, same name and size, is ignored), up to the maximum number of files (`data-lcmt-file-max-files` on the form; beyond it, *Too many files.* and the hint), and the input itself is emptied after each selection. The element `[data-lcmt-file-list="<field>"]` (the field name without `[]`) gets one `<li>` per file: the file name in a `<span>` and `<button type="button" data-lcmt-file-remove aria-label="Retirer plan.pdf">×</button>`, which takes the file off the list; it carries `data-lcmt-file-chosen` while the list is not empty. Each kept file is checked (format, size) before sending and sent under `name[]`; resetting the form empties the list.
 
 Filters: [`lcmt_mailer_file_formats`](.claude/hooks.md) (the format map) and [`lcmt_mailer_file_limits`](.claude/hooks.md) (formats and size of one form).
 
