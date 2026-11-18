@@ -139,3 +139,73 @@ lcmt_it('the mail shows the file names of a files field', function () {
 
     lcmt_assert_true(str_contains((string) $form['content'], 'Files: plan.pdf, logo.png / Brief: brief.pdf'), (string) $form['content']);
 });
+
+function lcmt_it_file_row(string $content, array $meta = []): array
+{
+    [$post] = lcmt_it_file_template($content, $meta);
+
+    ob_start();
+    MetaFields::render($post);
+    $html = (string) ob_get_clean();
+
+    $row = preg_match('/<tr id="lcmt-file-uploads"( hidden)?>/', $html, $m) ? (isset($m[1]) ? 'hidden' : 'shown') : 'missing';
+    $max = preg_match('/<div id="lcmt-file-max-files"( hidden)?>/', $html, $m) ? (isset($m[1]) ? 'hidden' : 'shown') : 'missing';
+
+    return [$post, $html, $row, $max];
+}
+
+lcmt_it('the File uploads row is hidden on a template without a file field', function () {
+    [, $html, $row, $max] = lcmt_it_file_row('[firstname*] [message textarea]');
+
+    lcmt_assert_same(['hidden', 'hidden'], [$row, $max]);
+    lcmt_assert_true(str_contains($html, 'admin-file-settings.js') || wp_script_is('lcmt-admin-file-settings', 'enqueued'), 'script enqueued');
+});
+
+lcmt_it('a single file field shows the row without the number of files', function () {
+    [, , $row, $max] = lcmt_it_file_row('[firstname*] [brief* file]');
+
+    lcmt_assert_same(['shown', 'hidden'], [$row, $max]);
+});
+
+lcmt_it('a files field in any mail field shows the number of files', function () {
+    [, , $row, $max] = lcmt_it_file_row('[firstname*]', ['_lcmt_mail_subject' => 'Files [attachment files]']);
+
+    lcmt_assert_same(['shown', 'shown'], [$row, $max]);
+});
+
+lcmt_it('hidden file settings keep their stored values when the template is saved', function () {
+    [$post, $html] = lcmt_it_file_row('[firstname*]', [
+        '_lcmt_mail_file_formats'   => 'gif',
+        '_lcmt_mail_file_max_size'  => '3',
+        '_lcmt_mail_file_max_files' => '7',
+    ]);
+
+    // What the browser posts: every input of the row, hidden or not.
+    preg_match_all('/name="lcmt_mail_file_formats\[\]" value="([a-z]+)"\\s+checked/', $html, $ticked);
+    preg_match('/name="lcmt_mail_file_max_size" value="(\d+)"/', $html, $size);
+    preg_match('/name="lcmt_mail_file_max_files" value="(\d+)"/', $html, $files);
+
+    $admins = get_users(['role' => 'administrator', 'number' => 1, 'fields' => 'ID']);
+    wp_set_current_user((int) ($admins[0] ?? 0));
+
+    $_POST = [
+        'lcmt_mail_fields_nonce'   => wp_create_nonce('lcmt_mail_fields'),
+        'lcmt_mail_file_settings'  => '1',
+        'lcmt_mail_file_formats'   => $ticked[1],
+        'lcmt_mail_file_max_size'  => $size[1] ?? '',
+        'lcmt_mail_file_max_files' => $files[1] ?? '',
+    ];
+
+    MetaFields::save($post->ID);
+    $_POST = [];
+    wp_set_current_user(0);
+
+    lcmt_assert_same(
+        ['gif', '3', '7'],
+        [
+            get_post_meta($post->ID, MetaFields::FIELD_FILE_FORMATS, true),
+            get_post_meta($post->ID, MetaFields::FIELD_FILE_MAX_SIZE, true),
+            get_post_meta($post->ID, MetaFields::FIELD_FILE_MAX_FILES, true),
+        ]
+    );
+});

@@ -230,7 +230,7 @@ A `[name file]` placeholder (`[name* file]` when required) asks the visitor for 
 
 A `[name files]` placeholder (`[name* files]` when at least one file is required) asks for **several files**: the input is `<input type="file" name="name[]" multiple>`, every file is attached, and the mail content shows the file names separated by commas (`plan.pdf, logo.png`).
 
-**Per template**, the **File uploads** row of the mail template sets:
+**Per template**, the **File uploads** row of the mail template sets the following. It only shows once To, Reply-To, Subject or Content holds a `file` or `files` placeholder (as soon as it is typed, before saving), and **Maximum number of files** only with a `files` placeholder; hidden settings keep their values:
 - **Allowed formats**: JPG/JPEG, PNG, WEBP, GIF, TIFF, PDF, AI (Adobe Illustrator), EPS, SVG. Nothing ticked means JPG, PNG and PDF (the default of a new template).
 - **Maximum size** in MB, per file (default 10). The row shows the server's own limit (`wp_max_upload_size()`: `upload_max_filesize` and `post_max_size`); a larger value is lowered to it, when saved and on every request.
 - **Maximum number of files**, for each `files` field (default 3, at most 20, and never more than PHP's `max_file_uploads`). Formats and size apply to each file. Keep `post_max_size` above the number of files × the size, or a full selection is refused as too large.

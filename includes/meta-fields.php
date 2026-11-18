@@ -203,9 +203,11 @@ class MetaFields
     }
 
     /**
-     * The "File uploads" row: the formats and the size the file fields
-     * ([name file]) of this template accept. Shown on every template, with a
-     * note when it has no file field yet.
+     * The "File uploads" row: the formats, the size and the number of files
+     * the file fields ([name file], [name files]) of this template accept.
+     * Hidden (still posted, so the values are kept) without a file field,
+     * its "Maximum number of files" without a [name files] field; the
+     * admin-file-settings script shows them as soon as one is typed.
      */
     private static function renderFileUploads(\WP_Post $post, string $to, string $replyTo, string $subject, string $content): void
     {
@@ -214,23 +216,26 @@ class MetaFields
         $server   = FileField::serverLimit();
         $serverMb = FileField::serverMaxMb($server);
         $maxMb    = min(FileField::storedMaxMb($post->ID), $serverMb);
-        $hasFile  = FileField::hasFileField(FieldParser::parse($to, $replyTo, $subject, $content));
+        $visible  = FileField::settingsVisibility(FieldParser::parse($to, $replyTo, $subject, $content));
         $serverFiles = FileField::serverMaxFiles();
         $maxFilesTop = $serverFiles > 0 ? min(FileField::MAX_FILES_LIMIT, $serverFiles) : FileField::MAX_FILES_LIMIT;
         $maxFiles    = min(FileField::storedMaxFiles($post->ID), $maxFilesTop);
 
-        echo '<tr>';
+        wp_enqueue_script(
+            'lcmt-admin-file-settings',
+            LCMT_MAILER_URL . 'assets/dist/admin-file-settings.js',
+            [],
+            lcmt_mailer_asset_version('assets/dist/admin-file-settings.js'),
+            true
+        );
+
+        echo '<tr id="lcmt-file-uploads"' . ($visible['row'] ? '' : ' hidden') . '>';
         echo '<th>' . esc_html__('File uploads', 'lcmt-dev-mailer') . '</th>';
         echo '<td>';
         echo '<input type="hidden" name="lcmt_mail_file_settings" value="1" />';
 
         echo '<p class="description" style="margin-bottom: 8px;">';
         echo esc_html__('For the file fields of this template, written [name file] or [name* file]. The file is attached to the email and never kept on the site: received messages only keep its name.', 'lcmt-dev-mailer');
-
-        if (!$hasFile) {
-            echo ' <em>' . esc_html__('This template has no file field yet.', 'lcmt-dev-mailer') . '</em>';
-        }
-
         echo '</p>';
 
         echo '<fieldset>';
@@ -254,10 +259,12 @@ class MetaFields
             FileField::sizeText($server)
         )) . '</p>';
 
+        echo '<div id="lcmt-file-max-files"' . ($visible['maxFiles'] ? '' : ' hidden') . '>';
         echo '<p style="margin-top: 12px;"><label for="lcmt_mail_file_max_files" style="font-weight: 600;">' . esc_html__('Maximum number of files', 'lcmt-dev-mailer') . '</label> ';
         echo '<input type="number" id="lcmt_mail_file_max_files" name="lcmt_mail_file_max_files" value="' . esc_attr((string) $maxFiles) . '" min="1" max="' . esc_attr((string) $maxFilesTop) . '" step="1" class="small-text" /></p>';
 
         echo '<p class="description">' . esc_html__('For each field taking several files, written [name files] or [name* files]. The formats and the maximum size apply to each file.', 'lcmt-dev-mailer') . '</p>';
+        echo '</div>';
         echo '</td>';
         echo '</tr>';
     }

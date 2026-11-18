@@ -436,6 +436,16 @@ class FileFieldTest extends TestCase
         $this->assertSame(['The file of the field "attachment" could not be received. Please try again.'], $result['errors']);
     }
 
+    public function test_the_file_settings_show_only_for_the_fields_they_apply_to(): void
+    {
+        $field = static fn(string $type) => ['x' => ['name' => 'x', 'required' => false, 'type' => $type]];
+
+        $this->assertSame(['row' => false, 'maxFiles' => false], FileField::settingsVisibility([]));
+        $this->assertSame(['row' => false, 'maxFiles' => false], FileField::settingsVisibility($field('text')));
+        $this->assertSame(['row' => true, 'maxFiles' => false], FileField::settingsVisibility($field('file')));
+        $this->assertSame(['row' => true, 'maxFiles' => true], FileField::settingsVisibility($field('files')));
+    }
+
     // ── _context ──
 
     public function test_the_context_of_a_multipart_body_is_decoded_from_json(): void

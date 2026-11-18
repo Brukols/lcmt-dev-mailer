@@ -61,6 +61,7 @@ lcmt-dev-mailer/
 │   │   ├── admin-uninstall.js   # Plugins screen: on deactivation, opens a dialog asking whether a later deletion deletes the messages
 │   │   ├── admin-stats.js       # Statistics page: Chart | Table toggle of each box
 │   │   ├── admin-privacy-docs.js # Data retention page: Copy buttons of the Privacy policy section
+│   │   ├── admin-file-settings.js # Mail template screen: shows the File uploads row and its Maximum number of files only while a file / files placeholder is typed
 │   │   ├── attribution.js       # Remembers the landing page of the visit
 │   │   ├── form-handler.js
 │   │   ├── captcha-altcha.js    # ALTCHA browser adapter (bundles `altcha`)
@@ -72,6 +73,7 @@ lcmt-dev-mailer/
 │   │   ├── lib/request-url.js   # REST URL of a form, with the page language as `lang`, tested under node
 │   │   ├── lib/field-value.js   # Value a control submits: an unticked checkbox or radio is empty, a file field its file name, tested under node
 │   │   ├── lib/field-errors.js  # What turns red with a field in error (labels, legend, radio group), and the event that clears it, tested under node
+│   │   ├── lib/file-settings.js # Placeholders parsed as FieldParser::parse() does, and which file settings they need, tested under node
 │   │   ├── lib/file-field.js    # File fields: browser check of extension/size/number, JSON or multipart body, chosen file name, list of files of a [name files] field, tested under node
 │   │   └── lib/form-success.js  # `lcmt:success` event, then confirmation page or success message, tested under node
 │   └── dist/                    # Minified output (esbuild)
@@ -94,6 +96,7 @@ Native WordPress meta box with these fields:
 - `_lcmt_mail_success_message` (`FIELD_SUCCESS_MESSAGE`) — optional message shown after a successful submission of this form (textarea, the site's message as placeholder); deleted when saved empty, so the site's message (`Settings::siteSuccessMessage()`) shows. Translated with the mail (`wpml-config.xml`)
 - `_lcmt_mail_file_formats` (`FIELD_FILE_FORMATS`) — comma list of the format ids the file fields accept (checkboxes of the **File uploads** row); deleted when nothing is ticked, so `FileField::DEFAULT_FORMATS` (`jpg,png,pdf`) applies. Copied to translations
 - `_lcmt_mail_file_max_size` (`FIELD_FILE_MAX_SIZE`) — maximum size per file in whole MB (default 10), lowered to `FileField::serverMaxMb(wp_max_upload_size())` on save; the **File uploads** row shows the server's limit next to it. Saved only when the row's hidden `lcmt_mail_file_settings` marker is posted. Copied to translations
+- The **File uploads** row (`renderFileUploads()`, `<tr id="lcmt-file-uploads">`) is rendered with `hidden` when To, Reply-To, Subject and Content hold no `file` / `files` placeholder, and its **Maximum number of files** (`<div id="lcmt-file-max-files">`) without a `files` one (`FileField::settingsVisibility()`, from `FieldParser::parse()`). `admin-file-settings.js` (`lib/file-settings.js`) keeps both in step while the admin types, in the inputs, the Text tab and the visual editor (TinyMCE `input`/`keyup`/`change`/`NodeChange`/`SetContent`, hooked once TinyMCE has loaded). Hidden settings are still posted with their stored values, so saving never resets them
 - `_lcmt_mail_file_max_files` (`FIELD_FILE_MAX_FILES`) — maximum number of files of each `[name files]` field (default `FileField::DEFAULT_MAX_FILES` = 3, from 1 to `MAX_FILES_LIMIT` = 20), lowered to PHP's `max_file_uploads` on save and on every request. Saved with the other two, only when the marker is posted. Copied to translations
 - `_lcmt_mail_confirmation_page` (`FIELD_CONFIRMATION_PAGE`) — ID of the page a visitor is sent to after a successful submission; a select of published pages (`wp_dropdown_pages()`, "None" = `0`). Saved only when the ID is a `page`, deleted otherwise. A stored page that is no longer published is flagged under the select, and saving clears it.
 

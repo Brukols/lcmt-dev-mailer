@@ -413,6 +413,19 @@ class FileField
     }
 
     /**
+     * What the "File uploads" row of the template screen shows: the row only
+     * with a file or files field, its "Maximum number of files" only with a
+     * files field. lib/file-settings.js keeps it in step while the admin types.
+     *
+     * @param array<string, array{name: string, required: bool, type: string}> $fields
+     * @return array{row: bool, maxFiles: bool}
+     */
+    public static function settingsVisibility(array $fields): array
+    {
+        return ['row' => self::hasFileField($fields), 'maxFiles' => self::hasMultipleFileField($fields)];
+    }
+
+    /**
      * The entry of a [name files] field in $_FILES, one entry per file in
      * the shape of a single upload: PHP gives `name[]` as arrays of names,
      * tmp_names, errors and sizes. Slots without a file (an empty selection)
