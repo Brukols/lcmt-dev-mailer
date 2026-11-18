@@ -10,7 +10,9 @@
  *   - aria-invalid on inputs, their labels and the legend of their fieldset
  *     (a whole radio group at once), see lib/field-errors.js
  *   - File fields: browser check of format and size, multipart body, the
- *     chosen file name in [data-lcmt-file-name] (see lib/file-field.js)
+ *     chosen file name in [data-lcmt-file-name]; a field taking several
+ *     files keeps a list of them, shown in [data-lcmt-file-list] (see
+ *     lib/file-field.js)
  *   - A bubbling `lcmt:success` event on the form, then the form's
  *     confirmation page when it has one (see lib/form-success.js)
  *
@@ -24,7 +26,10 @@ import { requestUrl } from './lib/request-url';
 import { fieldValue } from './lib/field-value';
 import { handleSuccess } from './lib/form-success';
 import { errorGroup, clearEvent } from './lib/field-errors';
-import { fileLimits, fileProblem, requestBody, showFileName } from './lib/file-field';
+import {
+  fileLimits, fileProblem, requestBody, showFileName,
+  fileMaxFiles, fieldBaseName, filesProblem, fileListController,
+} from './lib/file-field';
 import { captchaToken, resetCaptcha } from './lib/captcha/registry';
 import { scriptBase, adapterLoader } from './lib/captcha/script-loader';
 
@@ -183,15 +188,75 @@ import { scriptBase, adapterLoader } from './lib/captcha/script-loader';
       }
     }
 
+    var frontStrings = (window.lcmtMailerFront && window.lcmtMailerFront.i18n) || {};
+
+    // Fields taking several files (<input type="file" name="x[]" multiple>):
+    // each keeps the files of every selection, listed in the
+    // [data-lcmt-file-list="x"] element the form file may hold.
+    var maxFiles = fileMaxFiles(form);
+    var fileLists = [];
+    var multipleInputs = form.querySelectorAll('input[type="file"][multiple]');
+
+    for (var m = 0; m < multipleInputs.length; m++) {
+      var listEl = null;
+      var listEls = form.querySelectorAll('[data-lcmt-file-list]');
+
+      for (var l = 0; l < listEls.length; l++) {
+        if (listEls[l].getAttribute('data-lcmt-file-list') === fieldBaseName(multipleInputs[m].name)) listEl = listEls[l];
+      }
+
+      fileLists.push({
+        input: multipleInputs[m],
+        list: fileListController(multipleInputs[m], listEl, {
+          maxFiles: maxFiles,
+          document: document,
+          removeLabel: function (name) {
+            return (frontStrings.removeFile || 'Remove %s').replace('%s', name);
+          },
+        }),
+      });
+    }
+
+    function fileListOf(input) {
+      for (var k = 0; k < fileLists.length; k++) {
+        if (fileLists[k].input === input) return fileLists[k].list;
+      }
+
+      return null;
+    }
+
+    function fileAlert(problem, hint) {
+      var message = problem === 'count'
+        ? frontStrings.tooManyFiles || 'Too many files.'
+        : problem === 'size'
+          ? frontStrings.fileTooLarge || 'This file is too large.'
+          : frontStrings.fileType || 'This file format is not accepted.';
+
+      showAlert(hint ? message + ' ' + hint : message, 'error');
+    }
+
     form.addEventListener('change', function (e) {
-      if (e.target && e.target.type === 'file') refreshFileName(e.target);
+      if (!e.target || e.target.type !== 'file') return;
+
+      var list = fileListOf(e.target);
+
+      if (!list) {
+        refreshFileName(e.target);
+        return;
+      }
+
+      if (list.choose() > 0) fileAlert('count', fileLimits(form).hint);
     });
 
     // reset fires before the fields are cleared.
     form.addEventListener('reset', function () {
+      for (var k = 0; k < fileLists.length; k++) fileLists[k].list.clear();
+
       setTimeout(function () {
         var files = form.querySelectorAll('input[type="file"]');
-        for (var k = 0; k < files.length; k++) refreshFileName(files[k]);
+        for (var k = 0; k < files.length; k++) {
+          if (!fileListOf(files[k])) refreshFileName(files[k]);
+        }
       }, 0);
     });
 
@@ -216,8 +281,12 @@ import { scriptBase, adapterLoader } from './lib/captcha/script-loader';
       for (var i = 0; i < inputs.length; i++) {
         var input = inputs[i];
         var name = input.name;
-        // An unticked box counts as empty, see lib/field-value.js.
-        var value = fieldValue(input, inputs);
+        var kept = fileListOf(input);
+        // An unticked box counts as empty, see lib/field-value.js. A field
+        // taking several files counts its kept files, not the input.
+        var value = kept
+          ? kept.files().map(function (f) { return f.name; }).join(', ')
+          : fieldValue(input, inputs);
 
         if (input.required && !value) {
           markFieldError(input);
@@ -228,6 +297,20 @@ import { scriptBase, adapterLoader } from './lib/captcha/script-loader';
         if (input.type === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
           markFieldError(input);
           errorFields.push(name);
+          continue;
+        }
+
+        if (kept) {
+          var keptProblem = filesProblem(kept.files(), limits, maxFiles);
+
+          if (keptProblem) {
+            markFieldError(input);
+            fileError = fileError || keptProblem;
+            continue;
+          }
+
+          // Every kept file, under name[].
+          fileInputs.push({ name: name, files: kept.files(), multiple: true });
           continue;
         }
 
@@ -257,11 +340,7 @@ import { scriptBase, adapterLoader } from './lib/captcha/script-loader';
       }
 
       if (fileError) {
-        var fileMessage = fileError === 'size'
-          ? strings.fileTooLarge || 'This file is too large.'
-          : strings.fileType || 'This file format is not accepted.';
-
-        showAlert(limits.hint ? fileMessage + ' ' + limits.hint : fileMessage, 'error');
+        fileAlert(fileError, limits.hint);
         return;
       }
 
@@ -323,7 +402,9 @@ import { scriptBase, adapterLoader } from './lib/captcha/script-loader';
               for (var i = 0; i < res.errors.length; i++) {
                 var match = res.errors[i].match(/"([^"]+)"/);
                 if (match) {
-                  var input = form.querySelector('[name="' + match[1] + '"]');
+                  // A field taking several files is sent as name[].
+                  var input = form.querySelector('[name="' + match[1] + '"]')
+                    || form.querySelector('[name="' + match[1] + '[]"]');
                   if (input) markFieldError(input);
                 }
               }
